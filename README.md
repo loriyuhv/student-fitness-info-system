@@ -23,7 +23,8 @@ student-fitness-system/
 │   ├── 05-api.md                # 接口说明
 │   ├── 06-deploy.md             # 部署/运维
 │   ├── 07-change-log.md         # 版本变更记录
-│   └── 08-faq.md                # 常见问题
+│   ├── 08-faq.md                # 常见问题
+│   └── 99-summary.md			 # 项目规范总结
 ├── fitness-backend/             # 后端服务
 ├── fitness-frontend/            # 前端服务
 ├── sql/						 # 数据库脚本
