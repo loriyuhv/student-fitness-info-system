@@ -10,3 +10,14 @@ spring:
     url: jdbc:mysql://192.168.127.150:3306/student_fitness_info_db?rewriteBatchedStatements=true
     username: root
     password: "0420"
+mybatis-plus:
+  type-aliases-package: com.wsw.fitnesssystem.infrastructure.persistence.entity
+  configuration:
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+    map-underscore-to-camel-case: true
+    call-setters-on-nulls: true
+  global-config:
+    db-config:
+      id-type: auto
+      logic-delete-value: 1
+      logic-not-delete-value: 0
