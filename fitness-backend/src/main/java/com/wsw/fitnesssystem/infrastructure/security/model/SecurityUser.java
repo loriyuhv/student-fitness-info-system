@@ -1,6 +1,6 @@
 package com.wsw.fitnesssystem.infrastructure.security.model;
 
-import com.wsw.fitnesssystem.domain.user.User;
+import com.wsw.fitnesssystem.domain.auth.model.AuthUser;
 import lombok.Getter;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -8,6 +8,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.Collection;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * @author loriyuhv
@@ -15,47 +16,56 @@ import java.util.Set;
  * @since 1.0
  */
 @Getter
-public class LoginUser implements UserDetails {
-    private final User user;
+public class SecurityUser implements UserDetails {
+    /**
+     * 用户信息
+     * */
+    private final AuthUser authUser;
 
     /**
      * 当前用户的权限集合
      */
-    private final Set<String> authorities;
+    private final Set<GrantedAuthority> authorities;
 
-    public LoginUser(User user, Set<String> authorities) {
-        this.user = user;
-        this.authorities = authorities;
+    public SecurityUser(AuthUser authUser) {
+        this.authUser = authUser;
+        this.authorities =
+            authUser.allAuthorities().stream()
+                .map(SimpleGrantedAuthority::new)
+                .collect(Collectors.toSet());
+    }
+
+    public Long getUserId() {
+        return authUser.getUserId();
     }
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return authorities.stream()
-            .map(SimpleGrantedAuthority::new)
-            .toList();
+        return authorities;
     }
 
     /* ================== UserDetails 必须实现的方法 ================== */
+
     @Override
     public String getPassword() {
-        return user.getPassword();
+        return authUser.getPassword();
     }
 
     @Override
     public String getUsername() {
-        return user.getUsername();
+        return authUser.getUsername();
     }
 
     @Override
     public boolean isEnabled() {
-        return user.isEnabled();
+        return authUser.isEnabled();
     }
 
     @Override
     public String toString() {
-        return "LoginUser{" +
-            "userId=" + user.getUserId() +
-            ", username='" + user.getUsername() + '\'' +
+        return "SecurityUser{" +
+            "userId=" + authUser.getUserId() +
+            ", username='" + authUser.getUsername() + '\'' +
             ", authorities=" + authorities +
             '}';
     }

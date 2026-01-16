@@ -10,6 +10,17 @@ spring:
     url: jdbc:mysql://192.168.127.150:3306/student_fitness_info_db?rewriteBatchedStatements=true
     username: root
     password: "0420"
+  data:
+    redis:
+      host: 192.168.127.200
+      port: 6379
+      password: "20010420"
+      lettuce:
+        pool:
+          max-active: 8
+          max-idle: 8
+          min-idle: 0
+          max-wait: 100
 mybatis-plus:
   type-aliases-package: com.wsw.fitnesssystem.infrastructure.persistence.entity
   configuration:
@@ -21,3 +32,11 @@ mybatis-plus:
       id-type: auto
       logic-delete-value: 1
       logic-not-delete-value: 0
+jwt:
+  access-secret: "84hQeGado6JIMKBNDJudeQuogatipj9xluip2moqvp3qLozvz043hDDTWcSuF8Fn"
+  refresh-secret: "2ySXSQB9puHMYGOmMnykDH4fscjo7NIqNIpiG2SUWcxlvAfLv6WiCUWv590JeuE2"
+  min-length: 32
+  expire: 7200000
+  refresh-expire: 604800000
+  issuer: "student-fitness"
+  audience: "web-client"

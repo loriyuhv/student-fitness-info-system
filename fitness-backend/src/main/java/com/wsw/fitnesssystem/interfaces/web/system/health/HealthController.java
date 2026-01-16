@@ -1,4 +1,4 @@
-package com.wsw.fitnesssystem.interfaces.system.health;
+package com.wsw.fitnesssystem.interfaces.web.system.health;
 
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
