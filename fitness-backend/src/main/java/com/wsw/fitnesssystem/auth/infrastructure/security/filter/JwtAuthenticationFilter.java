@@ -1,11 +1,10 @@
 package com.wsw.fitnesssystem.auth.infrastructure.security.filter;
 
-import com.wsw.fitnesssystem.auth.application.authorization.UserAuthorization;
+import com.wsw.fitnesssystem.auth.application.authorization.dto.UserAuthorization;
 import com.wsw.fitnesssystem.auth.infrastructure.security.support.SecurityResponseWriter;
-import com.wsw.fitnesssystem.shared.exception.BizException;
 import com.wsw.fitnesssystem.auth.infrastructure.audit.service.LoginAuditService;
 import com.wsw.fitnesssystem.auth.infrastructure.jwt.service.JwtTokenService;
-import com.wsw.fitnesssystem.auth.infrastructure.security.authorization.AuthorizationCacheService;
+import com.wsw.fitnesssystem.auth.application.port.AuthorizationCacheService;
 import com.wsw.fitnesssystem.auth.infrastructure.session.LoginSessionService;
 import com.wsw.fitnesssystem.shared.response.ResultCode;
 import io.jsonwebtoken.Claims;
@@ -75,7 +74,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             String username = claims.get("username", String.class);
 
             if (!StringUtils.hasText(userId) || !StringUtils.hasText(tokenId)) {
-                throw new BizException(ResultCode.TOKEN_INVALID);
+                responseWriter.write(response, ResultCode.TOKEN_INVALID);
+                return;
             }
 
             Long uid = Long.parseLong(userId);
@@ -83,15 +83,17 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             // 3. 会话是否仍在线（踢人 / 注销 / 单点）
             if (!loginSessionService.isOnline(uid, tokenId)) {
                 loginAuditService.expire(uid, tokenId);
-                throw new BizException(ResultCode.TOKEN_INVALID);
+                responseWriter.write(response, ResultCode.TOKEN_INVALID);
+                return;
             }
 
             // 4. 读取权限（只信 Redis，不信 Token）
             UserAuthorization authorization =
-                authorizationCacheService.get(uid, tokenId);
+                authorizationCacheService.get(uid);
 
             if (authorization == null) {
-                throw new BizException(ResultCode.PERMISSION_EXPIRED);
+                responseWriter.write(response, ResultCode.PERMISSION_EXPIRED);
+                return;
             }
 
             Set<GrantedAuthority> authorities =
@@ -129,16 +131,15 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             }
 
             SecurityContextHolder.clearContext();
-            throw new BizException(ResultCode.TOKEN_EXPIRED);
 
+            responseWriter.write(response, ResultCode.TOKEN_EXPIRED);
+            return;
         } catch (Exception e) {
             // 8. 兜底：非法 / 篡改 / 未知异常
             SecurityContextHolder.clearContext();
 
-            log.warn("JWT 解析异常", e);
-
             responseWriter.write(response, ResultCode.TOKEN_INVALID);
-            return;  // 必须return，不能继续filterChain
+            return;
         }
 
         // 9. 继续过滤器链

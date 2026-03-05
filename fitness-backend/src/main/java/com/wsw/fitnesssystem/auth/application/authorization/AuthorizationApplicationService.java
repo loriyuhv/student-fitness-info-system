@@ -1,5 +1,6 @@
 package com.wsw.fitnesssystem.auth.application.authorization;
 
+import com.wsw.fitnesssystem.auth.application.authorization.dto.UserAuthorization;
 import com.wsw.fitnesssystem.auth.domain.model.AuthUser;
 
 /**

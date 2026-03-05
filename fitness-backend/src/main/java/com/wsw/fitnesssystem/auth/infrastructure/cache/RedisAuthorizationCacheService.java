@@ -1,7 +1,7 @@
-package com.wsw.fitnesssystem.auth.infrastructure.security.authorization.impl;
+package com.wsw.fitnesssystem.auth.infrastructure.cache;
 
-import com.wsw.fitnesssystem.auth.application.authorization.UserAuthorization;
-import com.wsw.fitnesssystem.auth.infrastructure.security.authorization.AuthorizationCacheService;
+import com.wsw.fitnesssystem.auth.application.authorization.dto.UserAuthorization;
+import com.wsw.fitnesssystem.auth.application.port.AuthorizationCacheService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -29,8 +29,8 @@ public class RedisAuthorizationCacheService
     private final RedisTemplate<String, Object> redisTemplate;
 
     @Override
-    public void cache(UserAuthorization authorization, String tokenId) {
-        String key = buildKey(authorization.userId(), tokenId);
+    public void cache(UserAuthorization authorization) {
+        String key = buildKey(authorization.userId());
         redisTemplate.opsForValue().set(
             key,
             authorization,
@@ -39,10 +39,10 @@ public class RedisAuthorizationCacheService
     }
 
     @Override
-    public UserAuthorization get(Long userId, String tokenId) {
+    public UserAuthorization get(Long userId) {
 
         Object value =
-            redisTemplate.opsForValue().get(buildKey(userId, tokenId));
+            redisTemplate.opsForValue().get(buildKey(userId));
 
         if (value instanceof UserAuthorization authorization) {
             return authorization;
@@ -51,11 +51,11 @@ public class RedisAuthorizationCacheService
     }
 
     @Override
-    public void evict(Long userId, String tokenId) {
-        redisTemplate.delete(buildKey(userId, tokenId));
+    public void evict(Long userId) {
+        redisTemplate.delete(buildKey(userId));
     }
 
-    private String buildKey(Long userId, String tokenId) {
+    private String buildKey(Long userId) {
         return KEY_PREFIX + userId;
     }
 }

@@ -1,8 +1,10 @@
-package com.wsw.fitnesssystem.auth.infrastructure.security.authorization;
+package com.wsw.fitnesssystem.auth.application.port;
 
-import com.wsw.fitnesssystem.auth.application.authorization.UserAuthorization;
+import com.wsw.fitnesssystem.auth.application.authorization.dto.UserAuthorization;
 
 /**
+ * Port: 应用层需要一个“权限缓存能力”，但不关心 Redis / Caffeine / DB。
+ * 应用层需要缓存权限抽象表达，而不是要类似Redis具体实现
  * 授权缓存服务
  * 职责：
  * - 缓存用户授权结果
@@ -20,15 +22,15 @@ public interface AuthorizationCacheService {
     /**
      * 缓存用户权限快照
      */
-    void cache(UserAuthorization authorization, String tokenId);
+    void cache(UserAuthorization authorization);
 
     /**
      * 获取用户权限快照
      */
-    UserAuthorization get(Long userId, String tokenId);
+    UserAuthorization get(Long userId);
 
     /**
      * 移除用户权限（权限变更 / 强制刷新）
      */
-    void evict(Long userId, String tokenId);
+    void evict(Long userId);
 }

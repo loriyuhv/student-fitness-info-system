@@ -1,4 +1,4 @@
-package com.wsw.fitnesssystem.auth.application.authorization;
+package com.wsw.fitnesssystem.auth.application.authorization.dto;
 
 import java.util.Set;
 

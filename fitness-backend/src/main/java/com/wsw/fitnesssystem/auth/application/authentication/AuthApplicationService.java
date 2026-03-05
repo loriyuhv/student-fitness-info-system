@@ -3,11 +3,10 @@ package com.wsw.fitnesssystem.auth.application.authentication;
 import com.wsw.fitnesssystem.auth.application.authentication.command.LoginCommand;
 import com.wsw.fitnesssystem.auth.application.authentication.dto.LoginResult;
 import com.wsw.fitnesssystem.auth.application.authorization.AuthorizationApplicationService;
-import com.wsw.fitnesssystem.auth.application.authorization.UserAuthorization;
+import com.wsw.fitnesssystem.auth.application.authorization.dto.UserAuthorization;
 import com.wsw.fitnesssystem.auth.domain.model.AuthUser;
 import com.wsw.fitnesssystem.auth.domain.service.AuthDomainService;
 import com.wsw.fitnesssystem.auth.infrastructure.audit.service.LoginAuditService;
-import com.wsw.fitnesssystem.auth.infrastructure.security.authorization.AuthorizationCacheService;
 import com.wsw.fitnesssystem.auth.infrastructure.security.service.LoginFailLimitService;
 import com.wsw.fitnesssystem.auth.infrastructure.session.LoginSession;
 import com.wsw.fitnesssystem.auth.infrastructure.session.LoginSessionService;
@@ -36,31 +35,28 @@ public class AuthApplicationService {
     private final LoginAuditService loginAuditService;
     private final LoginFailLimitService loginFailLimitService;
     private final AuthorizationApplicationService authorizationApplicationService;
-    private final AuthorizationCacheService authorizationCacheService;
 
     public LoginResult login(LoginCommand loginCommand) {
         // 1. 失败次数校验（策略）
         // loginFailLimitService.check(request.getUsername());
 
-        // 2. 核心业务登录
-        AuthUser authUser = authDomainService.login(
+        // 2. 用户认证
+        AuthUser user = authDomainService.login(
             loginCommand.getUsername(),
             loginCommand.getPassword()
         );
 
-        // 3. 授权（一次性）
+        // 3. 授权（一次性，内部自动读/写缓存）
         UserAuthorization authorization =
-            authorizationApplicationService.authorize(authUser);
+            authorizationApplicationService.authorize(user);
 
         // 4. 创建登录会话（生成 token + 写 Redis）
-        LoginSession session = loginSessionService.createSession(authUser);
+        LoginSession session = loginSessionService.createSession(user);
 
-        // 4. 缓存权限
-        authorizationCacheService.cache(authorization, session.getTokenId());
 
         // 5. 记录成功审计
         loginAuditService.loginSuccess(
-            authUser.getUserId(),
+            user.getUserId(),
             loginCommand,
             session
         );
