@@ -1,6 +1,8 @@
 package com.wsw.fitnesssystem.auth.domain.port;
 
 /**
+ * port：领域 / 应用层定义的一个“能力接口”，用于与外部世界交互。
+ * 定义的是系统需要什么能力，而不是这个能力怎么实现。
  * 密码加密 / 校验端口
  * <p>目的：</p>
  * <ul>

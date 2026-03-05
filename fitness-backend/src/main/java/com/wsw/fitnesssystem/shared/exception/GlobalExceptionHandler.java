@@ -1,7 +1,5 @@
 package com.wsw.fitnesssystem.shared.exception;
 
-import com.wsw.fitnesssystem.shared.common.exception.BizException;
-import com.wsw.fitnesssystem.shared.common.exception.SystemException;
 import com.wsw.fitnesssystem.shared.response.ApiResult;
 import com.wsw.fitnesssystem.shared.response.ResultCode;
 import lombok.extern.slf4j.Slf4j;

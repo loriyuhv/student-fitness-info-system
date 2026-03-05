@@ -1,6 +1,7 @@
 server:
   servlet:
     context-path: "/api"
+  port: 8080
 spring:
   application:
     name: "fitness-system"
@@ -17,10 +18,10 @@ spring:
       password: "20010420"
       lettuce:
         pool:
-          max-active: 8
+          max-active: 16
           max-idle: 8
-          min-idle: 0
-          max-wait: 100
+          min-idle: 5
+          max-wait: 2000ms
 mybatis-plus:
   type-aliases-package: com.wsw.fitnesssystem.infrastructure.persistence.entity
   configuration:
