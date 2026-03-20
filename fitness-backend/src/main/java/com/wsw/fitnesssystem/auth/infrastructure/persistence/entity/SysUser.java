@@ -29,6 +29,10 @@ public class SysUser implements Serializable {
     @TableId(type = IdType.AUTO)
     private Long userId;
 
+    /** 校区ID */
+    @TableField("campus_id")
+    private Long campusId;
+
     /** 登录账号（学号 / 工号） */
     private String username;
 
@@ -47,8 +51,11 @@ public class SysUser implements Serializable {
     /** 备注 */
     private String remark;
 
+    /** 用户类型：0-管理员 1-教师 2-学生 */
+    private Integer userType;
+
     /** 来源 */
-    private String source;
+    private Integer source;
 
     /** 状态：0-禁用，1-启用 */
     private Integer status;
@@ -56,6 +63,14 @@ public class SysUser implements Serializable {
     /** 逻辑删除：0-未删除，1-已删除 */
     @TableLogic(value = "0", delval = "1")
     private Integer deleted;
+
+    /** 创建人ID：只在插入时自动填充 */
+    @TableField(fill = FieldFill.INSERT)
+    private Long createBy;
+
+    /** 更新人ID：插入和更新时都填充 */
+    @TableField(fill = FieldFill.INSERT_UPDATE)
+    private Long updateBy;
 
     /** 创建时间：只在插入时自动填充 */
     @TableField(fill = FieldFill.INSERT)

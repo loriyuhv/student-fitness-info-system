@@ -26,6 +26,10 @@ public class SysRole implements Serializable {
     @TableId(value = "role_id", type = IdType.AUTO)
     private Long roleId;
 
+    /** 校区ID */
+    @TableField("campus_id")
+    private Long campusId;
+
     /**
      * 角色编码（系统唯一）
      */
@@ -37,6 +41,11 @@ public class SysRole implements Serializable {
      */
     @TableField("role_name")
     private String roleName;
+
+    /**
+     * 数据权限范围（0-全部 1-本人 2-本班 3-本学院 4-自定义）
+     */
+    private Integer dataScope;
 
     /**
      * 备注

@@ -19,20 +19,56 @@ public interface LoginSessionService {
     /**
      * 注销单个会话
      */
-    void invalidateSession(Long userId, String tokenId);
+    void invalidateSession(
+        Long campusId,
+        Long userId,
+        String accessTokenId
+    );
 
     /**
      * 注销该用户全部会话（踢人）
      */
-    void invalidateAll(Long userId);
+    void invalidateAll(
+        Long campusId,
+        Long userId
+    );
 
     /**
      * 判断该 token 是否仍然在线
      * - 是否被踢
      * - 是否已注销
      * @param userId 用户Id
-     * @param tokenId 令牌ID
+     * @param accessTokenId 令牌ID
      * @return 结果
      */
-    boolean isOnline(Long userId, String tokenId);
+    boolean isOnline(
+        Long campusId,
+        Long userId,
+        String accessTokenId
+    );
+
+    /**
+     * 限制会话数量
+     * @param userId 用户Id
+     * @param maxSessions 最大会话数
+     */
+    void limitSession(
+        Long campusId,
+        Long userId,
+        int maxSessions
+    );
+
+    /***
+     * Token添加Redis黑名单列表
+     * @param accessTokenId AccessTokenID
+     */
+    void addToBlacklist(String accessTokenId);
+
+    /***
+     * 判断该AccessToken是否在黑名单列表
+     * @param userId 用户ID
+     * @param accessTokenId AccessTokenID
+     * @return 是否
+     */
+    boolean isBlacklisted(String userId, String accessTokenId);
 }

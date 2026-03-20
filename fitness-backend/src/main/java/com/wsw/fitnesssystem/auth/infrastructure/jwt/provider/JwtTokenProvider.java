@@ -1,4 +1,4 @@
-package com.wsw.fitnesssystem.auth.infrastructure.jwt.utils;
+package com.wsw.fitnesssystem.auth.infrastructure.jwt.provider;
 
 import com.wsw.fitnesssystem.common.jwt.medel.TokenType;
 import com.wsw.fitnesssystem.auth.infrastructure.jwt.config.JwtConfig;
@@ -31,12 +31,18 @@ public class JwtTokenProvider {
 
     /***
      * 生成访问令牌（Access Token）
+     * @param campusId 用户校区唯一标识（Long类型）
      * @param userId 用户唯一标识（Long类型）
      * @param username 用户登录名（String类型）
      * @param accessTokenId 令牌唯一标识（jti），用于黑名单 / 撤销控制（String类型）
      * @return Access Token 字符串
      */
-    public String generateAccessToken(Long userId, String username, String accessTokenId) {
+    public String generateAccessToken(
+        Long campusId,
+        Long userId,
+        String username,
+        String accessTokenId
+    ) {
         Date now = new Date();
 
         return Jwts.builder()
@@ -48,6 +54,7 @@ public class JwtTokenProvider {
             .issuedAt(new Date()) // iat：JWT 签发时间
             .expiration(new Date(now.getTime() + jwtConfig.getExpire())) // "exp" - 过期时间
             // ===== 自定义声明 =====
+            .claim("campusId", campusId) // 自定义声明 - 用户校区
             .claim("username", username) // 自定义声明 - 用户名称
             .claim("type", TokenType.ACCESS.name()) // 自定义声明 - 令牌类型
 
@@ -58,12 +65,16 @@ public class JwtTokenProvider {
 
     /**
      * 生成刷新令牌（Refresh Token）
-     *
+     * @param campusId 用户校区唯一标识（Long类型）
      * @param userId 用户唯一标识
      * @param refreshTokenId 刷新令牌唯一标识（用于 Redis 校验 / 撤销）
      * @return Refresh Token 字符串
      */
-    public String generateRefreshToken(Long userId, String refreshTokenId) {
+    public String generateRefreshToken(
+        Long campusId,
+        Long userId,
+        String refreshTokenId
+    ) {
         Date now = new Date();
 
         return Jwts.builder()
@@ -75,6 +86,7 @@ public class JwtTokenProvider {
             .expiration(new Date(now.getTime() + jwtConfig.getRefreshExpire()))
 
             // ===== 自定义声明 =====
+            .claim("campusId", campusId)
             .claim("type", TokenType.REFRESH.name())
 
             // ===== 签名 =====

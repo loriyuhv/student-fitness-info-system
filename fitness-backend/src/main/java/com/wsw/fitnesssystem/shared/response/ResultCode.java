@@ -27,6 +27,8 @@ public enum ResultCode {
 
     /* ================= 成功 ================= */
     SUCCESS(200000, HttpStatus.OK, "操作成功"),
+    LOGOUT_SUCCESS(200101, HttpStatus.OK, "用户登出成功"),
+    KICKOUT_SUCCESS(200102, HttpStatus.OK, "用户被踢出成功"),
 
     /* ================= 参数 / 请求错误 400xxx ================= */
     PARAM_INVALID(400001, HttpStatus.BAD_REQUEST, "参数不合法"),
@@ -72,6 +74,8 @@ public enum ResultCode {
     CACHE_ERROR(500002, HttpStatus.INTERNAL_SERVER_ERROR, "缓存服务异常"),
     FILE_UPLOAD_ERROR(500003, HttpStatus.INTERNAL_SERVER_ERROR, "文件上传失败"),
     FILE_DOWNLOAD_ERROR(500004, HttpStatus.INTERNAL_SERVER_ERROR, "文件下载失败"),
+    LOGOUT_FAILED(500101, HttpStatus.INTERNAL_SERVER_ERROR, "用户登出失败"),
+    KICKOUT_FAILED(500102, HttpStatus.INTERNAL_SERVER_ERROR, "用户被踢出失败"),
 
     /* ================= 接口 / 第三方调用 600xxx ================= */
     INNER_INTERFACE_ERROR(600001, HttpStatus.INTERNAL_SERVER_ERROR, "内部系统接口调用异常"),

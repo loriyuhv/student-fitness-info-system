@@ -12,7 +12,7 @@ import lombok.Data;
  */
 @Data
 @Builder
-public class LoginResult {
+public class LoginResponse {
     private String tokenId;
     private String accessToken;
     private String refreshToken;

@@ -2,9 +2,10 @@ package com.wsw.fitnesssystem.auth.interfaces.web;
 
 import com.wsw.fitnesssystem.auth.application.authentication.AuthApplicationService;
 import com.wsw.fitnesssystem.auth.application.authentication.command.LoginCommand;
-import com.wsw.fitnesssystem.auth.application.authentication.dto.LoginResult;
+import com.wsw.fitnesssystem.auth.application.authentication.dto.LoginResponse;
 import com.wsw.fitnesssystem.shared.response.ApiResult;
 import com.wsw.fitnesssystem.auth.interfaces.web.dto.LoginRequest;
+import com.wsw.fitnesssystem.shared.response.ResultCode;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -29,11 +30,10 @@ public class AuthController {
     private final AuthApplicationService authApplicationService;
 
     @PostMapping("/login")
-    public ApiResult<LoginResult> login(
+    public ApiResult<LoginResponse> login(
         @RequestBody @Valid LoginRequest request,
         HttpServletRequest httpRequest
     ) {
-        log.info("Login request: {}", request);
         LoginCommand command = LoginCommand.builder()
             .username(request.getUsername())
             .password(request.getPassword())
@@ -50,11 +50,25 @@ public class AuthController {
      */
     @PostMapping("/logout")
     public ApiResult<Void> logout(HttpServletRequest request) {
-        // Long userId = JwtContextHolder.getUserId();
-        // String tokenId = JwtContextHolder.getTokenId();
-        // authService.logout(userId, tokenId);
-        // return ApiResult.success();
-        return ApiResult.success("用户退出成功！！！", null);
+        // 1. 从 Header 获取 JWT
+        String authHeader = request.getHeader("Authorization");
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            return ApiResult.error(ResultCode.TOKEN_INVALID);
+        }
+
+
+        String accessToken = authHeader.substring("Bearer ".length());
+
+        try {
+            // 2. 调用 Application Service 协调登出
+            authApplicationService.logout(accessToken); // 只传 JWT，内部解析 tokenId + userId + campusId
+
+            // 3. 返回成功
+            return ApiResult.success(ResultCode.LOGOUT_SUCCESS.getMessage(), null);
+        } catch (Exception e) {
+            log.error(ResultCode.LOGOUT_FAILED.getMessage(), e);
+            return ApiResult.error(ResultCode.LOGOUT_FAILED);
+        }
     }
 
     public static String getClientIp(HttpServletRequest request) {

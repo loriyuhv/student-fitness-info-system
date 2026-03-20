@@ -28,17 +28,20 @@ import java.util.Objects;
 public class SecurityUser implements UserDetails {
 
     private final Long userId;
+    private final Long campusId;
     private final String username;
     private final String password;
     private final Collection<? extends GrantedAuthority> authorities;
 
     private SecurityUser(
         Long userId,
+        Long campusId,
         String username,
         String password,
         Collection<? extends GrantedAuthority> authorities
     ) {
         this.userId = userId;
+        this.campusId = campusId;
         this.username = username;
         this.password = password;
         this.authorities = authorities;
@@ -52,6 +55,7 @@ public class SecurityUser implements UserDetails {
 
         return new SecurityUser(
             authUser.getUserId(),
+            authUser.getCampusId(),
             authUser.getUsername(),
             authUser.getPassword(),
             loadAuthorities(authUser)

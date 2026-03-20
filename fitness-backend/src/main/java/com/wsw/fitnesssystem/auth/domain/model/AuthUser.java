@@ -17,6 +17,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class AuthUser {
     private Long userId;
+    private Long campusId;
     private String username;
     private String password;
     private Integer status;

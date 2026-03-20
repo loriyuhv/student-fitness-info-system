@@ -17,6 +17,7 @@ public class AuthUserConverter {
 
         return new AuthUser(
             sysUser.getUserId(),
+            sysUser.getCampusId(),
             sysUser.getUsername(),
             sysUser.getPassword(),
             sysUser.getStatus()

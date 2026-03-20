@@ -1,8 +1,9 @@
 package com.wsw.fitnesssystem.auth.infrastructure.jwt.service;
 
 import com.wsw.fitnesssystem.auth.infrastructure.jwt.config.JwtConfig;
-import com.wsw.fitnesssystem.auth.infrastructure.jwt.utils.JwtTokenParser;
-import com.wsw.fitnesssystem.auth.infrastructure.jwt.utils.JwtTokenProvider;
+import com.wsw.fitnesssystem.auth.infrastructure.jwt.model.JwtUserClaims;
+import com.wsw.fitnesssystem.auth.infrastructure.jwt.parser.JwtTokenParser;
+import com.wsw.fitnesssystem.auth.infrastructure.jwt.provider.JwtTokenProvider;
 import io.jsonwebtoken.Claims;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -59,8 +60,13 @@ public class JwtTokenService {
      * @param accessTokenId 访问令牌唯一标识，可用于黑名单/撤销（String类型）
      * @return 生成的JWT访问令牌字符串
      */
-    public String generateAccessToken(Long userId, String username, String accessTokenId) {
-        return jwtTokenProvider.generateAccessToken(userId, username, accessTokenId);
+    public String generateAccessToken(
+        Long campusId,
+        Long userId,
+        String username,
+        String accessTokenId) {
+        return jwtTokenProvider.generateAccessToken(
+            campusId, userId, username, accessTokenId);
     }
 
     /***
@@ -69,8 +75,11 @@ public class JwtTokenService {
      * @param refreshTokenId 刷新令牌唯一标识
      * @return 生成的JWT刷新令牌字符串
      */
-    public String generateRefreshToken(Long userId, String refreshTokenId) {
-        return jwtTokenProvider.generateRefreshToken(userId, refreshTokenId);
+    public String generateRefreshToken(
+        Long campusId,
+        Long userId,
+        String refreshTokenId) {
+        return jwtTokenProvider.generateRefreshToken(campusId, userId, refreshTokenId);
     }
 
     /***
@@ -78,7 +87,7 @@ public class JwtTokenService {
      * @param accessToken JWT访问令牌
      * @return Claims对象
      */
-    public Claims parseAccessToken(String accessToken) {
+    public JwtUserClaims parseAccessToken(String accessToken) {
         return jwtTokenParser.parseAccessToken(accessToken);
     }
 

@@ -1,5 +1,6 @@
-package com.wsw.fitnesssystem.auth.infrastructure.jwt.utils;
+package com.wsw.fitnesssystem.auth.infrastructure.jwt.parser;
 
+import com.wsw.fitnesssystem.auth.infrastructure.jwt.model.JwtUserClaims;
 import com.wsw.fitnesssystem.common.jwt.medel.TokenType;
 import com.wsw.fitnesssystem.auth.infrastructure.jwt.config.JwtConfig;
 import io.jsonwebtoken.*;
@@ -64,7 +65,7 @@ public class JwtTokenParser {
      * @param token JWT 字符串（支持 Bearer 前缀）
      * @return Claims（已验证）
      */
-    public Claims parseAccessToken(String token) {
+    public JwtUserClaims parseAccessToken(String token) {
         Claims claims = parse(token, accessTokenKey, true);
 
         // 校验 Token 类型
@@ -74,7 +75,12 @@ public class JwtTokenParser {
             throw new BadCredentialsException("非法的 Access Token 类型");
         }
 
-        return claims;
+        return JwtUserClaims.builder()
+            .userId(Long.parseLong(claims.getSubject()))
+            .campusId(claims.get("campusId", Long.class))
+            .username(claims.get("username", String.class))
+            .tokenId(claims.getId())
+            .build();
     }
 
     /* =====================================================

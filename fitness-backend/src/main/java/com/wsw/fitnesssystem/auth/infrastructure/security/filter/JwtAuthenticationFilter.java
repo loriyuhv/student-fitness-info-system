@@ -1,6 +1,7 @@
 package com.wsw.fitnesssystem.auth.infrastructure.security.filter;
 
 import com.wsw.fitnesssystem.auth.application.authorization.dto.UserAuthorization;
+import com.wsw.fitnesssystem.auth.infrastructure.jwt.model.JwtUserClaims;
 import com.wsw.fitnesssystem.auth.infrastructure.security.support.SecurityResponseWriter;
 import com.wsw.fitnesssystem.auth.infrastructure.audit.service.LoginAuditService;
 import com.wsw.fitnesssystem.auth.infrastructure.jwt.service.JwtTokenService;
@@ -67,29 +68,36 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         try {
             // 2. 解析 Access Token（验签 + exp + issuer + audience）
-            Claims claims = jwtTokenService.parseAccessToken(token);
+            JwtUserClaims claims = jwtTokenService.parseAccessToken(token);
 
-            String tokenId = claims.getId();
-            String userId = claims.getSubject();
-            String username = claims.get("username", String.class);
+            String tokenId = claims.getTokenId();
+            Long campusId = claims.getCampusId();
+            Long userId = claims.getUserId();
+            String username = claims.getUsername();
 
-            if (!StringUtils.hasText(userId) || !StringUtils.hasText(tokenId)) {
+            if (!StringUtils.hasText(userId.toString()) || !StringUtils.hasText(tokenId)) {
                 responseWriter.write(response, ResultCode.TOKEN_INVALID);
                 return;
             }
 
-            Long uid = Long.parseLong(userId);
+            // 3.1 检查黑名单
+            boolean blacklisted = loginSessionService.isBlacklisted(userId.toString(), tokenId);
+            if (Boolean.TRUE.equals(blacklisted)) {
+                loginAuditService.kick(userId, tokenId);
+                responseWriter.write(response, ResultCode.TOKEN_INVALID);
+                return;
+            }
 
-            // 3. 会话是否仍在线（踢人 / 注销 / 单点）
-            if (!loginSessionService.isOnline(uid, tokenId)) {
-                loginAuditService.expire(uid, tokenId);
+            // 3.2 会话是否仍在线（踢人 / 注销 / 单点）
+            if (!loginSessionService.isOnline(campusId, userId, tokenId)) {
+                loginAuditService.expire(userId, tokenId);
                 responseWriter.write(response, ResultCode.TOKEN_INVALID);
                 return;
             }
 
             // 4. 读取权限（只信 Redis，不信 Token）
             UserAuthorization authorization =
-                authorizationCacheService.get(uid);
+                authorizationCacheService.get(userId);
 
             if (authorization == null) {
                 responseWriter.write(response, ResultCode.PERMISSION_EXPIRED);
@@ -122,9 +130,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             if (claims != null) {
                 Long userId = Long.parseLong(claims.getSubject());
                 String tokenId = claims.getId();
+                Long campusId = claims.get("campusId", Long.class);
 
                 // 会话失效
-                loginSessionService.invalidateSession(userId, tokenId);
+                loginSessionService.invalidateSession(campusId, userId, tokenId);
 
                 // 审计
                 loginAuditService.expire(userId, tokenId);
