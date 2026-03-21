@@ -66,7 +66,7 @@ public class AuthRedisKeys {
      * 登录失败计数（String）
      * Key: auth:limit:fail:{type}:{identifier}
      * type: user/ip
-     * identifier: username 或 ip地址
+     * identifier: username 或 campusId:username 或 ip地址
      * TTL: 1分钟（滑动窗口）
      */
     private static final String LIMIT_FAIL_PREFIX = "auth:limit:fail:";
@@ -132,21 +132,37 @@ public class AuthRedisKeys {
     }
 
     // ==================== 登录限流 ====================
-
     /**
-     * 登录失败计数Key
-     * @param type "user" 或 "ip"
-     * @param identifier username 或 ip地址
+     * 登录失败计数Key（用户维度）
+     * @param identifier campusId:username 或 username
+     * @return key
      */
-    public static String limitFailKey(String type, String identifier) {
-        return LIMIT_FAIL_PREFIX + type + ":" + identifier;
+    public static String limitUserFailKey(String identifier) {
+
+        return LIMIT_FAIL_PREFIX + "user:" + identifier;
     }
 
     /**
-     * 账号/IP锁定Key
+     * 登录失败计数Key（IP维度）
      */
-    public static String limitLockKey(String type, String identifier) {
-        return LIMIT_LOCK_PREFIX + type + ":" + identifier;
+    public static String limitIpFailKey(String ip) {
+        return LIMIT_FAIL_PREFIX + "ip:" + ip;
+    }
+
+    /**
+     * 用户锁定Key
+     * @param identifier campusId:username 或 username
+     * @return key
+     */
+    public static String limitUserLockKey(String identifier) {
+        return LIMIT_LOCK_PREFIX + "user:" + identifier;
+    }
+
+    /**
+     * IP锁定Key
+     */
+    public static String limitIpLockKey(String ip) {
+        return LIMIT_LOCK_PREFIX + "ip:" + ip;
     }
 
     // ==================== 审计辅助 ====================

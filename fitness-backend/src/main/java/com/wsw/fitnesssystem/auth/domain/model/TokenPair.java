@@ -15,7 +15,8 @@ import lombok.AllArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class TokenPair {
-    private String tokenId;
+    private String accessTokenId;
+    private String refreshTokenId;
     private String accessToken;
     private String refreshToken;
     private long expire;

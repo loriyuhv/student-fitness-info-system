@@ -34,7 +34,7 @@ public class LoginAuditService {
         login.setUserId(userId);
         login.setUsername(command.getUsername());
         login.setLoginType(1);
-        login.setTokenId(tokenPair.getTokenId());
+        login.setTokenId(tokenPair.getAccessTokenId());
         login.setLoginIp(command.getIp());
         login.setDeviceType(command.getDeviceType());
         login.setClientInfo(command.getUserAgent());

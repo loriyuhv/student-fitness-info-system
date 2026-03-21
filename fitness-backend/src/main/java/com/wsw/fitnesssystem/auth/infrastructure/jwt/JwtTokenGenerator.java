@@ -36,7 +36,8 @@ public class JwtTokenGenerator implements TokenGenerator {
 
         // 3. 返回Token对
         return TokenPair.builder()
-            .tokenId(accessTokenId)
+            .accessTokenId(accessTokenId)
+            .refreshTokenId(refreshTokenId)
             .accessToken(accessToken)
             .refreshToken(refreshToken)
             .expire(jwtTokenService.getJwtConfig().getExpire())
