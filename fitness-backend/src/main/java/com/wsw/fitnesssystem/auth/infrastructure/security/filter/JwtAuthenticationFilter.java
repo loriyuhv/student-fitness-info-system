@@ -1,12 +1,12 @@
 package com.wsw.fitnesssystem.auth.infrastructure.security.filter;
 
 import com.wsw.fitnesssystem.auth.application.authorization.dto.UserAuthorization;
+import com.wsw.fitnesssystem.auth.domain.port.SessionRepository;
 import com.wsw.fitnesssystem.auth.infrastructure.jwt.model.JwtUserClaims;
 import com.wsw.fitnesssystem.auth.infrastructure.security.support.SecurityResponseWriter;
 import com.wsw.fitnesssystem.auth.infrastructure.audit.service.LoginAuditService;
 import com.wsw.fitnesssystem.auth.infrastructure.jwt.service.JwtTokenService;
 import com.wsw.fitnesssystem.auth.application.port.AuthorizationCacheService;
-import com.wsw.fitnesssystem.auth.infrastructure.session.LoginSessionService;
 import com.wsw.fitnesssystem.shared.response.ResultCode;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
@@ -46,7 +46,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final SecurityResponseWriter responseWriter;
     private final JwtTokenService jwtTokenService;
     private final LoginAuditService loginAuditService;
-    private final LoginSessionService loginSessionService;
+    private final SessionRepository sessionRepository;
     private final AuthorizationCacheService authorizationCacheService;
 
     @Override
@@ -81,7 +81,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             }
 
             // 3.1 检查黑名单
-            boolean blacklisted = loginSessionService.isBlacklisted(userId.toString(), tokenId);
+            boolean blacklisted = sessionRepository.isBlacklisted(tokenId);
             if (Boolean.TRUE.equals(blacklisted)) {
                 loginAuditService.kick(userId, tokenId);
                 responseWriter.write(response, ResultCode.TOKEN_INVALID);
@@ -89,7 +89,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             }
 
             // 3.2 会话是否仍在线（踢人 / 注销 / 单点）
-            if (!loginSessionService.isOnline(campusId, userId, tokenId)) {
+
+            if (!sessionRepository.isOnline(campusId, userId, tokenId)) {
                 loginAuditService.expire(userId, tokenId);
                 responseWriter.write(response, ResultCode.TOKEN_INVALID);
                 return;
@@ -133,7 +134,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 Long campusId = claims.get("campusId", Long.class);
 
                 // 会话失效
-                loginSessionService.invalidateSession(campusId, userId, tokenId);
+                sessionRepository.removeSession(campusId, userId, tokenId);
 
                 // 审计
                 loginAuditService.expire(userId, tokenId);

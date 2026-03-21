@@ -41,3 +41,8 @@ jwt:
   refresh-expire: 604800000
   issuer: "student-fitness"
   audience: "web-client"
+auth:
+  session:
+    expire-millis: 604800000                # 登录态会话过期时间：7天
+    access-token-expire-minutes: 30         # AccessToken 过期时间：30分钟
+    refresh-token-expire-millis: 1209600000 # RefreshToken 过期时间：14天

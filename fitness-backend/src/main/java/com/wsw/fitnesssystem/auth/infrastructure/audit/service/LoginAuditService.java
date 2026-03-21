@@ -1,8 +1,8 @@
 package com.wsw.fitnesssystem.auth.infrastructure.audit.service;
 
 import com.wsw.fitnesssystem.auth.application.authentication.command.LoginCommand;
+import com.wsw.fitnesssystem.auth.domain.model.TokenPair;
 import com.wsw.fitnesssystem.auth.infrastructure.persistence.entity.SysUserLogin;
-import com.wsw.fitnesssystem.auth.infrastructure.session.LoginSession;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -27,14 +27,14 @@ public class LoginAuditService {
     public void loginSuccess(
         Long userId,
         LoginCommand command,
-        LoginSession session
+        TokenPair tokenPair
     ) {
-        LocalDateTime expireTime = LocalDateTime.now().plusSeconds(session.getExpire() / 1000);
+        LocalDateTime expireTime = LocalDateTime.now().plusSeconds(tokenPair.getExpire() / 1000);
         SysUserLogin login = new SysUserLogin();
         login.setUserId(userId);
         login.setUsername(command.getUsername());
         login.setLoginType(1);
-        login.setTokenId(session.getTokenId());
+        login.setTokenId(tokenPair.getTokenId());
         login.setLoginIp(command.getIp());
         login.setDeviceType(command.getDeviceType());
         login.setClientInfo(command.getUserAgent());

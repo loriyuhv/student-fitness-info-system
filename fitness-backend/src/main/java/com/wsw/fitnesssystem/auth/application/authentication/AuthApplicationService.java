@@ -4,16 +4,21 @@ import com.wsw.fitnesssystem.auth.application.authentication.command.LoginComman
 import com.wsw.fitnesssystem.auth.application.authentication.dto.LoginResponse;
 import com.wsw.fitnesssystem.auth.application.authorization.AuthorizationApplicationService;
 import com.wsw.fitnesssystem.auth.domain.model.AuthUser;
+import com.wsw.fitnesssystem.auth.domain.model.TokenPair;
+import com.wsw.fitnesssystem.auth.domain.port.SessionRepository;
+import com.wsw.fitnesssystem.auth.domain.port.TokenGenerator;
 import com.wsw.fitnesssystem.auth.domain.service.AuthDomainService;
+import com.wsw.fitnesssystem.auth.domain.service.SessionDomainService;
 import com.wsw.fitnesssystem.auth.infrastructure.audit.service.LoginAuditService;
+import com.wsw.fitnesssystem.auth.infrastructure.config.SessionProperties;
 import com.wsw.fitnesssystem.auth.infrastructure.jwt.model.JwtUserClaims;
 import com.wsw.fitnesssystem.auth.infrastructure.jwt.service.JwtTokenService;
 import com.wsw.fitnesssystem.auth.infrastructure.security.service.LoginFailLimitService;
-import com.wsw.fitnesssystem.auth.infrastructure.session.LoginSession;
-import com.wsw.fitnesssystem.auth.infrastructure.session.LoginSessionService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+
+import java.util.UUID;
 
 /**
  * 用户认证用例
@@ -32,10 +37,13 @@ import org.springframework.stereotype.Service;
 public class AuthApplicationService {
 
     private final AuthDomainService authDomainService;
-    private final LoginSessionService loginSessionService;
     private final LoginAuditService loginAuditService;
+    private final SessionDomainService sessionDomainService;
     private final LoginFailLimitService loginFailLimitService;
+    private final TokenGenerator tokenGenerator;
+    private final SessionRepository sessionRepository;
     private final JwtTokenService jwtTokenService;
+    private final SessionProperties sessionProperties;
     private final AuthorizationApplicationService authorizationApplicationService;
 
     public LoginResponse login(LoginCommand loginCommand) {
@@ -48,25 +56,43 @@ public class AuthApplicationService {
             loginCommand.getPassword()
         );
 
-        // 4. 创建登录会话（生成 token + 写 Redis）
-        LoginSession session = loginSessionService.createSession(user);
+        // 3. 限制多端登录
+        sessionDomainService.limitSessions(
+            user.getCampusId(), user.getUserId(), 3
+        );
 
-        // 5. 授权（一次性，内部自动读/写缓存） 优化：懒加载
+        // 4. 生成JWT
+        // 4.1 生成 tokenId
+        String accessTokenId = UUID.randomUUID().toString();
+        String refreshTokenId = UUID.randomUUID().toString();
+
+        // 4.2 生成 Token对
+        TokenPair tokenPair = tokenGenerator.generate(
+            user, accessTokenId, refreshTokenId
+        );
+
+        // 6. 保存 Redis 会话
+        sessionRepository.saveSession(
+            user.getCampusId(), user.getUserId(),
+            accessTokenId, refreshTokenId
+        );
+
+        // 6. 授权（一次性，内部自动读/写缓存） 优化：懒加载
         authorizationApplicationService.authorize(user);
 
-        // 5. 记录成功审计
+        // 7. 记录成功审计
         loginAuditService.loginSuccess(
             user.getUserId(),
             loginCommand,
-            session
+            tokenPair
         );
 
-        // 5. 返回结果
+        // 8. 返回结果
         return LoginResponse.builder()
-            .tokenId(session.getTokenId())
-            .accessToken(session.getAccessToken())
-            .refreshToken(session.getRefreshToken())
-            .expiresIn(session.getExpire())
+            .tokenId(tokenPair.getTokenId())
+            .accessToken(tokenPair.getAccessToken())
+            .refreshToken(tokenPair.getRefreshToken())
+            .expiresIn(tokenPair.getExpire())
             .build();
     }
 
@@ -81,10 +107,13 @@ public class AuthApplicationService {
         Long userId = claims.getUserId();
 
         // 1. 将当前 accessToken 加入黑名单
-        loginSessionService.addToBlacklist(tokenId);
+        sessionRepository.addToBlacklist(
+            tokenId,
+            sessionProperties.getAccessTokenExpireMinutes() * 60
+        );
 
         // 2. 从 ZSET 中删除（会话下线）
-        loginSessionService.invalidateSession(campusId, userId, tokenId);
+        sessionRepository.removeSession(campusId, userId, tokenId);
 
         // 3. 记录登出审计
         loginAuditService.logout(userId, tokenId);
@@ -102,10 +131,13 @@ public class AuthApplicationService {
         Long userId = claims.getUserId();
 
         // 1. 将当前 accessToken 加入黑名单
-        loginSessionService.addToBlacklist(tokenId);
+        sessionRepository.addToBlacklist(
+            tokenId,
+            sessionProperties.getAccessTokenExpireMinutes() * 60
+        );
 
         // 2. 从 ZSET 中删除（会话下线）
-        loginSessionService.invalidateSession(campusId, userId, tokenId);
+        sessionRepository.removeSession(campusId, userId, tokenId);
 
         loginAuditService.kick(userId, tokenId);
     }

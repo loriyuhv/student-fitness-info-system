@@ -1,6 +1,7 @@
-package com.wsw.fitnesssystem.auth.domain.service;
+package com.wsw.fitnesssystem.auth.domain.service.impl;
 
 import com.wsw.fitnesssystem.auth.domain.port.PasswordEncryptor;
+import com.wsw.fitnesssystem.auth.domain.service.AuthDomainService;
 import com.wsw.fitnesssystem.shared.exception.BizException;
 import com.wsw.fitnesssystem.auth.domain.model.AuthUser;
 import com.wsw.fitnesssystem.auth.domain.port.AuthUserRepository;
