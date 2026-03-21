@@ -1,13 +1,12 @@
-package com.wsw.fitnesssystem.auth.infrastructure.service;
+package com.wsw.fitnesssystem.auth.domain.service;
 
+import com.wsw.fitnesssystem.auth.domain.port.PasswordEncryptor;
 import com.wsw.fitnesssystem.shared.exception.BizException;
 import com.wsw.fitnesssystem.auth.domain.model.AuthUser;
-import com.wsw.fitnesssystem.auth.domain.repository.AuthUserRepository;
-import com.wsw.fitnesssystem.auth.domain.service.AuthDomainService;
+import com.wsw.fitnesssystem.auth.domain.port.AuthUserRepository;
 import com.wsw.fitnesssystem.shared.response.ResultCode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 
@@ -23,7 +22,7 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class AuthDomainServiceImpl implements AuthDomainService {
     private final AuthUserRepository authUserRepository;
-    private final PasswordEncoder passwordEncoder;
+    private final PasswordEncryptor passwordEncryptor;
 
     @Override
     public AuthUser login(String username, String rawPassword) {
@@ -37,7 +36,8 @@ public class AuthDomainServiceImpl implements AuthDomainService {
         }
 
         // 3. 校验密码（核心）
-        if (!passwordEncoder.matches(rawPassword, user.getPassword())) {
+        boolean matches = passwordEncryptor.matches(rawPassword, user.getPassword());
+        if (!matches) {
             throw new BizException(ResultCode.PASSWORD_ERROR);
         }
 

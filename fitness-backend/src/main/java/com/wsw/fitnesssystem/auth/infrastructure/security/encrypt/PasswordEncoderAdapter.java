@@ -1,4 +1,4 @@
-package com.wsw.fitnesssystem.auth.infrastructure.security.password;
+package com.wsw.fitnesssystem.auth.infrastructure.security.encrypt;
 
 import com.wsw.fitnesssystem.auth.domain.port.PasswordEncryptor;
 import lombok.RequiredArgsConstructor;
@@ -16,6 +16,9 @@ import org.springframework.stereotype.Component;
 @Component
 @RequiredArgsConstructor
 public class PasswordEncoderAdapter implements PasswordEncryptor {
+    /**
+     * 使用SpringSecurity的加密技术
+     */
     private final PasswordEncoder passwordEncoder;
 
     @Override

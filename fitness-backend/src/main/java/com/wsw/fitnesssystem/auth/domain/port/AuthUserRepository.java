@@ -1,4 +1,4 @@
-package com.wsw.fitnesssystem.auth.domain.repository;
+package com.wsw.fitnesssystem.auth.domain.port;
 
 import com.wsw.fitnesssystem.auth.domain.model.AuthUser;
 

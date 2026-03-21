@@ -1,7 +1,7 @@
 package com.wsw.fitnesssystem.auth.infrastructure.persistence.repository;
 
 import com.wsw.fitnesssystem.auth.domain.model.AuthUser;
-import com.wsw.fitnesssystem.auth.domain.repository.AuthUserRepository;
+import com.wsw.fitnesssystem.auth.domain.port.AuthUserRepository;
 import com.wsw.fitnesssystem.auth.infrastructure.persistence.converter.AuthUserConverter;
 import com.wsw.fitnesssystem.auth.infrastructure.persistence.entity.SysUser;
 import com.wsw.fitnesssystem.auth.infrastructure.persistence.mapper.SysUserMapper;
