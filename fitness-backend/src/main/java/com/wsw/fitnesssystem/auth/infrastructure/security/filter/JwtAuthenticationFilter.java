@@ -3,6 +3,7 @@ package com.wsw.fitnesssystem.auth.infrastructure.security.filter;
 import com.wsw.fitnesssystem.auth.application.authorization.dto.UserAuthorization;
 import com.wsw.fitnesssystem.auth.domain.port.SessionRepository;
 import com.wsw.fitnesssystem.auth.infrastructure.jwt.model.JwtUserClaims;
+import com.wsw.fitnesssystem.auth.infrastructure.security.model.JwtUserPrincipal;
 import com.wsw.fitnesssystem.auth.infrastructure.security.support.SecurityResponseWriter;
 import com.wsw.fitnesssystem.auth.infrastructure.audit.service.LoginAuditService;
 import com.wsw.fitnesssystem.auth.infrastructure.jwt.service.JwtTokenService;
@@ -29,6 +30,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import java.io.IOException;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * @author loriyuhv
@@ -98,25 +100,31 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
             // 4. 读取权限（只信 Redis，不信 Token）
             UserAuthorization authorization =
-                authorizationCacheService.get(userId);
+                authorizationCacheService.get(campusId, userId);
 
             if (authorization == null) {
                 responseWriter.write(response, ResultCode.PERMISSION_EXPIRED);
                 return;
             }
 
-            Set<GrantedAuthority> authorities =
-                authorization.permissions().stream()
+            Set<GrantedAuthority> authorities = Stream.concat(
+                // 先处理角色，加上ROLE_前缀
+                authorization.getRoles().stream()
+                    .map(role -> new SimpleGrantedAuthority("ROLE_" +role)),
+                // 再处理权限，不加前缀
+                authorization.getPermissions().stream()
                     .map(SimpleGrantedAuthority::new)
-                    .collect(Collectors.toSet());
+            ).collect(Collectors.toSet());
 
             // 5. 构造 Spring Security 认证对象（防止重复覆盖）
             if (SecurityContextHolder.getContext().getAuthentication() == null) {
+                JwtUserPrincipal principal = new JwtUserPrincipal(
+                    username, tokenId, campusId, userId
+                );
+
                 UsernamePasswordAuthenticationToken authentication =
                     new UsernamePasswordAuthenticationToken(
-                        username,
-                        null,
-                        authorities
+                        principal, null, authorities
                     );
                 authentication.setDetails(
                     new WebAuthenticationDetailsSource().buildDetails(request)

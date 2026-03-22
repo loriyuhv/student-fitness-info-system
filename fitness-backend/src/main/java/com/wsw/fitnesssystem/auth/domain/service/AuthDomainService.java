@@ -17,4 +17,12 @@ public interface AuthDomainService {
      * @return 认证用户
      */
     AuthUser login(String username, String rawPassword);
+
+    /**
+     * 校验用户是否存在
+     * @param campusId 校区ID
+     * @param userId 用户ID
+     * @return boolean
+     */
+    boolean userExists(Long campusId, Long userId);
 }

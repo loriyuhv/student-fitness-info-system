@@ -3,6 +3,8 @@ package com.wsw.fitnesssystem.shared.exception;
 import com.wsw.fitnesssystem.shared.response.ApiResult;
 import com.wsw.fitnesssystem.shared.response.ResultCode;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.authorization.AuthorizationDeniedException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
@@ -36,6 +38,15 @@ public class GlobalExceptionHandler {
         ResultCode rc = e.getResultCode();
         log.error("系统异常: {}", rc.getMessage(), e);
         return ApiResult.error(rc);
+    }
+
+    /**
+     * 权限不足 → 403
+     */
+    @ExceptionHandler({AuthorizationDeniedException.class, AccessDeniedException.class})
+    public ApiResult<Object> handleAccessDeniedException(Exception e) {
+        log.warn("权限异常: {}", e.getMessage());
+        return ApiResult.error(ResultCode.PERMISSION_DENIED);
     }
 
     /**

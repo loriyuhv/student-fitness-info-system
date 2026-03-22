@@ -11,14 +11,16 @@ import com.wsw.fitnesssystem.auth.domain.port.SessionRepository;
 import com.wsw.fitnesssystem.auth.domain.service.AuthDomainService;
 import com.wsw.fitnesssystem.auth.infrastructure.audit.service.LoginAuditService;
 import com.wsw.fitnesssystem.auth.infrastructure.config.SessionProperties;
-import com.wsw.fitnesssystem.auth.infrastructure.jwt.model.JwtUserClaims;
-import com.wsw.fitnesssystem.auth.infrastructure.jwt.service.JwtTokenService;
+import com.wsw.fitnesssystem.auth.infrastructure.security.model.JwtUserPrincipal;
 import com.wsw.fitnesssystem.shared.exception.BizException;
+import com.wsw.fitnesssystem.shared.response.ResultCode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+
+import java.util.Set;
 
 /**
  * 用户认证用例
@@ -43,7 +45,6 @@ public class AuthApplicationService {
 
     private final LoginAuditService loginAuditService;
     private final SessionRepository sessionRepository;
-    private final JwtTokenService jwtTokenService;
     private final SessionProperties sessionProperties;
 
     /**
@@ -88,50 +89,56 @@ public class AuthApplicationService {
 
     /***
      * 用户登出
-     * @param accessToken JWT令牌
      */
-    public void logout(String accessToken) {
+    public void logout() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-
-        JwtUserClaims claims = jwtTokenService.parseAccessToken(accessToken);
-        String tokenId = claims.getTokenId();
-        Long campusId = claims.getCampusId();
-        Long userId = claims.getUserId();
+        JwtUserPrincipal principal = (JwtUserPrincipal) auth.getPrincipal();
+        String accessTokenId = principal.accessTokenId();
+        Long campusId = principal.campusId();
+        Long userId = principal.userId();
 
         // 1. 将当前 accessToken 加入黑名单
         sessionRepository.addToBlacklist(
-            tokenId,
+            accessTokenId,
             sessionProperties.getAccessTokenExpireMinutes() * 60
         );
 
         // 2. 从 ZSET 中删除（会话下线）
-        sessionRepository.removeSession(campusId, userId, tokenId);
+        sessionRepository.removeSession(campusId, userId, accessTokenId);
 
         // 3. 记录登出审计
-        loginAuditService.logout(userId, tokenId);
+        loginAuditService.logout(userId, accessTokenId);
     }
 
-    /***
-     * 踢人操作（可选）
+    /**
+     * 踢人操作（管理员使用）
      *
-     * @param accessToken JWT令牌
+     * @param campusId 校区ID
+     * @param userId   用户ID
      */
-    public void kick(String accessToken) {
-        JwtUserClaims claims = jwtTokenService.parseAccessToken(accessToken);
-        String tokenId = claims.getTokenId();
-        Long campusId = claims.getCampusId();
-        Long userId = claims.getUserId();
+    public void kick(Long campusId, Long userId) {
+        // 1. 校验用户是否存在
+        if (!authDomainService.userExists(campusId, userId)) {
+            throw new BizException(ResultCode.USER_NOT_EXIST);
+        }
 
-        // 1. 将当前 accessToken 加入黑名单
-        sessionRepository.addToBlacklist(
-            tokenId,
-            sessionProperties.getAccessTokenExpireMinutes() * 60
-        );
+        // 1. 获取用户所有在线 Access Token ID
+        Set<String> tokenIds = sessionRepository.getAllSessions(campusId, userId);
 
-        // 2. 从 ZSET 中删除（会话下线）
-        sessionRepository.removeSession(campusId, userId, tokenId);
+        if (tokenIds == null || tokenIds.isEmpty()) {
+            log.info("User {} campus {} has no online session to kick.", userId, campusId);
+            return;
+        }
 
-        loginAuditService.kick(userId, tokenId);
+        for (String tokenId : tokenIds) {
+            // 2. 从在线会话删除，加入黑名单
+            sessionRepository.removeSession(campusId, userId, tokenId);
+
+            // 3. 记录审计
+            loginAuditService.kick(userId, tokenId);
+        }
+
+        log.info("Kicked {} sessions for user {} campus {}", tokenIds.size(), userId, campusId);
     }
 
     /**

@@ -45,4 +45,9 @@ public class AuthDomainServiceImpl implements AuthDomainService {
         // 4. 认证成功
         return user;
     }
+
+    @Override
+    public boolean userExists(Long campusId, Long userId) {
+        return authUserRepository.exists(campusId, userId);
+    }
 }

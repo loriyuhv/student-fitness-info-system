@@ -1,7 +1,7 @@
 package com.wsw.fitnesssystem.auth.infrastructure.jwt.parser;
 
 import com.wsw.fitnesssystem.auth.infrastructure.jwt.model.JwtUserClaims;
-import com.wsw.fitnesssystem.common.jwt.medel.TokenType;
+import com.wsw.fitnesssystem.auth.infrastructure.jwt.medel.TokenType;
 import com.wsw.fitnesssystem.auth.infrastructure.jwt.config.JwtConfig;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.SecurityException;

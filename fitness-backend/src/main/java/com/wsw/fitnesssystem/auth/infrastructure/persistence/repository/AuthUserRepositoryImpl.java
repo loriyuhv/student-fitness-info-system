@@ -25,4 +25,9 @@ public class AuthUserRepositoryImpl implements AuthUserRepository {
         SysUser sysUser = sysUserMapper.selectByUsername(username);
         return Optional.ofNullable(AuthUserConverter.toDomain(sysUser));
     }
+
+    @Override
+    public boolean exists(Long campusId, Long userId) {
+        return sysUserMapper.existsByCampusAndId(campusId, userId) > 0;
+    }
 }

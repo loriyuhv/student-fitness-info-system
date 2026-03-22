@@ -19,4 +19,13 @@ import java.util.Optional;
  */
 public interface AuthUserRepository {
     Optional<AuthUser> findByUsername(String username);
+
+    /**
+     * 判断用户是否存在
+     *
+     * @param campusId 校区ID
+     * @param userId 用户ID
+     * @return true 表示存在，false 表示不存在
+     */
+    boolean exists(Long campusId, Long userId);
 }

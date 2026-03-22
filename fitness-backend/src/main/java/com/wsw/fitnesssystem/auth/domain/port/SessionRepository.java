@@ -1,6 +1,7 @@
 package com.wsw.fitnesssystem.auth.domain.port;
 
 import java.util.Optional;
+import java.util.Set;
 
 /**
  * 登录会话存储（Session Repository Port）
@@ -85,6 +86,15 @@ public interface SessionRepository {
      * </ul>
      */
     void removeAll(Long campusId, Long userId);
+
+    /**
+     * 获取用户所有在线 AccessToken ID
+     *
+     * @param campusId 校区ID
+     * @param userId 用户ID
+     * @return 当前用户在线的所有 AccessToken ID
+     */
+    Set<String> getAllSessions(Long campusId, Long userId);
 
     /**
      * 判断指定 token 是否在线

@@ -2,10 +2,14 @@ package com.wsw.fitnesssystem.auth.infrastructure.session.support;
 
 /**
  * 认证授权Redis Key规范
- * 设计原则：
- * 1. 前缀区分业务域：auth:{子系统}:{业务}:{维度}
- * 2. 多校区场景：key包含campusId，便于隔离和排查
- * 3. 生命周期匹配：不同TTL的Key分开存储
+ * <p>设计原则：</p>
+ * <ul>
+ *     <li>前缀区分业务域：auth:{子系统}:{业务}:{维度}</li>
+ *     <li>多校区场景：所有用户数据（Key）必须包含 campusId，便于隔离和排查</li>
+ *     <li>分层缓存：user / role / perm 解耦（RBAC）</li>
+ *     <li>生命周期分离：不同数据不同 TTL</li>
+ *     <li>可扩展性：支持未来权限版本、网关鉴权、SSO</li>
+ * </ul>
  * @author loriyuhv
  * @version 1.0 2026/1/16 14:33
  * @since 1.0
@@ -15,10 +19,10 @@ public class AuthRedisKeys {
 
     /**
      * 用户在线会话集合（ZSET）
-     * Key: auth:session:online:{campusId}:{userId}
-     * Field: {tokenId}
-     * Value: 登录时间戳
-     * TTL: 7天（refreshToken有效期）
+     * <li>Key: auth:session:online:{campusId}:{userId}</li>
+     * <li>Field: {tokenId}</li>
+     * <li>Value: 登录时间戳</li>
+     * <li>TTL: 7天（refreshToken有效期）</li>
      */
     private static final String SESSION_ONLINE_PREFIX = "auth:session:online:";
 
@@ -52,14 +56,6 @@ public class AuthRedisKeys {
      */
     private static final String PERM_USER_PREFIX = "auth:perm:user:";
 
-    /**
-     * 角色权限映射（String，Hash）
-     * Key: auth:perm:role:{roleCode}
-     * Value: 权限编码集合
-     * TTL: 1小时（角色权限变更较少）
-     */
-    private static final String PERM_ROLE_PREFIX = "auth:perm:role:";
-
     // ==================== 登录安全（限流风控）====================
 
     /**
@@ -77,16 +73,6 @@ public class AuthRedisKeys {
      * TTL: 30分钟
      */
     private static final String LIMIT_LOCK_PREFIX = "auth:limit:lock:";
-
-    // ==================== 审计辅助（可选）====================
-
-    /**
-     * 用户登录设备列表（Set）
-     * Key: auth:audit:devices:{campusId}:{userId}
-     * Value: 设备指纹集合
-     * TTL: 7天
-     */
-    private static final String AUDIT_DEVICES_PREFIX = "auth:audit:devices:";
 
     private AuthRedisKeys() {}
 
@@ -124,14 +110,8 @@ public class AuthRedisKeys {
         return PERM_USER_PREFIX + campusId + ":" + userId;
     }
 
-    /**
-     * 角色权限映射Key
-     */
-    public static String permRoleKey(String roleCode) {
-        return PERM_ROLE_PREFIX + roleCode;
-    }
-
     // ==================== 登录限流 ====================
+
     /**
      * 登录失败计数Key（用户维度）
      * @param identifier campusId:username 或 username
@@ -142,12 +122,6 @@ public class AuthRedisKeys {
         return LIMIT_FAIL_PREFIX + "user:" + identifier;
     }
 
-    /**
-     * 登录失败计数Key（IP维度）
-     */
-    public static String limitIpFailKey(String ip) {
-        return LIMIT_FAIL_PREFIX + "ip:" + ip;
-    }
 
     /**
      * 用户锁定Key
@@ -158,19 +132,5 @@ public class AuthRedisKeys {
         return LIMIT_LOCK_PREFIX + "user:" + identifier;
     }
 
-    /**
-     * IP锁定Key
-     */
-    public static String limitIpLockKey(String ip) {
-        return LIMIT_LOCK_PREFIX + "ip:" + ip;
-    }
-
     // ==================== 审计辅助 ====================
-
-    /**
-     * 用户设备列表Key（用于异常登录检测）
-     */
-    public static String auditDevicesKey(Long campusId, Long userId) {
-        return AUDIT_DEVICES_PREFIX + campusId + ":" + userId;
-    }
 }

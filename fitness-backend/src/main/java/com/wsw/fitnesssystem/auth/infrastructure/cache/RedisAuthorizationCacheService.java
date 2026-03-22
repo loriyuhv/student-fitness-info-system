@@ -2,8 +2,9 @@ package com.wsw.fitnesssystem.auth.infrastructure.cache;
 
 import com.wsw.fitnesssystem.auth.application.authorization.dto.UserAuthorization;
 import com.wsw.fitnesssystem.auth.application.port.AuthorizationCacheService;
-import lombok.RequiredArgsConstructor;
+import com.wsw.fitnesssystem.auth.infrastructure.session.support.AuthRedisKeys;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
@@ -18,20 +19,23 @@ import java.time.Duration;
  */
 @Slf4j
 @Service
-@RequiredArgsConstructor
 public class RedisAuthorizationCacheService
     implements AuthorizationCacheService {
 
-    private static final String KEY_PREFIX = "auth:user:";
+    private static final Duration TTL = Duration.ofMinutes(1);
 
-    private static final Duration TTL = Duration.ofMinutes(30);
+    private final RedisTemplate<String, UserAuthorization> userAuthRedisTemplate;
 
-    private final RedisTemplate<String, Object> redisTemplate;
+    public RedisAuthorizationCacheService(
+        @Qualifier("userAuthRedisTemplate")
+        RedisTemplate<String, UserAuthorization> userAuthRedisTemplate) {
+        this.userAuthRedisTemplate = userAuthRedisTemplate;
+    }
 
     @Override
-    public void cache(UserAuthorization authorization) {
-        String key = buildKey(authorization.userId());
-        redisTemplate.opsForValue().set(
+    public void cache(Long campusId, UserAuthorization authorization) {
+        String key = buildKey(campusId, authorization.getUserId());
+        userAuthRedisTemplate.opsForValue().set(
             key,
             authorization,
             TTL
@@ -39,23 +43,18 @@ public class RedisAuthorizationCacheService
     }
 
     @Override
-    public UserAuthorization get(Long userId) {
+    public UserAuthorization get(Long campusId, Long userId) {
 
-        Object value =
-            redisTemplate.opsForValue().get(buildKey(userId));
-
-        if (value instanceof UserAuthorization authorization) {
-            return authorization;
-        }
-        return null;
+        String key = buildKey(campusId, userId);
+        return userAuthRedisTemplate.opsForValue().get(key);
     }
 
     @Override
-    public void evict(Long userId) {
-        redisTemplate.delete(buildKey(userId));
+    public void evict(Long campusId, Long userId) {
+        userAuthRedisTemplate.delete(buildKey(campusId, userId));
     }
 
-    private String buildKey(Long userId) {
-        return KEY_PREFIX + userId;
+    private String buildKey(Long campusId, Long userId) {
+        return AuthRedisKeys.permUserKey(campusId, userId);
     }
 }

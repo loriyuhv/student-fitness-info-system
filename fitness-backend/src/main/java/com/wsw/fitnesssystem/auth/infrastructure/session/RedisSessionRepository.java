@@ -61,6 +61,14 @@ public class RedisSessionRepository implements SessionRepository {
     }
 
     @Override
+    public Set<String> getAllSessions(Long campusId, Long userId) {
+        return redisTemplate.opsForZSet().range(
+            AuthRedisKeys.onlineKey(campusId, userId),
+            0, -1
+        );
+    }
+
+    @Override
     public boolean isOnline(Long campusId, Long userId, String accessTokenId) {
         Double score = redisTemplate.opsForZSet().score(
             AuthRedisKeys.onlineKey(campusId, userId), accessTokenId

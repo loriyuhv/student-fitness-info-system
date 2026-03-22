@@ -22,15 +22,15 @@ public interface AuthorizationCacheService {
     /**
      * 缓存用户权限快照
      */
-    void cache(UserAuthorization authorization);
+    void cache(Long campusId, UserAuthorization authorization);
 
     /**
      * 获取用户权限快照
      */
-    UserAuthorization get(Long userId);
+    UserAuthorization get(Long campusId, Long userId);
 
     /**
      * 移除用户权限（权限变更 / 强制刷新）
      */
-    void evict(Long userId);
+    void evict(Long campusId, Long userId);
 }

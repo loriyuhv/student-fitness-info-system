@@ -49,19 +49,10 @@ public class AuthController {
      * 退出当前登录
      */
     @PostMapping("/logout")
-    public ApiResult<Void> logout(HttpServletRequest request) {
-        // 1. 从 Header 获取 JWT
-        String authHeader = request.getHeader("Authorization");
-        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-            return ApiResult.error(ResultCode.TOKEN_INVALID);
-        }
-
-
-        String accessToken = authHeader.substring("Bearer ".length());
-
+    public ApiResult<Void> logout() {
         try {
-            // 2. 调用 Application Service 协调登出
-            authApplicationService.logout(accessToken); // 只传 JWT，内部解析 tokenId + userId + campusId
+            // 1. 调用 Application Service 协调登出
+            authApplicationService.logout();
 
             // 3. 返回成功
             return ApiResult.success(ResultCode.LOGOUT_SUCCESS.getMessage(), null);
