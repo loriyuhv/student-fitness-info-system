@@ -21,7 +21,7 @@ public class AuthRedisKeys {
      * 用户在线会话集合（ZSET）
      * <p>作用：统计用户在线数量、快速查找用户所有 AccessToken</p>
      * <li>Key: auth:session:online:{campusId}:{userId}</li>
-     * <li>Field: {tokenId}</li>
+     * <li>Field: {accessTokenId}</li>
      * <li>Value: 登录时间戳</li>
      * <li>TTL: 7天（refreshToken有效期）</li>
      */

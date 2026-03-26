@@ -81,7 +81,7 @@ public class JwtTokenParser {
             .userId(claims.get("userId", Long.class))
             .campusId(claims.get("campusId", Long.class))
             .username(claims.get("username", String.class))
-            .tokenVersion(claims.get("tokenVersion", Integer.class))
+            .tokenVersion(claims.get("tokenVersion", Long.class))
             .build();
     }
 

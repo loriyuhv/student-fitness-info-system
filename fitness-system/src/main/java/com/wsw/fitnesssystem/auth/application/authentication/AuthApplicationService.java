@@ -80,11 +80,13 @@ public class AuthApplicationService {
         // 3. 生成 Token
         String accessTokenId = UUID.randomUUID().toString();
         String refreshTokenId = UUID.randomUUID().toString();
+        long tokenVersion = sessionRepository.getTokenVersion(user.getCampusId(), user.getUserId());
         TokenPair tokenPair = tokenService.generate(
             user.getUserId(),
             user.getCampusId(),
             user.getUsername(),
             cmd.getDeviceId(),
+            tokenVersion,
             accessTokenId,
             refreshTokenId
         );
@@ -131,13 +133,16 @@ public class AuthApplicationService {
             throw new BizException(ResultCode.USER_NOT_EXIST);
         }
 
-        // 1. 获取用户所有在线 Access Token ID
+        // 2. 获取用户所有在线 Access Token ID
         Set<String> tokenIds = sessionRepository.getAllSessions(campusId, userId);
 
         if (tokenIds == null || tokenIds.isEmpty()) {
             log.info("User {} campus {} has no online session to kick.", userId, campusId);
             return;
         }
+
+        // 版本号递增 → 所有现有 token 失效
+        sessionRepository.incrementTokenVersion(campusId, userId);
 
         for (String tokenId : tokenIds) {
             // 2. 从在线会话删除，加入黑名单

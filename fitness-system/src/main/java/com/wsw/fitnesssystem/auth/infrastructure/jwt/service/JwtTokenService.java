@@ -57,9 +57,28 @@ public class JwtTokenService implements TokenService {
     private final JwtTokenParser jwtTokenParser;
 
     @Override
-    public TokenPair generate(Long userId, Long campusId, String username, String deviceId, String accessTokenId, String refreshTokenId) {
-        String accessToken = generateAccessToken(userId, campusId, username, accessTokenId);
-        String refreshToken = generateRefreshToken(userId, campusId, deviceId, refreshTokenId);
+    public TokenPair generate(
+        Long userId,
+        Long campusId,
+        String username,
+        String deviceId,
+        Long tokenVersion,
+        String accessTokenId,
+        String refreshTokenId) {
+        String accessToken = generateAccessToken(
+            userId,
+            campusId,
+            username,
+            tokenVersion,
+            accessTokenId
+        );
+        String refreshToken = generateRefreshToken(
+            userId,
+            campusId,
+            deviceId,
+            tokenVersion,
+            refreshTokenId
+        );
         return TokenPair.builder()
             .accessTokenId(accessTokenId)
             .refreshTokenId(refreshTokenId)
@@ -78,23 +97,35 @@ public class JwtTokenService implements TokenService {
         return jwtTokenParser.parseRefreshToken(refreshToken);
     }
 
-    private String generateAccessToken(Long userId, Long campusId, String username, String accessTokenId) {
+    private String generateAccessToken(
+        Long userId,
+        Long campusId,
+        String username,
+        Long tokenVersion,
+        String accessTokenId) {
         return jwtTokenProvider.generateAccessToken(
             TokenPrincipal.builder()
                 .userId(userId)
                 .campusId(campusId)
                 .username(username)
+                .tokenVersion(tokenVersion)
                 .build(),
             accessTokenId
         );
     }
 
-    private String generateRefreshToken(Long userId, Long campusId, String deviceId, String refreshTokenId) {
+    private String generateRefreshToken(
+        Long userId,
+        Long campusId,
+        String deviceId,
+        Long tokenVersion,
+        String refreshTokenId) {
         return jwtTokenProvider.generateRefreshToken(
             TokenPrincipal.builder()
                 .userId(userId)
                 .campusId(campusId)
                 .deviceId(deviceId)
+                .tokenVersion(tokenVersion)
                 .build(),
             refreshTokenId
         );

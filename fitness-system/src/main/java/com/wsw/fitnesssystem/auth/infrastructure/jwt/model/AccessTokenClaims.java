@@ -39,5 +39,5 @@ public class AccessTokenClaims {
     private String username;
 
     /** Token 版本号，用于全局或单用户 Token 失效控制 */
-    private Integer tokenVersion;
+    private Long tokenVersion;
 }

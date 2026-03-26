@@ -34,5 +34,5 @@ public class TokenPrincipal {
     /** 设备ID，用于多端登录控制和 RefreshToken 绑定，支持单设备下线 */
     private String deviceId;
     /** Token 版本号，用于全局或单用户 Token 失效控制 */
-    private Integer tokenVersion;
+    private Long tokenVersion;
 }

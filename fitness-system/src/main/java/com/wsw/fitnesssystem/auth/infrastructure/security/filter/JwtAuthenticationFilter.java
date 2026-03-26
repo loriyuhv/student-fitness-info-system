@@ -76,13 +76,23 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             Long userId = claims.getUserId();
             Long campusId = claims.getCampusId();
             String username = claims.getUsername();
+            Long tokenVersion = claims.getTokenVersion();
 
             if (!StringUtils.hasText(userId.toString()) || !StringUtils.hasText(tokenId)) {
                 responseWriter.write(response, ResultCode.TOKEN_INVALID);
                 return;
             }
 
-            // 3.1 检查黑名单
+            // 3.1 校验Token版本号
+            // 获取 Redis 中的当前版本号
+            long currentVersion = sessionRepository.getTokenVersion(campusId, userId);
+            // 版本号不一致 → 失效（密码已改）
+            if (tokenVersion != currentVersion) {
+                loginAuditService.kick(userId, tokenId);
+                responseWriter.write(response, ResultCode.TOKEN_INVALID);
+            }
+
+            // 3.2 检查黑名单
             boolean blacklisted = sessionRepository.isBlacklisted(tokenId);
             if (blacklisted) {
                 loginAuditService.kick(userId, tokenId);
@@ -90,8 +100,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 return;
             }
 
-            // 3.2 会话是否仍在线（踢人 / 注销 / 单点）
-
+            // 3.3 会话是否仍在线（踢人 / 注销 / 单点）
             if (!sessionRepository.isOnline(campusId, userId, tokenId)) {
                 loginAuditService.expire(userId, tokenId);
                 responseWriter.write(response, ResultCode.TOKEN_INVALID);

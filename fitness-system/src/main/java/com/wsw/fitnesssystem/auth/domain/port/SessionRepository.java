@@ -85,7 +85,7 @@ public interface SessionRepository {
      *     <li>通常用于用户主动退出或管理员强制下线</li>
      * </ul>
      */
-    void removeAll(Long campusId, Long userId);
+    void removeAllSessions(Long campusId, Long userId);
 
     /**
      * 获取用户所有在线 AccessToken ID
@@ -166,4 +166,14 @@ public interface SessionRepository {
      * </ul>
      */
     Optional<String> getOldestSession(Long campusId, Long userId);
+
+    /**
+     * 获取用户当前版本号（如果不存在则初始化为 1）
+     */
+    long getTokenVersion(Long campusId, Long userId);
+
+    /**
+     * 递增版本号（修改密码时调用）
+     */
+    long incrementTokenVersion(Long campusId, Long userId);
 }

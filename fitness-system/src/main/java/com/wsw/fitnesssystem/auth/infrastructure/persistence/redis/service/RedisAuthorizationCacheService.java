@@ -22,7 +22,7 @@ import java.time.Duration;
 public class RedisAuthorizationCacheService
     implements AuthorizationCacheService {
 
-    private static final Duration TTL = Duration.ofMinutes(1);
+    private static final Duration TTL = Duration.ofMinutes(30);
 
     private final RedisTemplate<String, UserAuthorization> userAuthRedisTemplate;
 

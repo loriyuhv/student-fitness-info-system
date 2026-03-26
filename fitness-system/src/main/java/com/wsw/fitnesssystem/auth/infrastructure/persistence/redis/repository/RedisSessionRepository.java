@@ -55,9 +55,16 @@ public class RedisSessionRepository implements SessionRepository {
     }
 
     @Override
-    public void removeAll(Long campusId, Long userId) {
+    public void removeAllSessions(Long campusId, Long userId) {
+        // 1. 递增版本号，使所有旧令牌失效
+        long newVersion = incrementTokenVersion(campusId, userId);
+
+        // 2. 清除在线会话数据
         redisTemplate.delete(AuthRedisKeys.onlineKey(campusId, userId));
         redisTemplate.delete(AuthRedisKeys.refreshIndexKey(campusId, userId));
+
+        log.info("Removed all sessions for user {} campus {}, version incremented to {}",
+            userId, campusId, newVersion);
     }
 
     @Override
@@ -106,5 +113,27 @@ public class RedisSessionRepository implements SessionRepository {
         }
 
         return set.stream().findFirst();
+    }
+
+    @Override
+    public long getTokenVersion(Long campusId, Long userId) {
+        String key = AuthRedisKeys.tokenVersionKey(campusId, userId);
+        String value = redisTemplate.opsForValue().get(key);
+        if (value == null) {
+            // 首次使用，初始化为 1
+            redisTemplate.opsForValue().set(key, "1", sessionProperties.getExpireMillis(), TimeUnit.MILLISECONDS);
+            return 1L;
+        }
+        return Long.parseLong(value);
+    }
+
+    @Override
+    public long incrementTokenVersion(Long campusId, Long userId) {
+        String key = AuthRedisKeys.tokenVersionKey(campusId, userId);
+        // increment 方法会返回递增后的新值，如果 key 不存在则从 0 开始递增（返回 1）
+        Long newVersion = redisTemplate.opsForValue().increment(key);
+        // 可选：设置 TTL（版本号通常永久有效，也可以与用户生命周期一致）
+        redisTemplate.expire(key, sessionProperties.getExpireMillis(), TimeUnit.MILLISECONDS);
+        return newVersion == null ? 1 : newVersion;
     }
 }
