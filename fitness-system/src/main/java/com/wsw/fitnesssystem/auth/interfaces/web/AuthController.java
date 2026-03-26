@@ -40,6 +40,7 @@ public class AuthController {
             .username(request.getUsername())
             .password(request.getPassword())
             .deviceType(request.getDeviceType())
+            .deviceId(httpRequest.getHeader("X-Device-Id"))
             .ip(getClientIp(httpRequest))
             .userAgent(httpRequest.getHeader("User-Agent"))
             .build();

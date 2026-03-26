@@ -3,7 +3,7 @@ package com.wsw.fitnesssystem.auth.infrastructure.jwt.parser;
 import com.wsw.fitnesssystem.auth.infrastructure.jwt.model.AccessTokenClaims;
 import com.wsw.fitnesssystem.auth.infrastructure.jwt.model.RefreshTokenClaims;
 import com.wsw.fitnesssystem.auth.infrastructure.jwt.model.TokenType;
-import com.wsw.fitnesssystem.auth.infrastructure.jwt.config.JwtConfig;
+import com.wsw.fitnesssystem.auth.infrastructure.config.JwtConfig;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.SecurityException;
 import lombok.RequiredArgsConstructor;

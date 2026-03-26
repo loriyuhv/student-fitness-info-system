@@ -2,7 +2,7 @@ package com.wsw.fitnesssystem.auth.application.service.impl;
 
 import com.wsw.fitnesssystem.auth.application.service.LoginFailLimitService;
 import com.wsw.fitnesssystem.auth.domain.service.LoginFailLimitDomainService;
-import com.wsw.fitnesssystem.auth.infrastructure.repository.RedisLoginFailRepository;
+import com.wsw.fitnesssystem.auth.infrastructure.persistence.redis.repository.RedisLoginFailRepository;
 import com.wsw.fitnesssystem.shared.exception.BizException;
 import com.wsw.fitnesssystem.shared.response.ResultCode;
 import lombok.RequiredArgsConstructor;

@@ -16,11 +16,17 @@ import lombok.Getter;
 @Getter
 @Builder
 public class LoginCommand {
+    /** 用户账号 */
     private String username;
+
+    /** 账号密码 */
     private String password;
 
     /** 设备类型：WEB / APP / MINI_PROGRAM */
     private String deviceType;
+
+    /** 设备ID */
+    private String deviceId;
 
     /** 客户端 IP */
     private String ip;

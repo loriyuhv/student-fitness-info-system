@@ -37,7 +37,7 @@ jwt:
   access-secret: "84hQeGado6JIMKBNDJudeQuogatipj9xluip2moqvp3qLozvz043hDDTWcSuF8Fn"
   refresh-secret: "2ySXSQB9puHMYGOmMnykDH4fscjo7NIqNIpiG2SUWcxlvAfLv6WiCUWv590JeuE2"
   min-length: 32
-  expire: 7200000
+  expire: 1800000
   refresh-expire: 604800000
   issuer: "student-fitness"
   audience: "web-client"

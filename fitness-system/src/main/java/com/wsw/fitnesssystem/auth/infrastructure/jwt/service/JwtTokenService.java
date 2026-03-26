@@ -2,7 +2,7 @@ package com.wsw.fitnesssystem.auth.infrastructure.jwt.service;
 
 import com.wsw.fitnesssystem.auth.application.dto.TokenPair;
 import com.wsw.fitnesssystem.auth.application.service.TokenService;
-import com.wsw.fitnesssystem.auth.infrastructure.jwt.config.JwtConfig;
+import com.wsw.fitnesssystem.auth.infrastructure.config.JwtConfig;
 import com.wsw.fitnesssystem.auth.infrastructure.jwt.model.AccessTokenClaims;
 import com.wsw.fitnesssystem.auth.infrastructure.jwt.model.RefreshTokenClaims;
 import com.wsw.fitnesssystem.auth.infrastructure.jwt.model.TokenPrincipal;
@@ -57,9 +57,9 @@ public class JwtTokenService implements TokenService {
     private final JwtTokenParser jwtTokenParser;
 
     @Override
-    public TokenPair generate(Long userId, Long campusId, String username, String accessTokenId, String refreshTokenId) {
+    public TokenPair generate(Long userId, Long campusId, String username, String deviceId, String accessTokenId, String refreshTokenId) {
         String accessToken = generateAccessToken(userId, campusId, username, accessTokenId);
-        String refreshToken = generateRefreshToken(userId, campusId, refreshTokenId);
+        String refreshToken = generateRefreshToken(userId, campusId, deviceId, refreshTokenId);
         return TokenPair.builder()
             .accessTokenId(accessTokenId)
             .refreshTokenId(refreshTokenId)
@@ -89,11 +89,13 @@ public class JwtTokenService implements TokenService {
         );
     }
 
-    private String generateRefreshToken(Long userId, Long campusId, String refreshTokenId) {
+    private String generateRefreshToken(Long userId, Long campusId, String deviceId, String refreshTokenId) {
         return jwtTokenProvider.generateRefreshToken(
             TokenPrincipal.builder()
                 .userId(userId)
-                .campusId(campusId).build(),
+                .campusId(campusId)
+                .deviceId(deviceId)
+                .build(),
             refreshTokenId
         );
     }

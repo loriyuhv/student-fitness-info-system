@@ -2,7 +2,7 @@ package com.wsw.fitnesssystem.auth.infrastructure.jwt.provider;
 
 import com.wsw.fitnesssystem.auth.infrastructure.jwt.model.TokenPrincipal;
 import com.wsw.fitnesssystem.auth.infrastructure.jwt.model.TokenType;
-import com.wsw.fitnesssystem.auth.infrastructure.jwt.config.JwtConfig;
+import com.wsw.fitnesssystem.auth.infrastructure.config.JwtConfig;
 import io.jsonwebtoken.Jwts;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

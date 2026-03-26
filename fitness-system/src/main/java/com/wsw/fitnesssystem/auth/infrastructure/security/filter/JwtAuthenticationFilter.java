@@ -5,7 +5,7 @@ import com.wsw.fitnesssystem.auth.domain.port.SessionRepository;
 import com.wsw.fitnesssystem.auth.infrastructure.jwt.model.AccessTokenClaims;
 import com.wsw.fitnesssystem.auth.infrastructure.security.model.JwtUserPrincipal;
 import com.wsw.fitnesssystem.auth.infrastructure.security.support.SecurityResponseWriter;
-import com.wsw.fitnesssystem.auth.infrastructure.audit.service.LoginAuditService;
+import com.wsw.fitnesssystem.auth.infrastructure.audit.LoginAuditService;
 import com.wsw.fitnesssystem.auth.infrastructure.jwt.service.JwtTokenService;
 import com.wsw.fitnesssystem.auth.application.port.AuthorizationCacheService;
 import com.wsw.fitnesssystem.shared.response.ResultCode;

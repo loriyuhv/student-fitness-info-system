@@ -9,7 +9,7 @@ import com.wsw.fitnesssystem.auth.domain.model.AuthUser;
 import com.wsw.fitnesssystem.auth.application.dto.TokenPair;
 import com.wsw.fitnesssystem.auth.domain.port.SessionRepository;
 import com.wsw.fitnesssystem.auth.domain.service.AuthDomainService;
-import com.wsw.fitnesssystem.auth.infrastructure.audit.service.LoginAuditService;
+import com.wsw.fitnesssystem.auth.infrastructure.audit.LoginAuditService;
 import com.wsw.fitnesssystem.auth.infrastructure.config.SessionProperties;
 import com.wsw.fitnesssystem.auth.infrastructure.security.model.JwtUserPrincipal;
 import com.wsw.fitnesssystem.shared.exception.BizException;
@@ -84,6 +84,7 @@ public class AuthApplicationService {
             user.getUserId(),
             user.getCampusId(),
             user.getUsername(),
+            cmd.getDeviceId(),
             accessTokenId,
             refreshTokenId
         );
