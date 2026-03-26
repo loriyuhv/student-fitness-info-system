@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!-- 第四步：编写XxxMapper.xml文件 -->
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wsw.fitnesssystem.handle_excel.infrastructure.persistence.db.mapper.ExcelSysUserMapper">
+
+    <insert id="batchInsert">
+        INSERT INTO sys_user
+        (campus_id, username, password, nick_name, phone_number, email, user_type, status, deleted, create_time)
+        VALUES
+        <foreach collection="list" item="item" separator=",">
+            (
+            #{item.campusId},
+            #{item.username},
+            #{item.password},
+            #{item.nickName},
+            #{item.phoneNumber},
+            #{item.email},
+            #{item.userType},
+            #{item.status},
+            0,
+            NOW()
+            )
+        </foreach>
+    </insert>
+
+    <select id="selectExistingUsernames" resultType="string">
+        SELECT username FROM sys_user
+        WHERE deleted = 0
+        AND username IN
+        <foreach collection="usernames" item="item" open="(" close=")" separator=",">
+            #{item}
+        </foreach>
+    </select>
+
+    <select id="selectExistingPhones" resultType="string">
+        SELECT phone_number FROM sys_user
+        WHERE deleted = 0
+        AND phone_number IN
+        <foreach collection="phones" item="item" open="(" close=")" separator=",">
+            #{item}
+        </foreach>
+    </select>
+
+</mapper>
