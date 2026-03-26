@@ -65,6 +65,13 @@
             <version>0.12.6</version>
         </dependency>
 
+        <!-- EasyExcel 核心依赖 -->
+        <dependency>
+            <groupId>com.alibaba</groupId>
+            <artifactId>easyexcel</artifactId>
+            <version>3.3.4</version>
+        </dependency>
+
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
