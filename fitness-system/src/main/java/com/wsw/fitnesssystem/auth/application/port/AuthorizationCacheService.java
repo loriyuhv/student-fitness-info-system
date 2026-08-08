@@ -22,7 +22,7 @@ public interface AuthorizationCacheService {
     /**
      * 缓存用户权限快照
      */
-    void cache(Long campusId, UserAuthorization authorization);
+    void cache(UserAuthorization authorization);
 
     /**
      * 获取用户权限快照

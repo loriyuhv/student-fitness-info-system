@@ -1,6 +1,6 @@
 package com.wsw.fitnesssystem.auth.application.authorization.impl;
 
-import com.wsw.fitnesssystem.auth.application.authorization.AuthorizationApplicationService;
+import com.wsw.fitnesssystem.auth.application.authorization.AuthorizationQueryService;
 import com.wsw.fitnesssystem.auth.application.authorization.dto.AuthorizationQuery;
 import com.wsw.fitnesssystem.auth.application.authorization.dto.UserAuthorization;
 import com.wsw.fitnesssystem.auth.application.port.AuthorizationCacheService;
@@ -25,7 +25,7 @@ import java.util.Set;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class AuthorizationApplicationServiceImpl implements AuthorizationApplicationService {
+public class AuthorizationQueryServiceImpl implements AuthorizationQueryService {
     private final AuthorizationRepository authorizationRepository;
     private final AuthorizationCacheService cacheService;
 
@@ -38,7 +38,7 @@ public class AuthorizationApplicationServiceImpl implements AuthorizationApplica
         // 1. 先查缓存
         UserAuthorization cached = cacheService.get(campusId, userId);
         if (cached != null) {
-            log.info("权限缓存命中：{}", userId);
+            log.info("权限缓存命中：{}:{}", campusId, userId);
             return cached;
         }
 
@@ -48,11 +48,11 @@ public class AuthorizationApplicationServiceImpl implements AuthorizationApplica
 
         // 一次性查询权限
         Set<String> permissions = authorizationRepository.findPermissionsByUserId(userId);
-        UserAuthorization fresh = new UserAuthorization(userId, roles, permissions);
+        UserAuthorization fresh = new UserAuthorization(campusId, userId, roles, permissions);
 
         // 3. 写缓存
-        cacheService.cache(campusId, fresh);
-        log.info("权限缓存写入: {}", userId);
+        cacheService.cache(fresh);
+        log.info("权限缓存写入: {}:{}",campusId, userId);
 
         return fresh;
     }

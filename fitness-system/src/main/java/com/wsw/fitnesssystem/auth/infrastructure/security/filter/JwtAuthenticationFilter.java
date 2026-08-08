@@ -1,6 +1,6 @@
 package com.wsw.fitnesssystem.auth.infrastructure.security.filter;
 
-import com.wsw.fitnesssystem.auth.application.authorization.AuthorizationApplicationService;
+import com.wsw.fitnesssystem.auth.application.authorization.AuthorizationQueryService;
 import com.wsw.fitnesssystem.auth.application.authorization.dto.AuthorizationQuery;
 import com.wsw.fitnesssystem.auth.application.authorization.dto.UserAuthorization;
 import com.wsw.fitnesssystem.auth.domain.port.SessionRepository;
@@ -82,7 +82,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final LoginAuditService loginAuditService;
     private final SessionRepository sessionRepository;
     private final JwtAuthenticationEntryPoint authenticationEntryPoint;
-    private final AuthorizationApplicationService authorizationApplicationService;
+    private final AuthorizationQueryService authorizationQueryService;
 
     /**
      * 过滤器核心处理逻辑
@@ -158,7 +158,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
             // 4. 加载用户权限：权限信任Redis缓存，不直接使用Token内携带权限
             UserAuthorization authorization =
-                    authorizationApplicationService.authorize(
+                    authorizationQueryService.authorize(
                             AuthorizationQuery.builder().userId(userId).campusId(campusId).build());
 
             // 组装SpringSecurity权限集合：角色自动添加ROLE_前缀，权限标识原样保留

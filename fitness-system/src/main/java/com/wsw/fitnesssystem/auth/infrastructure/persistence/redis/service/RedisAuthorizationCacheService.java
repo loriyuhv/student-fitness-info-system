@@ -33,12 +33,10 @@ public class RedisAuthorizationCacheService
     }
 
     @Override
-    public void cache(Long campusId, UserAuthorization authorization) {
-        String key = buildKey(campusId, authorization.getUserId());
+    public void cache(UserAuthorization authorization) {
+        String key = buildKey(authorization.getCampusId(), authorization.getUserId());
         userAuthRedisTemplate.opsForValue().set(
-            key,
-            authorization,
-            TTL
+            key, authorization, TTL
         );
     }
 

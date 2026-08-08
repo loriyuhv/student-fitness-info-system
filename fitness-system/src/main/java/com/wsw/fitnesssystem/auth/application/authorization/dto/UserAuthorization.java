@@ -27,6 +27,8 @@ public class UserAuthorization implements Serializable {
     @Serial
     private static final long serialVersionUID = 1L;
 
+    private Long campusId;
+
     private Long userId;
 
     /** 角色编码集合 */

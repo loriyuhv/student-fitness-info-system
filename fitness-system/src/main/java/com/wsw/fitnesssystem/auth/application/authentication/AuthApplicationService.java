@@ -4,7 +4,7 @@ import com.wsw.fitnesssystem.auth.application.authentication.command.LoginComman
 import com.wsw.fitnesssystem.auth.application.authentication.dto.LoginResponse;
 import com.wsw.fitnesssystem.auth.application.authentication.dto.RefreshTokenResponse;
 import com.wsw.fitnesssystem.auth.application.authentication.vo.UserInfoVO;
-import com.wsw.fitnesssystem.auth.application.authorization.AuthorizationApplicationService;
+import com.wsw.fitnesssystem.auth.application.authorization.AuthorizationQueryService;
 import com.wsw.fitnesssystem.auth.application.authorization.dto.AuthorizationQuery;
 import com.wsw.fitnesssystem.auth.application.authorization.dto.UserAuthorization;
 import com.wsw.fitnesssystem.auth.application.service.LoginSuccessProcessor;
@@ -57,7 +57,7 @@ public class AuthApplicationService {
     private final UserInfoRepository userInfoRepository;
     private final SessionDomainService sessionDomainService;
     private final LoginSuccessProcessor loginSuccessProcessor;
-    private final AuthorizationApplicationService authorizationApplicationService;
+    private final AuthorizationQueryService authorizationQueryService;
 
     /**
      * 用户登录流程（应用服务入口）
@@ -236,7 +236,7 @@ public class AuthApplicationService {
                 .userId(userId)
                 .campusId(campusId)
                 .build();
-        UserAuthorization authorize = authorizationApplicationService.authorize(authorizationQuery);
+        UserAuthorization authorize = authorizationQueryService.authorize(authorizationQuery);
 
         return UserInfoVO.builder()
                 .userId(userInfo.getUserId())

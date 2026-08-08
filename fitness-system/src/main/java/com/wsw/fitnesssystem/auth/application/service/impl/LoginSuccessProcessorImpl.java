@@ -1,7 +1,7 @@
 package com.wsw.fitnesssystem.auth.application.service.impl;
 
 import com.wsw.fitnesssystem.auth.application.authentication.command.LoginCommand;
-import com.wsw.fitnesssystem.auth.application.authorization.AuthorizationApplicationService;
+import com.wsw.fitnesssystem.auth.application.authorization.AuthorizationQueryService;
 import com.wsw.fitnesssystem.auth.application.authorization.dto.AuthorizationQuery;
 import com.wsw.fitnesssystem.auth.application.service.LoginSuccessProcessor;
 import com.wsw.fitnesssystem.auth.application.service.RiskControlService;
@@ -34,7 +34,7 @@ import org.springframework.stereotype.Service;
  *     <li>{@link RiskControlService} - 风控逻辑处理</li>
  *     <li>{@link SessionDomainService} - 多端登录限制策略</li>
  *     <li>{@link SessionRepository} - 会话持久化</li>
- *     <li>{@link AuthorizationApplicationService} - 授权服务</li>
+ *     <li>{@link AuthorizationQueryService} - 授权服务</li>
  *     <li>{@link LoginAuditService} - 登录审计</li>
  * </ul>
  * @author loriyuhv
@@ -55,7 +55,7 @@ public class LoginSuccessProcessorImpl implements LoginSuccessProcessor {
     private final SessionRepository sessionRepository;
 
     /** 授权应用服务，用于执行一次性授权和缓存更新 */
-    private final AuthorizationApplicationService authorizationApplicationService;
+    private final AuthorizationQueryService authorizationQueryService;
 
     /** 登录审计服务，用于记录登录成功事件 */
     private final LoginAuditService loginAuditService;
@@ -104,7 +104,7 @@ public class LoginSuccessProcessorImpl implements LoginSuccessProcessor {
                 .userId(user.getUserId())
                 .campusId(user.getCampusId())
                 .build();
-        authorizationApplicationService.authorize(authorizationQuery);
+        authorizationQueryService.authorize(authorizationQuery);
 
         // 5. 审计日志
         loginAuditService.loginSuccess(
