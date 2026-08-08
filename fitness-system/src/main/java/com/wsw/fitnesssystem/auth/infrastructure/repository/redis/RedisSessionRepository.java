@@ -1,4 +1,4 @@
-package com.wsw.fitnesssystem.auth.infrastructure.persistence.redis.repository;
+package com.wsw.fitnesssystem.auth.infrastructure.repository.redis;
 
 import com.wsw.fitnesssystem.auth.domain.port.SessionRepository;
 import com.wsw.fitnesssystem.auth.infrastructure.config.SessionProperties;
@@ -9,6 +9,7 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Repository;
 import org.springframework.util.CollectionUtils;
 
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
@@ -135,5 +136,48 @@ public class RedisSessionRepository implements SessionRepository {
         // 可选：设置 TTL（版本号通常永久有效，也可以与用户生命周期一致）
         redisTemplate.expire(key, sessionProperties.getExpireMillis(), TimeUnit.MILLISECONDS);
         return newVersion == null ? 1 : newVersion;
+    }
+
+    @Override
+    public boolean existsRefreshToken(Long campusId, Long userId, String refreshTokenId) {
+        String key = AuthRedisKeys.refreshIndexKey(
+                campusId,
+                userId
+        );
+
+        return redisTemplate.opsForHash().hasKey(key, refreshTokenId);
+    }
+
+    @Override
+    public void rotateRefreshToken(Long campusId, Long userId, String oldRefreshTokenId, String oldAccessTokenId, String newRefreshTokenId, String newAccessTokenId) {
+        long now = System.currentTimeMillis();
+        long sessionTtl = sessionProperties.getExpireMillis();
+        String onlineKey = AuthRedisKeys.onlineKey(campusId, userId);
+        String refreshKey = AuthRedisKeys.refreshIndexKey(campusId, userId);
+
+        // 1. Hash：移除旧RefreshToken映射，写入新RefreshToken <-> 新AccessToken映射
+        redisTemplate.opsForHash().delete(refreshKey, oldRefreshTokenId);
+        redisTemplate.opsForHash().put(refreshKey, newRefreshTokenId, newAccessTokenId);
+
+        // 2. ZSet在线列表：移除旧AccessTokenId，新增新AccessTokenId
+        redisTemplate.opsForZSet().remove(onlineKey, oldAccessTokenId);
+        redisTemplate.opsForZSet().add(onlineKey, newAccessTokenId, now);
+
+        // 3. 会话续期：刷新代表用户活跃，两个key统一重置TTL（和登录saveSession行为一致）
+        redisTemplate.expire(refreshKey, sessionTtl, TimeUnit.MILLISECONDS);
+        redisTemplate.expire(onlineKey, sessionTtl, TimeUnit.MILLISECONDS);
+
+        // 4. 旧AccessToken加入黑名单，拒绝后续访问
+        addToBlacklist(
+                oldAccessTokenId,
+                sessionProperties.getAccessTokenExpireMinutes() * 60
+        );
+    }
+
+    @Override
+    public String getAccessTokenIdByRefreshToken(Long campusId, Long userId, String refreshTokenId) {
+        String key = AuthRedisKeys.refreshIndexKey(campusId, userId);
+
+        return Objects.requireNonNull(redisTemplate.opsForHash().get(key, refreshTokenId)).toString();
     }
 }

@@ -17,5 +17,5 @@ public class UserExcelDTO {
     private String password;
 
     @ExcelProperty("昵称")
-    private String nickName;
+    private String nickname;
 }

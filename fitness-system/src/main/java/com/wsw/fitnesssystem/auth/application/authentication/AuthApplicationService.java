@@ -2,15 +2,24 @@ package com.wsw.fitnesssystem.auth.application.authentication;
 
 import com.wsw.fitnesssystem.auth.application.authentication.command.LoginCommand;
 import com.wsw.fitnesssystem.auth.application.authentication.dto.LoginResponse;
+import com.wsw.fitnesssystem.auth.application.authentication.dto.RefreshTokenResponse;
+import com.wsw.fitnesssystem.auth.application.authentication.vo.UserInfoVO;
+import com.wsw.fitnesssystem.auth.application.authorization.AuthorizationApplicationService;
+import com.wsw.fitnesssystem.auth.application.authorization.dto.AuthorizationQuery;
+import com.wsw.fitnesssystem.auth.application.authorization.dto.UserAuthorization;
 import com.wsw.fitnesssystem.auth.application.service.LoginSuccessProcessor;
 import com.wsw.fitnesssystem.auth.application.service.RiskControlService;
 import com.wsw.fitnesssystem.auth.application.service.TokenService;
 import com.wsw.fitnesssystem.auth.domain.model.AuthUser;
 import com.wsw.fitnesssystem.auth.application.dto.TokenPair;
+import com.wsw.fitnesssystem.auth.domain.model.UserInfo;
 import com.wsw.fitnesssystem.auth.domain.port.SessionRepository;
+import com.wsw.fitnesssystem.auth.domain.port.UserInfoRepository;
 import com.wsw.fitnesssystem.auth.domain.service.AuthDomainService;
+import com.wsw.fitnesssystem.auth.domain.service.SessionDomainService;
 import com.wsw.fitnesssystem.auth.infrastructure.audit.LoginAuditService;
 import com.wsw.fitnesssystem.auth.infrastructure.config.SessionProperties;
+import com.wsw.fitnesssystem.auth.infrastructure.token.model.RefreshTokenClaims;
 import com.wsw.fitnesssystem.auth.infrastructure.security.model.JwtUserPrincipal;
 import com.wsw.fitnesssystem.shared.exception.BizException;
 import com.wsw.fitnesssystem.shared.response.ResultCode;
@@ -39,13 +48,16 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class AuthApplicationService {
 
+    private final TokenService tokenService;
     private final RiskControlService riskControlService;
     private final AuthDomainService authDomainService;
-    private final TokenService tokenService;
-    private final LoginSuccessProcessor loginSuccessProcessor;
     private final LoginAuditService loginAuditService;
     private final SessionRepository sessionRepository;
     private final SessionProperties sessionProperties;
+    private final UserInfoRepository userInfoRepository;
+    private final SessionDomainService sessionDomainService;
+    private final LoginSuccessProcessor loginSuccessProcessor;
+    private final AuthorizationApplicationService authorizationApplicationService;
 
     /**
      * 用户登录流程（应用服务入口）
@@ -155,29 +167,88 @@ public class AuthApplicationService {
         log.info("Kicked {} sessions for user {} campus {}", tokenIds.size(), userId, campusId);
     }
 
-    public TokenPair refresh(String refreshToken) {
+    public RefreshTokenResponse refreshAccessToken(String refreshToken) {
+        // 1.解析refresh token
+        RefreshTokenClaims claims = tokenService.parseRefreshToken(refreshToken);
 
-        // Claims claims = jwtService.parse(refreshToken);
-        //
-        // Long userId = claims.get("userId", Long.class);
-        // Long campusId = claims.get("campusId", Long.class);
-        // String deviceId = claims.get("deviceId", String.class);
-        // String jti = claims.getId();
-        //
-        // // 校验 Redis
-        // String key = buildKey(campusId, userId, deviceId);
-        // String storedJti = redis.get(key);
-        //
-        // if (!jti.equals(storedJti)) {
-        //     throw new BizException("RefreshToken 失效");
-        // }
-        //
-        // // 生成新 Token
-        // TokenPair newToken = tokenService.generate(userId, campusId, deviceId);
-        //
-        // // 覆盖 Redis（轮换）
-        // redis.set(key, newToken.getRefreshJti(), 7, DAYS);
-        return null;
+        Long campusId = claims.getCampusId();
+        Long userId = claims.getUserId();
+        String oldRefreshTokenId = claims.getJti();
+        String oldAccessTokenId = sessionRepository.getAccessTokenIdByRefreshToken(
+                campusId, userId, oldRefreshTokenId
+        );
+
+        // 2. 校验refresh session
+        sessionDomainService.verifyRefreshToken(
+                campusId,
+                userId,
+                oldRefreshTokenId
+        );
+
+        // 3.生成新的token
+        String newAccessTokenId = UUID.randomUUID().toString();
+        String newRefreshTokenId = UUID.randomUUID().toString();
+        long tokenVersion = sessionRepository.getTokenVersion(
+                campusId, userId
+        );
+        TokenPair tokenPair = tokenService.generate(
+                userId,
+                campusId,
+                claims.getUsername(),
+                claims.getDeviceId(),
+                tokenVersion,
+                newAccessTokenId,
+                newRefreshTokenId
+        );
+
+        // 4.Refresh Token Rotation
+        sessionDomainService.rotateRefreshToken(
+                campusId,
+                userId,
+                oldRefreshTokenId,
+                oldAccessTokenId,
+                newRefreshTokenId,
+                newAccessTokenId
+        );
+
+        return RefreshTokenResponse.builder()
+                .accessToken(tokenPair.getAccessToken())
+                .refreshToken(tokenPair.getRefreshToken())
+                .expiresIn(tokenPair.getAccessTokenExpiresIn())
+                .build();
+    }
+
+    /**
+     * 获取用户信息
+     * @return 用户信息视图
+     */
+    public UserInfoVO getUserInfo() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        JwtUserPrincipal principal = (JwtUserPrincipal) auth.getPrincipal();
+        Long campusId = principal.campusId();
+        Long userId = principal.userId();
+
+        // 获取当前用户核心信息
+        UserInfo userInfo = userInfoRepository.findById(userId, campusId);
+
+        // 获取当前用户权限
+        AuthorizationQuery authorizationQuery = AuthorizationQuery.builder()
+                .userId(userId)
+                .campusId(campusId)
+                .build();
+        UserAuthorization authorize = authorizationApplicationService.authorize(authorizationQuery);
+
+        return UserInfoVO.builder()
+                .userId(userInfo.getUserId())
+                .campusId(userInfo.getCampusId())
+                .username(userInfo.getUsername())
+                .nickname(userInfo.getNickname())
+                .userType(userInfo.getUserType())
+                .phoneNumber(userInfo.getPhoneNumber())
+                .email(userInfo.getEmail())
+                .remark(userInfo.getRemark())
+                .permissions(authorize.getPermissions())
+                .build();
     }
 
     /**
@@ -222,6 +293,7 @@ public class AuthApplicationService {
         }
     }
 
+
     /**
      * 构建登录响应对象
      *
@@ -243,5 +315,4 @@ public class AuthApplicationService {
             .expiresIn(tokenPair.getAccessTokenExpiresIn())
             .build();
     }
-
 }

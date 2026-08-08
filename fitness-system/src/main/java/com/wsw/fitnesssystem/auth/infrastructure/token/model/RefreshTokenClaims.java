@@ -1,4 +1,4 @@
-package com.wsw.fitnesssystem.auth.infrastructure.jwt.model;
+package com.wsw.fitnesssystem.auth.infrastructure.token.model;
 
 import lombok.Builder;
 import lombok.Data;
@@ -39,6 +39,9 @@ public class RefreshTokenClaims {
 
     /** 设备ID，用于多端登录控制和 RefreshToken 绑定 */
     private String deviceId;
+
+    /** 用户账号 */
+    private String username;
 
     /** Token 版本号，用于全局或单用户 Token 失效控制 */
     private Integer tokenVersion;

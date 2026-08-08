@@ -27,7 +27,7 @@ public class UserImportDomainService {
             User user = new User();
             user.setUsername(dto.getUsername());
             user.setPassword(dto.getPassword());
-            user.setNickName(dto.getNickName());
+            user.setNickname(dto.getNickname());
             result.add(user);
         }
 

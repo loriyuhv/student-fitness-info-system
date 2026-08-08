@@ -47,4 +47,15 @@ public interface SessionDomainService {
      * </ul>
      */
     void limitSessions(Long campusId, Long userId, int maxSessions);
+
+    void verifyRefreshToken(Long campusId,  Long userId, String refreshTokenId);
+
+    void rotateRefreshToken(
+            Long campusId,
+            Long userId,
+            String oldRefreshTokenId,
+            String oldAccessTokenId,
+            String newRefreshTokenId,
+            String newAccessTokenId
+    );
 }

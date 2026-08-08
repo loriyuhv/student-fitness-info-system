@@ -42,14 +42,15 @@ public class JwtAuthenticationEntryPoint implements AuthenticationEntryPoint {
     public void commence(
         HttpServletRequest request,
         HttpServletResponse response,
-        AuthenticationException authException) throws IOException {
-        ResultCode resultCode =
-            authException instanceof CredentialsExpiredException
+        AuthenticationException authException
+    ) throws IOException {
+
+        ResultCode resultCode = authException instanceof CredentialsExpiredException
                 ? ResultCode.TOKEN_EXPIRED
                 : ResultCode.USER_NOT_LOGIN;
 
         // 记录安全日志（WARN级别）
-        log.debug("认证失败，访问未授权资源: {}，Exception：{}",
+        log.warn("认证失败，访问未授权资源: {}，Exception：{}",
             request.getRequestURI(),
             authException.getMessage()
         );

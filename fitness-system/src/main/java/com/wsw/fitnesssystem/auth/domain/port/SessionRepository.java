@@ -176,4 +176,33 @@ public interface SessionRepository {
      * 递增版本号（修改密码时调用）
      */
     long incrementTokenVersion(Long campusId, Long userId);
+
+    /**
+     * 校验refreshToken是否存在
+     */
+    boolean existsRefreshToken(
+            Long campusId,
+            Long userId,
+            String refreshTokenId
+    );
+
+    /**
+     * Refresh Token轮换
+     * 删除旧refresh
+     * 保存新refresh
+     */
+    void rotateRefreshToken(
+            Long campusId,
+            Long userId,
+            String oldRefreshTokenId,
+            String oldAccessTokenId,
+            String newRefreshTokenId,
+            String newAccessTokenId
+    );
+
+    String getAccessTokenIdByRefreshToken(
+            Long campusId,
+            Long userId,
+            String refreshTokenId
+    );
 }

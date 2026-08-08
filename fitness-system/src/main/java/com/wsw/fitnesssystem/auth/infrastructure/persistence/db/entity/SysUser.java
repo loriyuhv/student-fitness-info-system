@@ -40,7 +40,7 @@ public class SysUser implements Serializable {
     private String password;
 
     /** 昵称 */
-    private String nickName;
+    private String nickname;
 
     /** 手机号 */
     private String phoneNumber;

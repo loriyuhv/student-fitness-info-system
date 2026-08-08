@@ -56,6 +56,10 @@ public class ApiResult<T> {
         return from(resultCode, null);
     }
 
+    public static <T> ApiResult<T> error(ResultCode resultCode, String message) {
+        return from(resultCode, null, message);
+    }
+
     /* ================= 核心工厂方法 ================= */
 
     public static <T> ApiResult<T> from(ResultCode resultCode, T data) {
@@ -65,6 +69,16 @@ public class ApiResult<T> {
             resultCode.getMessage(),
             data,
             System.currentTimeMillis()
+        );
+    }
+
+    public static <T> ApiResult<T> from(ResultCode resultCode, T data, String message) {
+        return new ApiResult<>(
+                resultCode.httpCode(),
+                resultCode.getCode(),
+                message,
+                data,
+                System.currentTimeMillis()
         );
     }
 }

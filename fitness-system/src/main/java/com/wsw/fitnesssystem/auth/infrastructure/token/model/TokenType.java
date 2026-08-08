@@ -1,4 +1,4 @@
-package com.wsw.fitnesssystem.auth.infrastructure.jwt.model;
+package com.wsw.fitnesssystem.auth.infrastructure.token.model;
 
 /**
  * <p>JWT 令牌类型，仅限基础设施层使用。</p>

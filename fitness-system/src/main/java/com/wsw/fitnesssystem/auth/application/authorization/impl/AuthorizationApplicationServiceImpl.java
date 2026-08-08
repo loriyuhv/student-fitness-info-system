@@ -1,9 +1,9 @@
 package com.wsw.fitnesssystem.auth.application.authorization.impl;
 
 import com.wsw.fitnesssystem.auth.application.authorization.AuthorizationApplicationService;
+import com.wsw.fitnesssystem.auth.application.authorization.dto.AuthorizationQuery;
 import com.wsw.fitnesssystem.auth.application.authorization.dto.UserAuthorization;
 import com.wsw.fitnesssystem.auth.application.port.AuthorizationCacheService;
-import com.wsw.fitnesssystem.auth.domain.model.AuthUser;
 import com.wsw.fitnesssystem.auth.domain.port.AuthorizationRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -30,10 +30,10 @@ public class AuthorizationApplicationServiceImpl implements AuthorizationApplica
     private final AuthorizationCacheService cacheService;
 
     @Override
-    public UserAuthorization authorize(AuthUser authUser) {
+    public UserAuthorization authorize(AuthorizationQuery authorizationQuery) {
 
-        Long campusId = authUser.getCampusId();
-        Long userId = authUser.getUserId();
+        Long campusId = authorizationQuery.getCampusId();
+        Long userId = authorizationQuery.getUserId();
 
         // 1. 先查缓存
         UserAuthorization cached = cacheService.get(campusId, userId);

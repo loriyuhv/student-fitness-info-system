@@ -14,7 +14,7 @@
             #{item.campusId},
             #{item.username},
             #{item.password},
-            #{item.nickName},
+            #{item.nickname},
             #{item.phoneNumber},
             #{item.email},
             #{item.userType},

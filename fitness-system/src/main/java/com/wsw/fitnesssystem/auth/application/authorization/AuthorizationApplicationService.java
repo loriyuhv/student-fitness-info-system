@@ -1,7 +1,7 @@
 package com.wsw.fitnesssystem.auth.application.authorization;
 
+import com.wsw.fitnesssystem.auth.application.authorization.dto.AuthorizationQuery;
 import com.wsw.fitnesssystem.auth.application.authorization.dto.UserAuthorization;
-import com.wsw.fitnesssystem.auth.domain.model.AuthUser;
 
 /**
  * 授权服务（用例级）
@@ -15,5 +15,5 @@ public interface AuthorizationApplicationService {
     /**
      * 对用户进行授权，返回权限快照
      */
-    UserAuthorization authorize(AuthUser authUser);
+    UserAuthorization authorize(AuthorizationQuery authorizationQuery);
 }

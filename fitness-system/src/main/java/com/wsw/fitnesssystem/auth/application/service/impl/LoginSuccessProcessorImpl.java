@@ -2,6 +2,7 @@ package com.wsw.fitnesssystem.auth.application.service.impl;
 
 import com.wsw.fitnesssystem.auth.application.authentication.command.LoginCommand;
 import com.wsw.fitnesssystem.auth.application.authorization.AuthorizationApplicationService;
+import com.wsw.fitnesssystem.auth.application.authorization.dto.AuthorizationQuery;
 import com.wsw.fitnesssystem.auth.application.service.LoginSuccessProcessor;
 import com.wsw.fitnesssystem.auth.application.service.RiskControlService;
 import com.wsw.fitnesssystem.auth.domain.model.AuthUser;
@@ -99,7 +100,11 @@ public class LoginSuccessProcessorImpl implements LoginSuccessProcessor {
         );
 
         // 4. 授权（懒加载缓存）
-        authorizationApplicationService.authorize(user);
+        AuthorizationQuery authorizationQuery = AuthorizationQuery.builder()
+                .userId(user.getUserId())
+                .campusId(user.getCampusId())
+                .build();
+        authorizationApplicationService.authorize(authorizationQuery);
 
         // 5. 审计日志
         loginAuditService.loginSuccess(

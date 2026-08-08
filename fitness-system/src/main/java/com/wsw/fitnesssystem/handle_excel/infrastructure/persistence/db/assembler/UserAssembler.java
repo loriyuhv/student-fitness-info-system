@@ -25,7 +25,7 @@ public class UserAssembler {
         entity.setCampusId(1L);
         entity.setUsername(user.getUsername());
         entity.setPassword(passwordEncoder.encode(user.getPassword()));
-        entity.setNickName(user.getNickName());
+        entity.setNickname(user.getNickname());
         entity.setPhoneNumber(null);
         entity.setEmail(null);
         entity.setUserType(2);

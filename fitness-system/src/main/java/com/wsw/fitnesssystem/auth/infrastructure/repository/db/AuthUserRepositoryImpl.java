@@ -1,4 +1,4 @@
-package com.wsw.fitnesssystem.auth.infrastructure.persistence.db.repository;
+package com.wsw.fitnesssystem.auth.infrastructure.repository.db;
 
 import com.wsw.fitnesssystem.auth.domain.model.AuthUser;
 import com.wsw.fitnesssystem.auth.domain.port.AuthUserRepository;

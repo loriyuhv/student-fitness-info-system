@@ -3,7 +3,8 @@ package com.wsw.fitnesssystem.auth.interfaces.web;
 import com.wsw.fitnesssystem.auth.application.authentication.AuthApplicationService;
 import com.wsw.fitnesssystem.auth.application.authentication.command.LoginCommand;
 import com.wsw.fitnesssystem.auth.application.authentication.dto.LoginResponse;
-import com.wsw.fitnesssystem.auth.application.dto.TokenPair;
+import com.wsw.fitnesssystem.auth.application.authentication.dto.RefreshTokenResponse;
+import com.wsw.fitnesssystem.auth.application.authentication.vo.UserInfoVO;
 import com.wsw.fitnesssystem.auth.interfaces.web.dto.RefreshRequest;
 import com.wsw.fitnesssystem.shared.response.ApiResult;
 import com.wsw.fitnesssystem.auth.interfaces.web.dto.LoginRequest;
@@ -12,10 +13,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 /**
  * 认证控制器
@@ -65,10 +63,19 @@ public class AuthController {
         }
     }
 
-    /* 刷新Token */
+    /**
+     *  刷新Token
+     *  */
     @PostMapping("/refresh")
-    public ApiResult<TokenPair> refresh(@RequestBody RefreshRequest request) {
-        return ApiResult.success(authApplicationService.refresh(request.getRefreshToken()));
+    public ApiResult<RefreshTokenResponse> refresh(
+            @RequestBody @Valid RefreshRequest request
+    ) {
+        return ApiResult.success(authApplicationService.refreshAccessToken(request.getRefreshToken()));
+    }
+
+    @GetMapping("/user-info")
+    public ApiResult<UserInfoVO> userInfo() {
+        return ApiResult.success(authApplicationService.getUserInfo());
     }
 
     public static String getClientIp(HttpServletRequest request) {

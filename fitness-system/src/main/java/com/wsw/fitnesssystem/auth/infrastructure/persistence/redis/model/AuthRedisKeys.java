@@ -29,10 +29,10 @@ public class AuthRedisKeys {
 
     /**
      * 用户Refresh Token索引（Hash）
-     * Key: auth:session:refresh:{campusId}:{userId}:{deviceId}
-     * Field: {refreshTokenId}
-     * Value: 关联的accessTokenId
-     * TTL: 7天
+     * <li>Key: auth:session:refresh:{campusId}:{userId}:{deviceId}</li>
+     * <li>Field: {refreshTokenId}</li>
+     * <li>Value: 关联的accessTokenId</li>
+     * <li>TTL: 7天</li>
      */
     private static final String SESSION_REFRESH_PREFIX = "auth:session:refresh:";
 
@@ -40,8 +40,8 @@ public class AuthRedisKeys {
 
     /**
      * JWT黑名单Key
-     * Key: auth:session:blacklist:{accessTokenId}
-     * TTL: accessToken有效期（如30分钟）
+     * <li>Key: auth:session:blacklist:{accessTokenId}</li>
+     * <li>TTL: accessToken有效期（如30分钟）</li>
      */
     private static final String SESSION_BLACKLIST_PREFIX = "auth:session:blacklist:";
 
@@ -49,11 +49,10 @@ public class AuthRedisKeys {
 
     /**
      * 用户权限快照（String，JSON）
-     * Key: auth:perm:user:{campusId}:{userId}
-     * Value: UserAuthorization序列化
-     * TTL: 30分钟
-     * 注意：不按token隔离，用户所有设备共享权限
-     * 权限变更时统一失效
+     * <li>Key: auth:perm:user:{campusId}:{userId}</li>
+     * <li>Value: UserAuthorization序列化</li>
+     * <li>TTL: 30分钟</li>
+     * <p>注意：不按token隔离，用户所有设备共享权限，权限变更时统一失效</p>
      */
     private static final String PERM_USER_PREFIX = "auth:perm:user:";
 
@@ -61,9 +60,9 @@ public class AuthRedisKeys {
 
     /**
      * 用户Token版本号（String，整数）
-     * Key: auth:version:user:{campusId}:{userId}
-     * Value: 版本号（初始为1，每次需要全局失效时递增）
-     * TTL: 永久（或随用户生命周期，由业务主动删除）
+     * <li>Key: auth:version:user:{campusId}:{userId}</li>
+     * <li>Value: 版本号（初始为1，每次需要全局失效时递增）</li>
+     * <li>TTL: 永久（或随用户生命周期，由业务主动删除）</li>
      * 用途：用于实现用户级Token全局失效（如修改密码、权限变更后强制所有设备下线）
      * 校验时比对Token中的版本号与Redis中的版本号，不一致则拒绝
      */
@@ -73,17 +72,17 @@ public class AuthRedisKeys {
 
     /**
      * 登录失败计数（String）
-     * Key: auth:limit:fail:{type}:{identifier}
-     * type: user/ip
-     * identifier: username 或 campusId:username 或 ip地址
-     * TTL: 1分钟（滑动窗口）
+     * <li>Key: auth:limit:fail:{type}:{identifier}</li>
+     * <li>type: user/ip</li>
+     * <li>identifier: username 或 campusId:username 或 ip地址</li>
+     * <li>TTL: 1分钟（滑动窗口）</li>
      */
     private static final String LIMIT_FAIL_PREFIX = "auth:limit:fail:";
 
     /**
      * 锁定状态（String）
-     * Key: auth:limit:lock:{type}:{identifier}
-     * TTL: 30分钟
+     * <li>Key: auth:limit:lock:{type}:{identifier}</li>
+     * <li>TTL: 30分钟</li>
      */
     private static final String LIMIT_LOCK_PREFIX = "auth:limit:lock:";
 

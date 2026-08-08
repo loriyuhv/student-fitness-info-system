@@ -1,4 +1,4 @@
-package com.wsw.fitnesssystem.auth.infrastructure.persistence.redis.repository;
+package com.wsw.fitnesssystem.auth.infrastructure.repository.redis;
 
 import com.wsw.fitnesssystem.auth.domain.port.LoginFailRepository;
 import com.wsw.fitnesssystem.auth.infrastructure.persistence.redis.model.AuthRedisKeys;
@@ -58,9 +58,9 @@ public class RedisLoginFailRepository implements LoginFailRepository {
 
     @Override
     public boolean isLocked(Long campusId, String username) {
-        return Boolean.TRUE.equals(redisTemplate.hasKey(
-            AuthRedisKeys.limitUserLockKey(username)
-        ));
+        return redisTemplate.hasKey(
+                AuthRedisKeys.limitUserLockKey(username)
+        );
     }
 
     @Override

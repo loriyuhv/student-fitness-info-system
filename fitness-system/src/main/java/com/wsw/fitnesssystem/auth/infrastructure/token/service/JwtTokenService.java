@@ -1,13 +1,13 @@
-package com.wsw.fitnesssystem.auth.infrastructure.jwt.service;
+package com.wsw.fitnesssystem.auth.infrastructure.token.service;
 
 import com.wsw.fitnesssystem.auth.application.dto.TokenPair;
 import com.wsw.fitnesssystem.auth.application.service.TokenService;
 import com.wsw.fitnesssystem.auth.infrastructure.config.JwtConfig;
-import com.wsw.fitnesssystem.auth.infrastructure.jwt.model.AccessTokenClaims;
-import com.wsw.fitnesssystem.auth.infrastructure.jwt.model.RefreshTokenClaims;
-import com.wsw.fitnesssystem.auth.infrastructure.jwt.model.TokenPrincipal;
-import com.wsw.fitnesssystem.auth.infrastructure.jwt.parser.JwtTokenParser;
-import com.wsw.fitnesssystem.auth.infrastructure.jwt.provider.JwtTokenProvider;
+import com.wsw.fitnesssystem.auth.infrastructure.token.model.AccessTokenClaims;
+import com.wsw.fitnesssystem.auth.infrastructure.token.model.RefreshTokenClaims;
+import com.wsw.fitnesssystem.auth.infrastructure.token.model.TokenPrincipal;
+import com.wsw.fitnesssystem.auth.infrastructure.token.parser.JwtTokenParser;
+import com.wsw.fitnesssystem.auth.infrastructure.token.provider.JwtTokenProvider;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

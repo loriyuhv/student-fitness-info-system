@@ -1,4 +1,4 @@
-package com.wsw.fitnesssystem.auth.infrastructure.jwt.model;
+package com.wsw.fitnesssystem.auth.infrastructure.token.model;
 
 import lombok.Builder;
 import lombok.Getter;
