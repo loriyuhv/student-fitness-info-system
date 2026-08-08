@@ -51,6 +51,7 @@ public class JwtTokenProvider {
             .claim("userId", tokenPrincipal.getUserId()) // 自定义声明 - 用户ID
             .claim("campusId", tokenPrincipal.getCampusId()) // 自定义声明 - 用户校区ID
             .claim("username", tokenPrincipal.getUsername()) // 自定义声明 - 用户账号
+            .claim("userType", tokenPrincipal.getUserType()) // 自定义声明 - 用户身份
             .claim("type", TokenType.ACCESS.name()) // 自定义声明 - 令牌类型
             .claim("tokenVersion", tokenPrincipal.getTokenVersion()) // 自定义声明 -令牌版本号
 

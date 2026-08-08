@@ -10,6 +10,7 @@ import com.wsw.fitnesssystem.auth.infrastructure.security.model.JwtUserPrincipal
 import com.wsw.fitnesssystem.auth.infrastructure.audit.LoginAuditService;
 import com.wsw.fitnesssystem.auth.infrastructure.token.service.JwtTokenService;
 import com.wsw.fitnesssystem.shared.context.LoginContext;
+import com.wsw.fitnesssystem.shared.domain.valueobject.Operator;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -126,7 +127,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             Long userId = claims.getUserId();
             Long campusId = claims.getCampusId();
             String username = claims.getUsername();
+            Integer userType = claims.getUserType();
             Long tokenVersion = claims.getTokenVersion();
+            Operator operator = new Operator(campusId, userId, username, userType);
 
             // 校验Token必要载荷是否缺失
             if (userId == null || campusId == null || !StringUtils.hasText(tokenId)) {
@@ -136,7 +139,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
             // 3.1 Token版本校验：版本不匹配代表密码修改、强制下线，Token失效
             // 获取 Redis 中的当前版本号
-            long currentVersion = sessionRepository.getTokenVersion(campusId, userId);
+            long currentVersion = sessionRepository.getTokenVersion(operator);
             // 版本号不一致 → 失效（密码已改）
             if (tokenVersion != currentVersion) {
                 loginAuditService.kick(userId, tokenId);
@@ -189,9 +192,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 SecurityContextHolder.getContext().setAuthentication(authentication);
 
                 // 设置业务ThreadLocal上下文，供业务代码直接获取登录用户信息
-                LoginContext.setUserId(userId);
-                LoginContext.setCampusId(campusId);
-                LoginContext.setJti(tokenId);
+                LoginContext.setOperator(operator);
             }
 
             // 6. 继续过滤器链

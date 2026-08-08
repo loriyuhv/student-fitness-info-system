@@ -16,11 +16,12 @@ public class AuthUserConverter {
         }
 
         return AuthUser.builder()
-            .userId(sysUser.getUserId())
-            .campusId(sysUser.getCampusId())
-            .username(sysUser.getUsername())
-            .password(sysUser.getPassword())
-            .status(sysUser.getStatus())
-            .build();
+                .userId(sysUser.getUserId())
+                .campusId(sysUser.getCampusId())
+                .username(sysUser.getUsername())
+                .password(sysUser.getPassword())
+                .userType(sysUser.getUserType())
+                .status(sysUser.getStatus())
+                .build();
     }
 }

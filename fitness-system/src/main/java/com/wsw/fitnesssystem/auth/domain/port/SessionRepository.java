@@ -1,5 +1,7 @@
 package com.wsw.fitnesssystem.auth.domain.port;
 
+import com.wsw.fitnesssystem.shared.domain.valueobject.Operator;
+
 import java.util.Optional;
 import java.util.Set;
 
@@ -170,7 +172,7 @@ public interface SessionRepository {
     /**
      * 获取用户当前版本号（如果不存在则初始化为 1）
      */
-    long getTokenVersion(Long campusId, Long userId);
+    long getTokenVersion(Operator operator);
 
     /**
      * 递增版本号（修改密码时调用）

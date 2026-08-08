@@ -31,6 +31,8 @@ public class TokenPrincipal {
     private Long campusId;
     /** 用户名，用于生成 Token Claims，可选字段，便于前端显示或日志追踪 */
     private String username;
+    /** 用户身份，用于生成 Token Claims */
+    private Integer userType;
     /** 设备ID，用于多端登录控制和 RefreshToken 绑定，支持单设备下线 */
     private String deviceId;
     /** Token 版本号，用于全局或单用户 Token 失效控制 */

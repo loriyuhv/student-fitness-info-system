@@ -22,6 +22,7 @@ public class AuthUser {
     private Long campusId;
     private String username;
     private String password;
+    private Integer userType;
     private Integer status;
 
     public boolean isEnabled() {

@@ -21,6 +21,7 @@ import com.wsw.fitnesssystem.auth.infrastructure.audit.LoginAuditService;
 import com.wsw.fitnesssystem.auth.infrastructure.config.SessionProperties;
 import com.wsw.fitnesssystem.auth.infrastructure.token.model.RefreshTokenClaims;
 import com.wsw.fitnesssystem.auth.infrastructure.security.model.JwtUserPrincipal;
+import com.wsw.fitnesssystem.shared.domain.valueobject.Operator;
 import com.wsw.fitnesssystem.shared.exception.BizException;
 import com.wsw.fitnesssystem.shared.response.ResultCode;
 import lombok.RequiredArgsConstructor;
@@ -92,15 +93,14 @@ public class AuthApplicationService {
         // 3. 生成 Token
         String accessTokenId = UUID.randomUUID().toString();
         String refreshTokenId = UUID.randomUUID().toString();
-        long tokenVersion = sessionRepository.getTokenVersion(user.getCampusId(), user.getUserId());
+        Operator operator = new Operator(
+                user.getCampusId(), user.getUserId(),
+                user.getUsername(), user.getUserType()
+        );
+        long tokenVersion = sessionRepository.getTokenVersion(operator);
         TokenPair tokenPair = tokenService.generate(
-            user.getUserId(),
-            user.getCampusId(),
-            user.getUsername(),
-            cmd.getDeviceId(),
-            tokenVersion,
-            accessTokenId,
-            refreshTokenId
+                operator, cmd.getDeviceId(),
+                tokenVersion, accessTokenId, refreshTokenId
         );
 
         // 4. 登录成功后处理
@@ -173,6 +173,7 @@ public class AuthApplicationService {
 
         Long campusId = claims.getCampusId();
         Long userId = claims.getUserId();
+        String username = claims.getUsername();
         String oldRefreshTokenId = claims.getJti();
         String oldAccessTokenId = sessionRepository.getAccessTokenIdByRefreshToken(
                 campusId, userId, oldRefreshTokenId
@@ -188,13 +189,10 @@ public class AuthApplicationService {
         // 3.生成新的token
         String newAccessTokenId = UUID.randomUUID().toString();
         String newRefreshTokenId = UUID.randomUUID().toString();
-        long tokenVersion = sessionRepository.getTokenVersion(
-                campusId, userId
-        );
+        Operator operator = new Operator(campusId, userId, username, null);
+        long tokenVersion = sessionRepository.getTokenVersion(operator);
         TokenPair tokenPair = tokenService.generate(
-                userId,
-                campusId,
-                claims.getUsername(),
+                operator,
                 claims.getDeviceId(),
                 tokenVersion,
                 newAccessTokenId,

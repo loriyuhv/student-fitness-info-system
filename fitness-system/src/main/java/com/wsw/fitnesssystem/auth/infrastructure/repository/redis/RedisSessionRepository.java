@@ -3,6 +3,7 @@ package com.wsw.fitnesssystem.auth.infrastructure.repository.redis;
 import com.wsw.fitnesssystem.auth.domain.port.SessionRepository;
 import com.wsw.fitnesssystem.auth.infrastructure.config.SessionProperties;
 import com.wsw.fitnesssystem.auth.infrastructure.persistence.redis.model.AuthRedisKeys;
+import com.wsw.fitnesssystem.shared.domain.valueobject.Operator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -117,8 +118,8 @@ public class RedisSessionRepository implements SessionRepository {
     }
 
     @Override
-    public long getTokenVersion(Long campusId, Long userId) {
-        String key = AuthRedisKeys.tokenVersionKey(campusId, userId);
+    public long getTokenVersion(Operator operator) {
+        String key = AuthRedisKeys.tokenVersionKey(operator.campusId(), operator.userId());
         String value = redisTemplate.opsForValue().get(key);
         if (value == null) {
             // 首次使用，初始化为 1
