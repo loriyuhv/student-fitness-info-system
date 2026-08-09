@@ -1,6 +1,5 @@
 package com.wsw.fitnesssystem.shared.response;
 
-import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -13,7 +12,6 @@ import lombok.NoArgsConstructor;
  */
 @Data
 @NoArgsConstructor
-@AllArgsConstructor
 public class ApiResult<T> {
     /** HTTP 状态码 */
     private Integer httpCode;
@@ -30,6 +28,22 @@ public class ApiResult<T> {
     /** 时间戳 */
     private Long timestamp;
 
+    /**
+     * 私有全参构造，强制使用静态工厂方法构建实例
+     * @param httpCode HTTP 状态码
+     * @param bizCode 业务状态码
+     * @param message 提示信息
+     * @param data 响应数据
+     * @param timestamp 时间戳
+     */
+    private ApiResult(Integer httpCode, Integer bizCode, String message, T data, Long timestamp) {
+        this.httpCode = httpCode;
+        this.bizCode = bizCode;
+        this.message = message;
+        this.data = data;
+        this.timestamp = timestamp;
+    }
+
     /* ================= 成功响应 ================= */
 
     public static <T> ApiResult<T> success() {
@@ -44,8 +58,7 @@ public class ApiResult<T> {
         return new ApiResult<>(
             ResultCode.SUCCESS.httpCode(),
             ResultCode.SUCCESS.getCode(),
-            message,
-            data,
+            message, data,
             System.currentTimeMillis()
         );
     }

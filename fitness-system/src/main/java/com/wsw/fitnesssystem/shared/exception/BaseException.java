@@ -1,7 +1,7 @@
 package com.wsw.fitnesssystem.shared.exception;
 
-import com.wsw.fitnesssystem.shared.response.ResultCode;
 import lombok.Getter;
+import com.wsw.fitnesssystem.shared.response.ResultCode;
 
 /**
  * 异常基类
@@ -27,4 +27,3 @@ public abstract class BaseException extends RuntimeException {
         this.resultCode = resultCode;
     }
 }
-

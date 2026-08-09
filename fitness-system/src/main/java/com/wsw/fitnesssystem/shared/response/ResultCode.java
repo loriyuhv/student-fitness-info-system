@@ -103,4 +103,3 @@ public enum ResultCode {
         return httpStatus.value();
     }
 }
-
