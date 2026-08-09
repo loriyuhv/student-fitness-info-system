@@ -1,5 +1,7 @@
 package com.wsw.fitnesssystem.auth.domain.service;
 
+import com.wsw.fitnesssystem.shared.domain.valueobject.Operator;
+
 /**
  * 登录会话领域服务（Domain Service）
  *
@@ -29,8 +31,7 @@ public interface SessionDomainService {
     /**
      * 限制用户最大登录设备数
      *
-     * @param campusId 校区ID（多租户隔离）
-     * @param userId 用户ID
+     * @param operator 操作对象
      * @param maxSessions 最大允许同时在线的会话数
      *
      * <p>业务说明：</p>
@@ -46,13 +47,12 @@ public interface SessionDomainService {
      *     <li>体现多端登录控制策略：避免账号被无限制多端使用</li>
      * </ul>
      */
-    void limitSessions(Long campusId, Long userId, int maxSessions);
+    void limitSessions(Operator operator, int maxSessions);
 
-    void verifyRefreshToken(Long campusId,  Long userId, String refreshTokenId);
+    void verifyRefreshToken(Operator operator, String refreshTokenId);
 
     void rotateRefreshToken(
-            Long campusId,
-            Long userId,
+            Operator operator,
             String oldRefreshTokenId,
             String oldAccessTokenId,
             String newRefreshTokenId,

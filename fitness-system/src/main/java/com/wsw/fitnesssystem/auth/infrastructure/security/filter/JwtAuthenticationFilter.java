@@ -142,20 +142,20 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             long currentVersion = sessionRepository.getTokenVersion(operator);
             // 版本号不一致 → 失效（密码已改）
             if (tokenVersion != currentVersion) {
-                loginAuditService.kick(userId, tokenId);
+                loginAuditService.kick(operator, tokenId);
                 throw new BadCredentialsException("Token版本已失效");
             }
 
             // 3.2 黑名单校验：注销/主动踢人后的Token加入黑名单
             boolean blacklisted = sessionRepository.isBlacklisted(tokenId);
             if (blacklisted) {
-                loginAuditService.kick(userId, tokenId);
+                loginAuditService.kick(operator, tokenId);
                 throw new BadCredentialsException("Token已加入黑名单");
             }
 
             // 3.3 会话在线校验：实现单点登录、会话下线控制
-            if (!sessionRepository.isOnline(campusId, userId, tokenId)) {
-                loginAuditService.expire(userId, tokenId);
+            if (!sessionRepository.isOnline(operator, tokenId)) {
+                loginAuditService.expire(operator, tokenId);
                 throw new BadCredentialsException("会话已下线");
             }
 

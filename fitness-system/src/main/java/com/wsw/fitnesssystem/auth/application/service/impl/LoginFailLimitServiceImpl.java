@@ -3,6 +3,7 @@ package com.wsw.fitnesssystem.auth.application.service.impl;
 import com.wsw.fitnesssystem.auth.application.service.LoginFailLimitService;
 import com.wsw.fitnesssystem.auth.domain.port.LoginFailRepository;
 import com.wsw.fitnesssystem.auth.domain.service.LoginFailLimitDomainService;
+import com.wsw.fitnesssystem.shared.domain.valueobject.Operator;
 import com.wsw.fitnesssystem.shared.exception.BizException;
 import com.wsw.fitnesssystem.shared.response.ResultCode;
 import lombok.RequiredArgsConstructor;
@@ -21,36 +22,36 @@ public class LoginFailLimitServiceImpl implements LoginFailLimitService {
     private static final int MAX_FAIL_COUNT = 5;
 
     @Override
-    public void check(Long campusId, String username) {
-        int failCount = repository.getFailCount(campusId, username);
-        domainService.checkFailCount(campusId, username, failCount, MAX_FAIL_COUNT);
+    public void check(Operator operator) {
+        int failCount = repository.getFailCount(operator);
+        domainService.checkFailCount(operator, failCount, MAX_FAIL_COUNT);
     }
 
     @Override
-    public int recordFail(Long campusId, String username) {
-        repository.incrementFailCount(campusId, username);
-        return repository.getFailCount(campusId, username);
+    public int recordFail(Operator operator) {
+        repository.incrementFailCount(operator);
+        return repository.getFailCount(operator);
     }
 
     @Override
-    public void reset(Long campusId, String username) {
-        repository.resetFailCount(campusId, username);
+    public void reset(Operator operator) {
+        repository.resetFailCount(operator);
     }
 
     @Override
-    public void checkLock(Long campusId, String username) {
-        if (repository.isLocked(campusId, username)) {
+    public void checkLock(Operator operator) {
+        if (repository.isLocked(operator)) {
             throw new BizException(ResultCode.ACCOUNT_LOCKED);
         }
     }
 
     @Override
-    public void lock(Long campusId, String username) {
-        repository.lock(campusId, username);
+    public void lock(Operator operator) {
+        repository.lock(operator);
     }
 
     @Override
-    public void unlock(Long campusId, String username) {
-        repository.unlock(campusId, username);
+    public void unlock(Operator operator) {
+        repository.unlock(operator);
     }
 }

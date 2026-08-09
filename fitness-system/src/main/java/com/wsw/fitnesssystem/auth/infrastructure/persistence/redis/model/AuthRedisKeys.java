@@ -1,11 +1,13 @@
 package com.wsw.fitnesssystem.auth.infrastructure.persistence.redis.model;
 
+import com.wsw.fitnesssystem.shared.domain.valueobject.Operator;
+
 /**
  * 认证授权Redis Key规范
  * <p>设计原则：</p>
  * <ul>
  *     <li>前缀区分业务域：auth:{子系统}:{业务}:{维度}</li>
- *     <li>多校区场景：所有用户数据（Key）必须包含 campusId，便于隔离和排查</li>
+ *     <li>多学校场景：所有用户数据（Key）必须包含 campusId，便于隔离和排查</li>
  *     <li>分层缓存：user / role / perm 解耦（RBAC）</li>
  *     <li>生命周期分离：不同数据不同 TTL</li>
  *     <li>可扩展性：支持未来权限版本、网关鉴权、SSO</li>
@@ -94,15 +96,15 @@ public class AuthRedisKeys {
      * 用户在线会话Key
      * 存储该用户所有有效的accessTokenId
      */
-    public static String onlineKey(Long campusId, Long userId) {
-        return SESSION_ONLINE_PREFIX + campusId + ":" + userId;
+    public static String onlineKey(Operator operator) {
+        return SESSION_ONLINE_PREFIX + operator.campusId() + ":" + operator.userId();
     }
 
     /**
      * 用户Refresh Token索引Key
      */
-    public static String refreshIndexKey(Long campusId, Long userId) {
-        return SESSION_REFRESH_PREFIX + campusId + ":" + userId;
+    public static String refreshIndexKey(Operator operator) {
+        return SESSION_REFRESH_PREFIX + operator.campusId() + ":" + operator.userId();
     }
 
     // ==================== Token黑名单 ====================
@@ -118,8 +120,8 @@ public class AuthRedisKeys {
     /**
      * 用户权限缓存Key（全局，不区分token）
      */
-    public static String permUserKey(Long campusId, Long userId) {
-        return PERM_USER_PREFIX + campusId + ":" + userId;
+    public static String permUserKey(Operator operator) {
+        return PERM_USER_PREFIX + operator.campusId() + ":" + operator.userId();
     }
 
     // ==================== Token版本控制 ====================
@@ -132,12 +134,11 @@ public class AuthRedisKeys {
      *     <li>管理员踢人 ==> 全端下线</li>
      *     <li>风控封禁 ==> 秒级生效</li>
      * </p>
-     * @param campusId 校区ID
-     * @param userId 用户ID
+     * @param operator 操作对象
      * @return Redis Key
      */
-    public static String tokenVersionKey(Long campusId, Long userId) {
-        return TOKEN_VERSION_PREFIX + campusId + ":" + userId;
+    public static String tokenVersionKey(Operator operator) {
+        return TOKEN_VERSION_PREFIX + operator.campusId() + ":" + operator.userId();
     }
 
     // ==================== 登录限流 ====================

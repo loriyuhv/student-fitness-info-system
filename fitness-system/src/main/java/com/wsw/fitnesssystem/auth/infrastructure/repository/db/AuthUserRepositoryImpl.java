@@ -5,6 +5,7 @@ import com.wsw.fitnesssystem.auth.domain.port.AuthUserRepository;
 import com.wsw.fitnesssystem.auth.infrastructure.persistence.db.converter.AuthUserConverter;
 import com.wsw.fitnesssystem.auth.infrastructure.persistence.db.entity.SysUser;
 import com.wsw.fitnesssystem.auth.infrastructure.persistence.db.mapper.SysUserMapper;
+import com.wsw.fitnesssystem.shared.domain.valueobject.Operator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
@@ -27,7 +28,8 @@ public class AuthUserRepositoryImpl implements AuthUserRepository {
     }
 
     @Override
-    public boolean exists(Long campusId, Long userId) {
-        return sysUserMapper.existsByCampusAndId(campusId, userId) > 0;
+    public boolean exists(Operator operator) {
+        return sysUserMapper.existsByCampusAndId(
+                operator.campusId(), operator.userId()) > 0;
     }
 }

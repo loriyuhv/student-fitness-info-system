@@ -2,6 +2,7 @@ package com.wsw.fitnesssystem.auth.infrastructure.repository.redis;
 
 import com.wsw.fitnesssystem.auth.domain.port.LoginFailRepository;
 import com.wsw.fitnesssystem.auth.infrastructure.persistence.redis.model.AuthRedisKeys;
+import com.wsw.fitnesssystem.shared.domain.valueobject.Operator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Repository;
@@ -19,7 +20,10 @@ public class RedisLoginFailRepository implements LoginFailRepository {
     private final StringRedisTemplate redisTemplate;
     private static final Duration LOCK_DURATION = Duration.ofMinutes(30);
 
-    private String key(Long campusId, String username) {
+    private String key(Operator operator) {
+        Long campusId = operator.campusId();
+        String username = operator.username();
+
         if (campusId == null) {
             return AuthRedisKeys.limitUserFailKey(username);
         }
@@ -29,14 +33,14 @@ public class RedisLoginFailRepository implements LoginFailRepository {
     }
 
     @Override
-    public int getFailCount(Long campusId, String username) {
-        String value = redisTemplate.opsForValue().get(key(campusId, username));
+    public int getFailCount(Operator operator) {
+        String value = redisTemplate.opsForValue().get(key(operator));
         return value == null ? 0 : Integer.parseInt(value);
     }
 
     @Override
-    public void incrementFailCount(Long campusId, String username) {
-        String key = key(campusId, username);
+    public void incrementFailCount(Operator operator) {
+        String key = key(operator);
 
         Long count = redisTemplate.opsForValue().increment(key);
 
@@ -46,25 +50,25 @@ public class RedisLoginFailRepository implements LoginFailRepository {
     }
 
     @Override
-    public void resetFailCount(Long campusId, String username) {
-        redisTemplate.delete(key(campusId, username));
+    public void resetFailCount(Operator operator) {
+        redisTemplate.delete(key(operator));
     }
 
     @Override
-    public void lock(Long campusId, String username) {
-        String key = AuthRedisKeys.limitUserLockKey(username);
+    public void lock(Operator operator) {
+        String key = AuthRedisKeys.limitUserLockKey(operator.username());
         redisTemplate.opsForValue().set(key, "1", Duration.ofMinutes(30));
     }
 
     @Override
-    public boolean isLocked(Long campusId, String username) {
+    public boolean isLocked(Operator operator) {
         return redisTemplate.hasKey(
-                AuthRedisKeys.limitUserLockKey(username)
+                AuthRedisKeys.limitUserLockKey(operator.username())
         );
     }
 
     @Override
-    public void unlock(Long campusId, String username) {
-        redisTemplate.delete(AuthRedisKeys.limitUserLockKey(username));
+    public void unlock(Operator operator) {
+        redisTemplate.delete(AuthRedisKeys.limitUserLockKey(operator.username()));
     }
 }

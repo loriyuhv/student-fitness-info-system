@@ -3,6 +3,7 @@ package com.wsw.fitnesssystem.auth.infrastructure.audit;
 import com.wsw.fitnesssystem.auth.application.authentication.command.LoginCommand;
 import com.wsw.fitnesssystem.auth.application.dto.TokenPair;
 import com.wsw.fitnesssystem.auth.infrastructure.persistence.db.entity.SysUserLogin;
+import com.wsw.fitnesssystem.shared.domain.valueobject.Operator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -73,21 +74,20 @@ public class LoginAuditService {
         asyncService.recordLogin(login);
     }
 
-
     /**
      * 正常退出
      */
-    public void logout(Long userId, String tokenId) {
-        asyncService.recordLogout(userId, tokenId, "LOGOUT");
+    public void logout(Operator operator, String tokenId) {
+        asyncService.recordLogout(operator, tokenId, "LOGOUT");
     }
 
     /** 被踢下线 */
-    public void kick(Long userId, String tokenId) {
-        asyncService.recordLogout(userId, tokenId, "KICK");
+    public void kick(Operator operator, String tokenId) {
+        asyncService.recordLogout(operator, tokenId, "KICK");
     }
 
     /** Token 过期 */
-    public void expire(Long userId, String tokenId) {
-        asyncService.recordLogout(userId, tokenId, "EXPIRE");
+    public void expire(Operator operator, String tokenId) {
+        asyncService.recordLogout(operator, tokenId, "EXPIRE");
     }
 }

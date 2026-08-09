@@ -1,6 +1,7 @@
 package com.wsw.fitnesssystem.auth.interfaces.web;
 
 import com.wsw.fitnesssystem.auth.application.authentication.AuthApplicationService;
+import com.wsw.fitnesssystem.shared.domain.valueobject.Operator;
 import com.wsw.fitnesssystem.shared.response.ApiResult;
 import com.wsw.fitnesssystem.shared.response.ResultCode;
 import lombok.RequiredArgsConstructor;
@@ -33,8 +34,9 @@ public class AdminUserController {
         @PathVariable Long campusId,
         @PathVariable Long userId
     ) {
+        Operator operator = new Operator(campusId, userId, null, null);
         try {
-            authApplicationService.kick(campusId, userId);
+            authApplicationService.kick(operator);
             return ApiResult.success(ResultCode.KICKOUT_SUCCESS.getMessage(), "操作完成");
         } catch (Exception e) {
             log.error("踢人失败，campusId={} userId={}", campusId, userId, e);

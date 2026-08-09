@@ -37,8 +37,7 @@ public interface SessionRepository {
     /**
      * 保存用户登录会话
      *
-     * @param campusId 校区ID，多租户隔离
-     * @param userId 用户ID
+     * @param operator 操作对象
      * @param accessTokenId 当前登录的 AccessToken 唯一标识（jti）
      * @param refreshTokenId 当前登录的 RefreshToken 唯一标识（jti）
      *
@@ -50,17 +49,14 @@ public interface SessionRepository {
      * </ul>
      */
     void saveSession(
-        Long campusId,
-        Long userId,
-        String accessTokenId,
-        String refreshTokenId
-    );
+            Operator operator,
+            String accessTokenId,
+            String refreshTokenId);
 
     /**
      * 删除单个用户会话（单端注销或踢人）
      *
-     * @param campusId 校区ID
-     * @param userId 用户ID
+     * @param operator 操作对象
      * @param accessTokenId 要删除的 AccessToken ID
      *
      * <p>实现细节：</p>
@@ -70,65 +66,50 @@ public interface SessionRepository {
      * </ul>
      */
     void removeSession(
-        Long campusId,
-        Long userId,
-        String accessTokenId
-    );
+            Operator operator, String accessTokenId);
 
     /**
      * 删除该用户全部会话（踢掉所有设备）
-     *
-     * @param campusId 校区ID
-     * @param userId 用户ID
-     *
      * <p>实现细节：</p>
      * <ul>
      *     <li>删除 online ZSet 和 refresh Hash</li>
      *     <li>通常用于用户主动退出或管理员强制下线</li>
      * </ul>
+     * @param operator 操作对象
      */
-    void removeAllSessions(Long campusId, Long userId);
+    void removeAllSessions(Operator operator);
 
     /**
      * 获取用户所有在线 AccessToken ID
      *
-     * @param campusId 校区ID
-     * @param userId 用户ID
+     * @param operator 操作对象
      * @return 当前用户在线的所有 AccessToken ID
      */
-    Set<String> getAllSessions(Long campusId, Long userId);
+    Set<String> getAllSessions(Operator operator);
 
     /**
      * 判断指定 token 是否在线
-     *
-     * @param campusId 校区ID
-     * @param userId 用户ID
-     * @param accessTokenId AccessToken ID
-     * @return true 表示 token 仍在线，false 表示已下线或被踢
-     *
      * <p>用途：</p>
      * <ul>
      *     <li>检查用户是否仍然登录</li>
      *     <li>实现单点登录和多端登录限制逻辑</li>
      * </ul>
+     * @param operator 操作对象
+     * @param accessTokenId AccessToken ID
+     * @return true 表示 token 仍在线，false 表示已下线或被踢
      */
     boolean isOnline(
-        Long campusId,
-        Long userId,
-        String accessTokenId
-    );
+            Operator operator, String accessTokenId);
 
     /**
      * 将指定 AccessToken 加入黑名单
-     *
-     * @param accessTokenId AccessToken ID
-     * @param expireSeconds 黑名单 TTL（秒），通常等于 AccessToken 生命周期
-     *
      * <p>用途：</p>
      * <ul>
      *     <li>强制注销 token，防止继续访问接口</li>
      *     <li>配合 removeSession 使用</li>
      * </ul>
+     * @param accessTokenId AccessToken ID
+     * @param expireSeconds 黑名单 TTL（秒），通常等于 AccessToken 生命周期
      */
     void addToBlacklist(String accessTokenId, long expireSeconds);
 
@@ -142,69 +123,76 @@ public interface SessionRepository {
 
     /**
      * 获取当前在线会话数量
-     *
-     * @param campusId 校区ID
-     * @param userId 用户ID
-     * @return 当前在线的 AccessToken 数量
-     *
      * <p>用途：</p>
      * <ul>
      *     <li>用于多端登录限制</li>
      *     <li>实现踢掉最早会话等策略</li>
      * </ul>
+     * @param operator 操作对象
+     * @return 当前在线的 AccessToken 数量
      */
-    Long countSessions(Long campusId, Long userId);
+    Long countSessions(Operator operator);
 
     /**
      * 获取最早登录的 AccessToken
-     *
-     * @param campusId 校区ID
-     * @param userId 用户ID
-     * @return 最早登录的 AccessToken ID，若无返回 Optional.empty()
-     *
      * <p>用途：</p>
      * <ul>
      *     <li>实现多端登录策略时，踢掉最早登录的设备</li>
      * </ul>
+     * @param operator 操作对象
+     * @return 最早登录的 AccessToken ID，若无返回 Optional.empty()
      */
-    Optional<String> getOldestSession(Long campusId, Long userId);
+    Optional<String> getOldestSession(Operator operator);
 
     /**
      * 获取用户当前版本号（如果不存在则初始化为 1）
+     * @param operator 操作对象
+     * @return token版本号
      */
     long getTokenVersion(Operator operator);
 
     /**
      * 递增版本号（修改密码时调用）
+     * @param operator 操作对象
+     * @return token版本号
      */
-    long incrementTokenVersion(Long campusId, Long userId);
+    long incrementTokenVersion(Operator operator);
 
     /**
      * 校验refreshToken是否存在
+     * @param operator 操作对象
+     * @param refreshTokenId Refresh Token ID
+     * @return 是否存在值
      */
     boolean existsRefreshToken(
-            Long campusId,
-            Long userId,
-            String refreshTokenId
-    );
+            Operator operator, String refreshTokenId);
 
     /**
      * Refresh Token轮换
      * 删除旧refresh
      * 保存新refresh
+     * @param operator 操作对象
+     * @param oldRefreshTokenId 旧Refresh Token ID
+     * @param oldAccessTokenId 旧Access Token ID
+     * @param newRefreshTokenId 新Refresh Token ID
+     * @param newAccessTokenId 新Access Token ID
      */
     void rotateRefreshToken(
-            Long campusId,
-            Long userId,
+            Operator operator,
             String oldRefreshTokenId,
             String oldAccessTokenId,
             String newRefreshTokenId,
             String newAccessTokenId
     );
 
+    /**
+     * 通过RefreshToken ID获取AccessToken
+     * @param operator 操作对象
+     * @param refreshTokenId Refresh Token ID
+     * @return Access Token
+     */
     String getAccessTokenIdByRefreshToken(
-            Long campusId,
-            Long userId,
+            Operator operator,
             String refreshTokenId
     );
 }

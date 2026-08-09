@@ -3,6 +3,7 @@ package com.wsw.fitnesssystem.auth.infrastructure.persistence.redis.service;
 import com.wsw.fitnesssystem.auth.application.authorization.dto.UserAuthorization;
 import com.wsw.fitnesssystem.auth.application.port.AuthorizationCacheService;
 import com.wsw.fitnesssystem.auth.infrastructure.persistence.redis.model.AuthRedisKeys;
+import com.wsw.fitnesssystem.shared.domain.valueobject.Operator;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -33,26 +34,26 @@ public class RedisAuthorizationCacheService
     }
 
     @Override
-    public void cache(UserAuthorization authorization) {
-        String key = buildKey(authorization.getCampusId(), authorization.getUserId());
+    public void cache(Operator operator, UserAuthorization authorization) {
+        String key = buildKey(operator);
         userAuthRedisTemplate.opsForValue().set(
             key, authorization, TTL
         );
     }
 
     @Override
-    public UserAuthorization get(Long campusId, Long userId) {
+    public UserAuthorization get(Operator operator) {
 
-        String key = buildKey(campusId, userId);
+        String key = buildKey(operator);
         return userAuthRedisTemplate.opsForValue().get(key);
     }
 
     @Override
-    public void evict(Long campusId, Long userId) {
-        userAuthRedisTemplate.delete(buildKey(campusId, userId));
+    public void evict(Operator operator) {
+        userAuthRedisTemplate.delete(buildKey(operator));
     }
 
-    private String buildKey(Long campusId, Long userId) {
-        return AuthRedisKeys.permUserKey(campusId, userId);
+    private String buildKey(Operator operator) {
+        return AuthRedisKeys.permUserKey(operator);
     }
 }

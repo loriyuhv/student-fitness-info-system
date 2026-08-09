@@ -2,6 +2,7 @@ package com.wsw.fitnesssystem.auth.application.service.impl;
 
 import com.wsw.fitnesssystem.auth.application.service.LoginFailLimitService;
 import com.wsw.fitnesssystem.auth.application.service.RiskControlService;
+import com.wsw.fitnesssystem.shared.domain.valueobject.Operator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -29,24 +30,26 @@ public class RiskControlServiceImpl implements RiskControlService {
 
     @Override
     public void preCheck(String username) {
-        loginFailLimitService.checkLock(null, username);
-        loginFailLimitService.check(null, username);
+        Operator operator = new Operator(null, null, username, null);
+        loginFailLimitService.checkLock(operator);
+        loginFailLimitService.check(operator);
     }
 
     @Override
     public int onFail(String username) {
-        int count = loginFailLimitService.recordFail(null, username);
+        Operator operator = new Operator(null, null, username, null);
+        int count = loginFailLimitService.recordFail(operator);
 
         if (count >= 5) {
-            loginFailLimitService.lock(null, username);
+            loginFailLimitService.lock(operator);
             return count;
         }
         return count;
     }
 
     @Override
-    public void onSuccess(Long campusId, String username) {
-        loginFailLimitService.reset(null, username);
-        loginFailLimitService.unlock(campusId, username);
+    public void onSuccess(Operator operator) {
+        loginFailLimitService.reset(operator);
+        loginFailLimitService.unlock(operator);
     }
 }

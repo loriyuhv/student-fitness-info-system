@@ -5,6 +5,7 @@ import com.wsw.fitnesssystem.auth.application.authorization.dto.AuthorizationQue
 import com.wsw.fitnesssystem.auth.application.authorization.dto.UserAuthorization;
 import com.wsw.fitnesssystem.auth.application.port.AuthorizationCacheService;
 import com.wsw.fitnesssystem.auth.domain.port.AuthorizationRepository;
+import com.wsw.fitnesssystem.shared.domain.valueobject.Operator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -34,9 +35,10 @@ public class AuthorizationQueryServiceImpl implements AuthorizationQueryService 
 
         Long campusId = authorizationQuery.getCampusId();
         Long userId = authorizationQuery.getUserId();
+        Operator operator = new Operator(campusId, userId, null, null);
 
         // 1. 先查缓存
-        UserAuthorization cached = cacheService.get(campusId, userId);
+        UserAuthorization cached = cacheService.get(operator);
         if (cached != null) {
             log.info("权限缓存命中：{}:{}", campusId, userId);
             return cached;
@@ -51,7 +53,7 @@ public class AuthorizationQueryServiceImpl implements AuthorizationQueryService 
         UserAuthorization fresh = new UserAuthorization(campusId, userId, roles, permissions);
 
         // 3. 写缓存
-        cacheService.cache(fresh);
+        cacheService.cache(operator, fresh);
         log.info("权限缓存写入: {}:{}",campusId, userId);
 
         return fresh;

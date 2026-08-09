@@ -2,6 +2,7 @@ package com.wsw.fitnesssystem.auth.infrastructure.audit;
 
 import com.wsw.fitnesssystem.auth.infrastructure.persistence.db.entity.SysUserLogin;
 import com.wsw.fitnesssystem.auth.infrastructure.persistence.db.mapper.SysUserLoginMapper;
+import com.wsw.fitnesssystem.shared.domain.valueobject.Operator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Async;
@@ -42,13 +43,13 @@ public class AuditAsyncService {
      * 退出 / 被踢 / 失效（异步）
      */
     @Async
-    public void recordLogout(Long userId, String tokenId, String logoutReason) {
+    public void recordLogout(Operator operator, String tokenId, String logoutReason) {
         try {
             loginMapper.update(
                 null,
                 com.baomidou.mybatisplus.core.toolkit.Wrappers
                     .<SysUserLogin>lambdaUpdate()
-                    .eq(SysUserLogin::getUserId, userId)
+                    .eq(SysUserLogin::getUserId, operator.userId())
                     .eq(SysUserLogin::getTokenId, tokenId)
                     .eq(SysUserLogin::getStatus, 1)   // 只更新“在线”的
                     .set(SysUserLogin::getStatus, 0)
@@ -57,7 +58,7 @@ public class AuditAsyncService {
             );
         } catch (Exception e) {
             log.error("记录登出审计失败 userId={}, tokenId={}",
-                userId, tokenId, e);
+                operator.userId(), tokenId, e);
         }
     }
 }

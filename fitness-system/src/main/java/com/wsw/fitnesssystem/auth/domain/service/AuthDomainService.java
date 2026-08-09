@@ -1,6 +1,7 @@
 package com.wsw.fitnesssystem.auth.domain.service;
 
 import com.wsw.fitnesssystem.auth.domain.model.AuthUser;
+import com.wsw.fitnesssystem.shared.domain.valueobject.Operator;
 
 /**
  * 认证规则
@@ -20,9 +21,8 @@ public interface AuthDomainService {
 
     /**
      * 校验用户是否存在
-     * @param campusId 校区ID
-     * @param userId 用户ID
+     * @param operator 操作对象
      * @return boolean
      */
-    boolean userExists(Long campusId, Long userId);
+    boolean userExists(Operator operator);
 }

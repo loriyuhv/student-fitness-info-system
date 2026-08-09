@@ -113,13 +113,7 @@ public class AuthApplicationService {
     /***
      * 用户登出
      */
-    public void logout() {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        JwtUserPrincipal principal = (JwtUserPrincipal) auth.getPrincipal();
-        String accessTokenId = principal.accessTokenId();
-        Long campusId = principal.campusId();
-        Long userId = principal.userId();
-
+    public void logout(Operator operator, String accessTokenId) {
         // 1. 将当前 accessToken 加入黑名单
         sessionRepository.addToBlacklist(
             accessTokenId,
@@ -127,44 +121,44 @@ public class AuthApplicationService {
         );
 
         // 2. 从 ZSET 中删除（会话下线）
-        sessionRepository.removeSession(campusId, userId, accessTokenId);
+        sessionRepository.removeSession(operator, accessTokenId);
 
         // 3. 记录登出审计
-        loginAuditService.logout(userId, accessTokenId);
+        loginAuditService.logout(operator, accessTokenId);
     }
 
     /**
      * 踢人操作（管理员使用）
-     *
-     * @param campusId 校区ID
-     * @param userId   用户ID
+     * @param operator 操作对象
      */
-    public void kick(Long campusId, Long userId) {
+    public void kick(Operator operator) {
         // 1. 校验用户是否存在
-        if (!authDomainService.userExists(campusId, userId)) {
+        if (!authDomainService.userExists(operator)) {
             throw new BizException(ResultCode.USER_NOT_EXIST);
         }
 
         // 2. 获取用户所有在线 Access Token ID
-        Set<String> tokenIds = sessionRepository.getAllSessions(campusId, userId);
+        Set<String> tokenIds = sessionRepository.getAllSessions(operator);
 
         if (tokenIds == null || tokenIds.isEmpty()) {
-            log.info("User {} campus {} has no online session to kick.", userId, campusId);
+            log.info("User {} campus {} has no online session to kick.",
+                    operator.userId(), operator.campusId());
             return;
         }
 
         // 版本号递增 → 所有现有 token 失效
-        sessionRepository.incrementTokenVersion(campusId, userId);
+        sessionRepository.incrementTokenVersion(operator);
 
         for (String tokenId : tokenIds) {
             // 2. 从在线会话删除，加入黑名单
-            sessionRepository.removeSession(campusId, userId, tokenId);
+            sessionRepository.removeSession(operator, tokenId);
 
             // 3. 记录审计
-            loginAuditService.kick(userId, tokenId);
+            loginAuditService.kick(operator, tokenId);
         }
 
-        log.info("Kicked {} sessions for user {} campus {}", tokenIds.size(), userId, campusId);
+        log.info("Kicked {} sessions for user {} campus {}",
+                tokenIds.size(), operator.userId(), operator.campusId());
     }
 
     public RefreshTokenResponse refreshAccessToken(String refreshToken) {
@@ -175,21 +169,20 @@ public class AuthApplicationService {
         Long userId = claims.getUserId();
         String username = claims.getUsername();
         String oldRefreshTokenId = claims.getJti();
+        Operator operator = new Operator(campusId, userId, username, null);
         String oldAccessTokenId = sessionRepository.getAccessTokenIdByRefreshToken(
-                campusId, userId, oldRefreshTokenId
+                operator, oldRefreshTokenId
         );
 
         // 2. 校验refresh session
         sessionDomainService.verifyRefreshToken(
-                campusId,
-                userId,
+                operator,
                 oldRefreshTokenId
         );
 
         // 3.生成新的token
         String newAccessTokenId = UUID.randomUUID().toString();
         String newRefreshTokenId = UUID.randomUUID().toString();
-        Operator operator = new Operator(campusId, userId, username, null);
         long tokenVersion = sessionRepository.getTokenVersion(operator);
         TokenPair tokenPair = tokenService.generate(
                 operator,
@@ -201,8 +194,7 @@ public class AuthApplicationService {
 
         // 4.Refresh Token Rotation
         sessionDomainService.rotateRefreshToken(
-                campusId,
-                userId,
+                operator,
                 oldRefreshTokenId,
                 oldAccessTokenId,
                 newRefreshTokenId,

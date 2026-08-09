@@ -10,6 +10,7 @@ import com.wsw.fitnesssystem.auth.application.dto.TokenPair;
 import com.wsw.fitnesssystem.auth.domain.port.SessionRepository;
 import com.wsw.fitnesssystem.auth.domain.service.SessionDomainService;
 import com.wsw.fitnesssystem.auth.infrastructure.audit.LoginAuditService;
+import com.wsw.fitnesssystem.shared.domain.valueobject.Operator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -78,39 +79,32 @@ public class LoginSuccessProcessorImpl implements LoginSuccessProcessor {
      */
     @Override
     public void process(AuthUser user, LoginCommand cmd, TokenPair tokenPair) {
+        Operator operator = new Operator(user.getCampusId(), user.getUserId(), null, null);
         // 1. 风控成功处理
-        riskControlService.onSuccess(
-            user.getCampusId(),
-            user.getUsername()
-        );
+        riskControlService.onSuccess(operator);
 
         // 2. 限制多端登录
         sessionDomainService.limitSessions(
-            user.getCampusId(),
-            user.getUserId(),
+                operator,
             3
         );
 
         // 3. 保存会话
         sessionRepository.saveSession(
-            user.getCampusId(),
-            user.getUserId(),
-            tokenPair.getAccessTokenId(),
-            tokenPair.getRefreshTokenId()
+                operator,
+                tokenPair.getAccessTokenId(),
+                tokenPair.getRefreshTokenId()
         );
 
         // 4. 授权（懒加载缓存）
         AuthorizationQuery authorizationQuery = AuthorizationQuery.builder()
-                .userId(user.getUserId())
-                .campusId(user.getCampusId())
+                .userId(operator.userId())
+                .campusId(operator.campusId())
                 .build();
         authorizationQueryService.authorize(authorizationQuery);
 
         // 5. 审计日志
         loginAuditService.loginSuccess(
-            user.getUserId(),
-            cmd,
-            tokenPair
-        );
+                operator.userId(), cmd, tokenPair);
     }
 }

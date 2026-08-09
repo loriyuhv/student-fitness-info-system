@@ -1,20 +1,22 @@
 package com.wsw.fitnesssystem.auth.application.service;
 
+import com.wsw.fitnesssystem.shared.domain.valueobject.Operator;
+
 /**
  * @author loriyuhv
  * @version 1.0 2026/3/21 12:41
  * @since 1.0
  */
 public interface LoginFailLimitService {
-    void check(Long campusId, String username);
+    void check(Operator operator);
 
-    int recordFail(Long campusId, String username);
+    int recordFail(Operator operator);
 
-    void reset(Long campusId, String username);
+    void reset(Operator operator);
 
-    void checkLock(Long campusId, String username);
+    void checkLock(Operator operator);
 
-    void lock(Long campusId, String username);
+    void lock(Operator operator);
 
-    void unlock(Long campusId, String username);
+    void unlock(Operator operator);
 }

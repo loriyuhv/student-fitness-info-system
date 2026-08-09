@@ -1,6 +1,7 @@
 package com.wsw.fitnesssystem.auth.application.port;
 
 import com.wsw.fitnesssystem.auth.application.authorization.dto.UserAuthorization;
+import com.wsw.fitnesssystem.shared.domain.valueobject.Operator;
 
 /**
  * Port: 应用层需要一个“权限缓存能力”，但不关心 Redis / Caffeine / DB。
@@ -22,15 +23,15 @@ public interface AuthorizationCacheService {
     /**
      * 缓存用户权限快照
      */
-    void cache(UserAuthorization authorization);
+    void cache(Operator operator, UserAuthorization authorization);
 
     /**
      * 获取用户权限快照
      */
-    UserAuthorization get(Long campusId, Long userId);
+    UserAuthorization get(Operator operator);
 
     /**
      * 移除用户权限（权限变更 / 强制刷新）
      */
-    void evict(Long campusId, Long userId);
+    void evict(Operator operator);
 }

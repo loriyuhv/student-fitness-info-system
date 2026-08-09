@@ -5,7 +5,9 @@ import com.wsw.fitnesssystem.auth.application.authentication.command.LoginComman
 import com.wsw.fitnesssystem.auth.application.authentication.dto.LoginResponse;
 import com.wsw.fitnesssystem.auth.application.authentication.dto.RefreshTokenResponse;
 import com.wsw.fitnesssystem.auth.application.authentication.vo.UserInfoVO;
+import com.wsw.fitnesssystem.auth.infrastructure.security.model.JwtUserPrincipal;
 import com.wsw.fitnesssystem.auth.interfaces.web.dto.RefreshRequest;
+import com.wsw.fitnesssystem.shared.domain.valueobject.Operator;
 import com.wsw.fitnesssystem.shared.response.ApiResult;
 import com.wsw.fitnesssystem.auth.interfaces.web.dto.LoginRequest;
 import com.wsw.fitnesssystem.shared.response.ResultCode;
@@ -13,6 +15,8 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 /**
@@ -52,8 +56,15 @@ public class AuthController {
     @PostMapping("/logout")
     public ApiResult<Void> logout() {
         try {
+            Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+            JwtUserPrincipal principal = (JwtUserPrincipal) auth.getPrincipal();
+            String accessTokenId = principal.accessTokenId();
+            Long campusId = principal.campusId();
+            Long userId = principal.userId();
+
+            Operator operator = new Operator(campusId, userId, null, null);
             // 1. 调用 Application Service 协调登出
-            authApplicationService.logout();
+            authApplicationService.logout(operator, accessTokenId);
 
             // 3. 返回成功
             return ApiResult.success(ResultCode.LOGOUT_SUCCESS.getMessage(), null);

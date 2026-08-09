@@ -1,5 +1,7 @@
 package com.wsw.fitnesssystem.auth.application.service;
 
+import com.wsw.fitnesssystem.shared.domain.valueobject.Operator;
+
 /**
  * 风控服务接口
  *
@@ -49,8 +51,7 @@ public interface RiskControlService {
      *     <li>解锁账号（如果之前被锁定）</li>
      * </ul>
      *
-     * @param campusId 校区ID，用于多校区系统解锁
-     * @param username 用户登录名
+     * @param operator 操作对象
      */
-    void onSuccess(Long campusId, String username);
+    void onSuccess(Operator operator);
 }
