@@ -2,7 +2,7 @@ package com.wsw.fitnesssystem.auth.infrastructure.config;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.wsw.fitnesssystem.auth.application.authorization.dto.UserAuthorization;
+import com.wsw.fitnesssystem.auth.application.dto.UserAuthorization;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.connection.RedisConnectionFactory;

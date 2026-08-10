@@ -1,7 +1,7 @@
-package com.wsw.fitnesssystem.auth.application.authorization;
+package com.wsw.fitnesssystem.auth.application.service;
 
-import com.wsw.fitnesssystem.auth.application.authorization.dto.AuthorizationQuery;
-import com.wsw.fitnesssystem.auth.application.authorization.dto.UserAuthorization;
+import com.wsw.fitnesssystem.auth.application.dto.AuthorizationQuery;
+import com.wsw.fitnesssystem.auth.application.dto.UserAuthorization;
 
 /**
  * 用户授权查询服务

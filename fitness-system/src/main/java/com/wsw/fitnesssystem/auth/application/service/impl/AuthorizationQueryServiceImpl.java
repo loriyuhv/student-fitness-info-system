@@ -1,8 +1,8 @@
-package com.wsw.fitnesssystem.auth.application.authorization.impl;
+package com.wsw.fitnesssystem.auth.application.service.impl;
 
-import com.wsw.fitnesssystem.auth.application.authorization.AuthorizationQueryService;
-import com.wsw.fitnesssystem.auth.application.authorization.dto.AuthorizationQuery;
-import com.wsw.fitnesssystem.auth.application.authorization.dto.UserAuthorization;
+import com.wsw.fitnesssystem.auth.application.service.AuthorizationQueryService;
+import com.wsw.fitnesssystem.auth.application.dto.AuthorizationQuery;
+import com.wsw.fitnesssystem.auth.application.dto.UserAuthorization;
 import com.wsw.fitnesssystem.auth.application.port.AuthorizationCacheService;
 import com.wsw.fitnesssystem.auth.domain.port.AuthorizationRepository;
 import com.wsw.fitnesssystem.shared.domain.valueobject.Operator;

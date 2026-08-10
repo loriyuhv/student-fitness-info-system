@@ -4,9 +4,9 @@ import com.wsw.fitnesssystem.auth.application.authentication.command.LoginComman
 import com.wsw.fitnesssystem.auth.application.authentication.dto.LoginResponse;
 import com.wsw.fitnesssystem.auth.application.authentication.dto.RefreshTokenResponse;
 import com.wsw.fitnesssystem.auth.application.authentication.vo.UserInfoVO;
-import com.wsw.fitnesssystem.auth.application.authorization.AuthorizationQueryService;
-import com.wsw.fitnesssystem.auth.application.authorization.dto.AuthorizationQuery;
-import com.wsw.fitnesssystem.auth.application.authorization.dto.UserAuthorization;
+import com.wsw.fitnesssystem.auth.application.service.AuthorizationQueryService;
+import com.wsw.fitnesssystem.auth.application.dto.AuthorizationQuery;
+import com.wsw.fitnesssystem.auth.application.dto.UserAuthorization;
 import com.wsw.fitnesssystem.auth.application.service.LoginSuccessProcessor;
 import com.wsw.fitnesssystem.auth.application.service.RiskControlService;
 import com.wsw.fitnesssystem.auth.application.service.TokenService;

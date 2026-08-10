@@ -1,8 +1,8 @@
 package com.wsw.fitnesssystem.auth.infrastructure.security.filter;
 
-import com.wsw.fitnesssystem.auth.application.authorization.AuthorizationQueryService;
-import com.wsw.fitnesssystem.auth.application.authorization.dto.AuthorizationQuery;
-import com.wsw.fitnesssystem.auth.application.authorization.dto.UserAuthorization;
+import com.wsw.fitnesssystem.auth.application.service.AuthorizationQueryService;
+import com.wsw.fitnesssystem.auth.application.dto.AuthorizationQuery;
+import com.wsw.fitnesssystem.auth.application.dto.UserAuthorization;
 import com.wsw.fitnesssystem.auth.domain.port.SessionRepository;
 import com.wsw.fitnesssystem.auth.infrastructure.token.model.AccessTokenClaims;
 import com.wsw.fitnesssystem.auth.infrastructure.security.handler.JwtAuthenticationEntryPoint;

@@ -1,8 +1,8 @@
 package com.wsw.fitnesssystem.auth.application.service.impl;
 
 import com.wsw.fitnesssystem.auth.application.authentication.command.LoginCommand;
-import com.wsw.fitnesssystem.auth.application.authorization.AuthorizationQueryService;
-import com.wsw.fitnesssystem.auth.application.authorization.dto.AuthorizationQuery;
+import com.wsw.fitnesssystem.auth.application.service.AuthorizationQueryService;
+import com.wsw.fitnesssystem.auth.application.dto.AuthorizationQuery;
 import com.wsw.fitnesssystem.auth.application.service.LoginSuccessProcessor;
 import com.wsw.fitnesssystem.auth.application.service.RiskControlService;
 import com.wsw.fitnesssystem.auth.domain.model.AuthUser;

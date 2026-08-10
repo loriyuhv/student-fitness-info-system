@@ -1,6 +1,6 @@
 package com.wsw.fitnesssystem.auth.infrastructure.persistence.redis.service;
 
-import com.wsw.fitnesssystem.auth.application.authorization.dto.UserAuthorization;
+import com.wsw.fitnesssystem.auth.application.dto.UserAuthorization;
 import com.wsw.fitnesssystem.auth.application.port.AuthorizationCacheService;
 import com.wsw.fitnesssystem.auth.infrastructure.persistence.redis.model.AuthRedisKeys;
 import com.wsw.fitnesssystem.shared.domain.valueobject.Operator;

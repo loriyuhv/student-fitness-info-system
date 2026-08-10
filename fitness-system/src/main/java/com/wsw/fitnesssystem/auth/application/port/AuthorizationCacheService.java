@@ -1,6 +1,6 @@
 package com.wsw.fitnesssystem.auth.application.port;
 
-import com.wsw.fitnesssystem.auth.application.authorization.dto.UserAuthorization;
+import com.wsw.fitnesssystem.auth.application.dto.UserAuthorization;
 import com.wsw.fitnesssystem.shared.domain.valueobject.Operator;
 
 /**

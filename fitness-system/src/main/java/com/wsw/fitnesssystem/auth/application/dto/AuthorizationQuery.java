@@ -1,4 +1,4 @@
-package com.wsw.fitnesssystem.auth.application.authorization.dto;
+package com.wsw.fitnesssystem.auth.application.dto;
 
 import lombok.Builder;
 import lombok.Data;
