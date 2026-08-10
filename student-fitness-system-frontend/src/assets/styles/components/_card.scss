@@ -1,0 +1,116 @@
+// ============================================
+// 卡片组件样式
+// ============================================
+@use '../abstracts/variables' as *;
+@use '../abstracts/mixins' as *;
+
+// 学生信息卡片
+.student-info-card {
+  margin-bottom: 20px;
+  border-radius: $border-radius-large;
+  overflow: hidden;
+
+  .student-info-header {
+    display: flex;
+    padding: 30px;
+    background: $gradient-primary;
+    color: $color-white;
+    border-radius: $border-radius-large $border-radius-large 0 0;
+
+    // 移动端适配
+    @include respond-to(md) {
+      flex-direction: column;
+      text-align: center;
+      padding: 20px;
+    }
+  }
+
+  .avatar-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-right: 30px;
+
+    @include respond-to(md) {
+      margin-right: 0;
+      margin-bottom: 20px;
+    }
+  }
+
+  .basic-info-section {
+    flex: 1;
+  }
+
+  .score-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-width: 200px;
+    padding-left: 30px;
+    border-left: 1px solid rgba($color-white, 0.2);
+
+    @include respond-to(md) {
+      border-left: none;
+      border-top: 1px solid rgba($color-white, 0.2);
+      padding-left: 0;
+      padding-top: 20px;
+      margin-top: 20px;
+      min-width: auto;
+      width: 100%;
+    }
+  }
+}
+
+// 指标卡片
+.indicator-card {
+  display: flex;
+  align-items: center;
+  padding: 15px;
+  background: $color-bg-secondary;
+  border-radius: $border-radius-medium;
+  transition: all $transition-duration $transition-timing;
+
+  &:hover {
+    transform: translateY(-5px);
+    box-shadow: $shadow-medium;
+  }
+
+  .indicator-icon {
+    width: 50px;
+    height: 50px;
+    border-radius: $border-radius-base;
+    @include flex-center;
+    margin-right: 15px;
+    font-size: 24px;
+    color: $color-white;
+
+    &.height {
+      background-color: $color-primary;
+    }
+
+    &.weight {
+      background-color: $color-success;
+    }
+
+    &.bmi {
+      background-color: $color-warning;
+    }
+
+    &.level {
+      background-color: $color-info;
+    }
+  }
+
+  .indicator-value {
+    font-size: 24px;
+    font-weight: bold;
+    color: $color-text-primary;
+    margin-bottom: 5px;
+  }
+
+  .indicator-label {
+    font-size: $font-size-base;
+    color: $color-text-secondary;
+  }
+}

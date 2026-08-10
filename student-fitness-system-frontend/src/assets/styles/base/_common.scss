@@ -1,0 +1,206 @@
+// ============================================
+// 全局通用样式
+// ============================================
+@use 'sass:map';
+@use '../abstracts/variables' as *;
+@use '../abstracts/mixins' as *;
+
+// 页面基础设置
+html {
+  font-size: 14px; // 基础字体大小
+  height: 100%;
+}
+
+body {
+  min-height: 100vh;
+  font-family: $font-family-base;
+  font-size: $font-size-base;
+  color: $color-text-regular;
+  background-color: $color-bg-primary;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+
+  // 禁止移动端双击缩放
+  touch-action: manipulation;
+}
+
+// 主应用容器
+#app {
+  min-height: 95vh;
+  display: flex;
+  flex-direction: column;
+}
+
+// 主内容包装器
+.main-content-wrapper {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  margin-top: $header-height; // 为固定导航栏留出空间
+  min-height: calc(100vh - #{$header-height});
+}
+
+// Element Plus 覆盖样式
+.el-container {
+  min-height: 100vh;
+}
+
+.el-main {
+  flex: 1;
+  padding: $content-padding;
+  max-width: $content-max-width;
+  margin: 0 auto;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+// 卡片通用样式
+.el-card {
+  border-radius: $border-radius-large;
+  overflow: hidden;
+
+  .el-card__header {
+    padding: 18px 20px;
+    border-bottom: 1px solid $color-border-light;
+    background-color: $color-white;
+  }
+
+  .el-card__body {
+    padding: 20px;
+  }
+}
+
+// 按钮通用样式
+.el-button {
+  border-radius: $border-radius-base;
+
+  &--primary {
+    background-color: $color-primary;
+    border-color: $color-primary;
+  }
+}
+
+// 表格样式优化
+.el-table {
+  th {
+    background-color: $color-bg-primary;
+    color: $color-text-primary;
+    font-weight: 600;
+  }
+
+  .cell {
+    padding: 8px 12px;
+  }
+}
+
+// 标签样式
+.el-tag {
+  border-radius: $border-radius-base;
+
+  &--success {
+    background-color: rgba($color-success, 0.1);
+    color: $color-success;
+  }
+
+  &--warning {
+    background-color: rgba($color-warning, 0.1);
+    color: $color-warning;
+  }
+
+  &--danger {
+    background-color: rgba($color-danger, 0.1);
+    color: $color-danger;
+  }
+
+  &--info {
+    background-color: rgba($color-info, 0.1);
+    color: $color-info;
+  }
+}
+
+// 评分颜色类
+.score-excellent {
+  color: map.get($score-colors, 'excellent');
+  font-weight: bold;
+}
+
+.score-good {
+  color: map.get($score-colors, 'good');
+  font-weight: bold;
+}
+
+.score-pass {
+  color: map.get($score-colors, 'pass');
+  font-weight: bold;
+}
+
+.score-fail {
+  color: map.get($score-colors, 'fail');
+  font-weight: bold;
+}
+
+// 浮动操作按钮
+.floating-actions {
+  position: fixed;
+  right: 30px;
+  bottom: 30px;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  z-index: $header-z-index + 100; // 确保在导航栏之上
+
+  .el-button {
+    box-shadow: $shadow-medium;
+
+    &:hover {
+      transform: scale(1.1);
+      box-shadow: $shadow-dark;
+    }
+
+    // 移动端适配
+    @include respond-to(sm) {
+      right: 15px;
+      bottom: 15px;
+      gap: 10px;
+    }
+  }
+}
+
+// 响应式工具类
+.hidden-xs {
+  @include respond-to(xs) {
+    display: none !important;
+  }
+}
+
+.hidden-sm {
+  @include respond-to(sm) {
+    display: none !important;
+  }
+}
+
+.hidden-md {
+  @include respond-to(md) {
+    display: none !important;
+  }
+}
+
+// 打印样式
+@media print {
+  .main-header,
+  .main-footer,
+  .floating-actions {
+    display: none !important;
+  }
+
+  .main-content-wrapper {
+    margin-top: 0;
+    min-height: auto;
+  }
+
+  .el-main {
+    max-width: 100%;
+    padding: 10px;
+  }
+}

@@ -1,0 +1,330 @@
+// ============================================
+// 表格组件样式
+// 主要针对历史记录表格和对比功能
+// ============================================
+@use 'sass:map';
+@use '../abstracts/variables' as *;
+@use '../abstracts/mixins' as *;
+
+// ---------------- 基础表格样式 ----------------
+
+// 历史记录表格容器
+.student-history {
+  background: $color-white;
+  border-radius: $border-radius-medium;
+  overflow: hidden;
+
+  // 表格头部
+  .history-header {
+    @include flex-between;
+    padding: 20px;
+    border-bottom: 1px solid $color-border-lighter;
+
+    h3 {
+      margin: 0;
+      color: $color-text-primary;
+      font-size: 18px;
+    }
+  }
+
+  // 表格内容区域
+  .history-table {
+    padding: 20px;
+
+    // Element Plus 表格样式覆盖
+    :deep(.el-table) {
+      // 表头样式
+      th {
+        background-color: $color-bg-primary !important;
+        color: $color-text-primary;
+        font-weight: 600;
+        padding: 8px 12px;
+
+        .cell {
+          padding: 0;
+          line-height: 1.5;
+        }
+      }
+
+      // 表格行样式
+      tr {
+        transition: background-color $transition-duration $transition-timing;
+
+        &:hover {
+          background-color: rgba($color-primary, 0.02);
+        }
+      }
+
+      // 单元格样式
+      td {
+        padding: 12px 8px;
+
+        .cell {
+          padding: 0;
+          line-height: 1.5;
+        }
+      }
+    }
+  }
+
+  // 时间单元格
+  .time-cell {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+
+    @include respond-to(sm) {
+      align-items: center;
+    }
+  }
+
+  .latest-tag {
+    margin-top: 2px;
+  }
+
+  // 对比说明区域
+  .comparison-guide {
+    margin: 0 20px 20px;
+    padding: 12px 16px;
+    background-color: rgba($color-primary, 0.05);
+    border-radius: $border-radius-base;
+    border: 1px solid rgba($color-primary, 0.2);
+
+    .guide-title {
+      font-weight: bold;
+      margin-bottom: 8px;
+      color: $color-primary;
+    }
+
+    .guide-content {
+      font-size: 13px;
+      color: $color-text-regular;
+      line-height: 1.6;
+
+      p {
+        margin: 4px 0;
+      }
+
+      .highlight {
+        color: $color-danger;
+        font-weight: bold;
+      }
+    }
+  }
+
+  // 空状态
+  .no-history {
+    padding: 60px 0;
+  }
+}
+
+// ---------------- 对比单元格组件样式 ----------------
+
+// 对比单元格容器
+.comparison-cell {
+  @include flex-center;
+  gap: 4px;
+  min-height: 40px;
+  padding: 4px 0;
+
+  // 分数样式
+  .score-excellent {
+    color: map.get($score-colors, 'excellent');
+    font-weight: bold;
+  }
+
+  .score-good {
+    color: map.get($score-colors, 'good');
+    font-weight: bold;
+  }
+
+  .score-pass {
+    color: map.get($score-colors, 'pass');
+    font-weight: bold;
+  }
+
+  .score-fail {
+    color: map.get($score-colors, 'fail');
+    font-weight: bold;
+  }
+
+  // 对比箭头
+  .comparison-arrow {
+    display: inline-flex;
+    align-items: center;
+    margin-left: 2px;
+
+    // 上升箭头（红色，表示数值增加）
+    .rise {
+      color: $color-danger;
+      font-size: 14px;
+      font-weight: bold;
+    }
+
+    // 下降箭头（绿色，表示数值减少）
+    .fall {
+      color: $color-success;
+      font-size: 14px;
+      font-weight: bold;
+    }
+  }
+}
+
+// ---------------- 整体对比列样式 ----------------
+
+// 整体对比结果
+.overall-comparison {
+  @include flex-center;
+  height: 100%;
+  font-size: 13px;
+  font-weight: bold;
+
+  // 进步（绿色）
+  &.improve {
+    color: $color-success;
+  }
+
+  // 退步（红色）
+  &.decline {
+    color: $color-danger;
+  }
+
+  // 持平（灰色）
+  &.equal {
+    color: $color-text-secondary;
+    font-style: italic;
+  }
+
+  // 最早记录
+  &.no-comparison {
+    color: $color-text-placeholder;
+    font-style: italic;
+  }
+}
+
+// ---------------- 标签样式 ----------------
+
+// 体重等级标签
+.weight-level-tag {
+  &.underweight {
+    background-color: rgba($color-info, 0.1);
+    color: $color-info;
+  }
+
+  &.normal {
+    background-color: rgba($color-success, 0.1);
+    color: $color-success;
+  }
+
+  &.overweight {
+    background-color: rgba($color-warning, 0.1);
+    color: $color-warning;
+  }
+
+  &.obese {
+    background-color: rgba($color-danger, 0.1);
+    color: $color-danger;
+  }
+}
+
+// 体质结果标签
+.physical-result-tag {
+  &.excellent {
+    background-color: rgba($color-success, 0.1);
+    color: $color-success;
+  }
+
+  &.good {
+    background-color: rgba($color-primary, 0.1);
+    color: $color-primary;
+  }
+
+  &.pass {
+    background-color: rgba($color-warning, 0.1);
+    color: $color-warning;
+  }
+
+  &.fail {
+    background-color: rgba($color-danger, 0.1);
+    color: $color-danger;
+  }
+}
+
+// ---------------- 响应式表格 ----------------
+
+// 移动端适配
+@include respond-to(md) {
+  .student-history {
+    // 减小内边距
+    .history-header,
+    .history-table {
+      padding: 15px;
+    }
+
+    // 表格横向滚动
+    :deep(.el-table) {
+      .el-table__body-wrapper {
+        overflow-x: auto;
+      }
+    }
+
+    // 对比说明缩小字体
+    .comparison-guide {
+      margin: 0 15px 15px;
+      padding: 10px 12px;
+
+      .guide-content {
+        font-size: 12px;
+      }
+    }
+  }
+}
+
+@include respond-to(sm) {
+  .student-history {
+    .history-header {
+      flex-direction: column;
+      gap: 10px;
+      align-items: flex-start;
+
+      h3 {
+        font-size: 16px;
+      }
+    }
+
+    .comparison-guide {
+      margin: 0 10px 10px;
+
+      .guide-title {
+        font-size: 14px;
+      }
+    }
+  }
+}
+
+// ---------------- 打印样式 ----------------
+
+@media print {
+  .student-history {
+    // 隐藏操作按钮和对比说明
+    .history-header,
+    .comparison-guide,
+    .el-table__fixed-right {
+      display: none !important;
+    }
+
+    // 表格边框
+    :deep(.el-table) {
+      th,
+      td {
+        border: 1px solid $color-border-base !important;
+      }
+    }
+
+    // 强制显示所有内容
+    .history-table {
+      overflow: visible !important;
+    }
+  }
+}

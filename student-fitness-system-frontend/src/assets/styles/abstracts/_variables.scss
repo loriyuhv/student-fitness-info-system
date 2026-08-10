@@ -1,0 +1,98 @@
+// ============================================
+// 全局变量定义
+// ============================================
+
+// 颜色系统
+// 主色调
+$color-primary: #409eff !default; // Element Plus 主色
+$color-success: #67c23a !default; // 成功色
+$color-warning: #e6a23c !default; // 警告色
+$color-danger: #f56c6c !default; // 危险色
+$color-info: #909399 !default; // 信息色
+
+// 中性色 - 用于文本、背景、边框
+$color-white: #ffffff !default;
+$color-black: #000000 !default;
+
+// 文本颜色
+$color-text-primary: #303133 !default; // 主要文字
+$color-text-regular: #606266 !default; // 普通文字
+$color-text-secondary: #909399 !default; // 次要文字
+$color-text-placeholder: #c0c4cc !default; // 占位文字
+
+// 边框颜色
+$color-border-base: #dcdfe6 !default; // 基础边框
+$color-border-light: #e4e7ed !default; // 浅色边框
+$color-border-lighter: #ebeef5 !default; // 更浅色边框
+$color-border-extra-light: #f2f6fc !default; // 最浅色边框
+
+// 背景颜色
+$color-bg-primary: #f5f7fa !default; // 主要背景
+$color-bg-secondary: #f0f2f5 !default; // 次要背景
+
+// 渐变背景 - 用于头部等装饰性元素
+$gradient-primary: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !default;
+
+// 布局尺寸
+// 头部导航栏
+$header-height: 60px !default; // 顶部导航栏高度
+$header-z-index: 1000 !default; // 导航栏层级
+
+// 页脚
+$footer-height: auto !default; // 页脚高度
+$footer-padding: 15px 20px !default; // 页脚内边距
+
+// 主内容区域
+$content-max-width: 1400px !default; // 内容最大宽度
+$content-padding: 20px !default; // 内容内边距
+
+// 侧边栏（如有）
+$sidebar-width: 240px !default; // 侧边栏宽度
+
+// 响应式断点
+$screen-xs: 480px !default; // 超小屏幕（手机）
+$screen-sm: 768px !default; // 小屏幕（平板）
+$screen-md: 992px !default; // 中等屏幕（桌面）
+$screen-lg: 1200px !default; // 大屏幕（宽桌面）
+$screen-xl: 1920px !default; // 超大屏幕
+
+// 阴影
+$shadow-base: 0 2px 4px rgba(0, 0, 0, 0.12) !default;
+$shadow-light: 0 2px 12px 0 rgba(0, 0, 0, 0.1) !default;
+$shadow-medium: 0 4px 12px rgba(0, 0, 0, 0.15) !default;
+$shadow-dark: 0 8px 24px rgba(0, 0, 0, 0.2) !default;
+
+// 过渡动画
+$transition-duration: 0.3s !default; // 过渡时长
+$transition-timing: ease-in-out !default; // 过渡曲线
+
+// 圆角
+$border-radius-base: 4px !default; // 基础圆角
+$border-radius-medium: 8px !default; // 中等圆角
+$border-radius-large: 12px !default; // 大圆角
+
+// 字体
+$font-family-base: 'Avenir', Helvetica, Arial, sans-serif !default;
+$font-size-base: 14px !default; // 基础字体大小
+$font-size-large: 16px !default; // 大字体
+$font-size-extra-large: 18px !default; // 特大字体
+
+// 评分颜色映射
+$score-colors: (
+  'excellent': $color-success,
+  // 90+ 优秀
+  'good': $color-primary,
+  // 80+ 良好
+  'pass': $color-warning,
+  // 60+ 及格
+  'fail': $color-danger, // <60 不及格
+) !default;
+
+// 标签颜色映射
+$tag-colors: (
+  'success': $color-success,
+  'primary': $color-primary,
+  'warning': $color-warning,
+  'danger': $color-danger,
+  'info': $color-info,
+) !default;

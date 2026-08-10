@@ -1,0 +1,155 @@
+// ============================================
+// SCSS 混合宏（Mixins）
+// ============================================
+@use 'sass:meta';
+@use 'variables' as *;
+
+// 清除浮动
+@mixin clearfix {
+  &::after {
+    content: '';
+    display: table;
+    clear: both;
+  }
+}
+
+// 文本溢出省略
+@mixin text-ellipsis {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+// 多行文本溢出
+@mixin text-ellipsis-multiline($lines: 2) {
+  display: -webkit-box;
+  -webkit-line-clamp: $lines;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+// 响应式媒体查询
+@mixin respond-to($breakpoint) {
+  // 超小屏幕
+  @if $breakpoint == xs {
+    @media screen and (max-width: $screen-xs) {
+      @content;
+    }
+  }
+
+  // 小屏幕
+  @if $breakpoint == sm {
+    @media screen and (max-width: $screen-sm) {
+      @content;
+    }
+  }
+
+  // 中等屏幕
+  @if $breakpoint == md {
+    @media screen and (max-width: $screen-md) {
+      @content;
+    }
+  }
+
+  // 大屏幕
+  @if $breakpoint == lg {
+    @media screen and (max-width: $screen-lg) {
+      @content;
+    }
+  }
+
+  // 自定义断点
+  @if meta.type-of($breakpoint) == 'number' {
+    @media screen and (max-width: $breakpoint) {
+      @content;
+    }
+  }
+}
+
+// Flexbox 布局快捷方式
+@mixin flex-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+@mixin flex-between {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+@mixin flex-start {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+}
+
+@mixin flex-end {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+// 绝对定位居中
+@mixin absolute-center {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+// 卡片阴影 hover 效果
+@mixin card-hover {
+  transition: all $transition-duration $transition-timing;
+  cursor: pointer;
+
+  &:hover {
+    transform: translateY(-5px);
+    box-shadow: $shadow-dark;
+  }
+}
+
+// 渐变背景文字
+@mixin gradient-text($gradient) {
+  background: $gradient;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+// 按钮基础样式
+@mixin button-base {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  outline: none;
+  cursor: pointer;
+  transition: all $transition-duration $transition-timing;
+  user-select: none;
+}
+
+// 隐藏滚动条
+@mixin hide-scrollbar {
+  &::-webkit-scrollbar {
+    display: none;
+  }
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+// 打印样式
+@mixin print-hidden {
+  @media print {
+    display: none !important;
+  }
+}
+
+// 移动端触摸优化
+@mixin touch-optimization {
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
+}

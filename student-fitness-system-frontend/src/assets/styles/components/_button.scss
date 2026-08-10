@@ -1,0 +1,72 @@
+// ============================================
+// 按钮组件样式
+// ============================================
+@use 'sass:color';
+@use '../abstracts/variables' as *;
+@use '../abstracts/mixins' as *;
+
+// 登录按钮
+.login-button {
+  width: 100%;
+  font-size: $font-size-large;
+  letter-spacing: 2px;
+  height: 48px;
+  margin-top: 10px;
+  border-radius: $border-radius-medium;
+}
+
+// 浮动操作按钮
+.floating-btn {
+  @include button-base;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  color: $color-white;
+  font-size: 20px;
+
+  &--primary {
+    background-color: $color-primary;
+
+    &:hover {
+      // background-color: darken($color-primary, 10%);
+      background-color: color.adjust($color-primary, $lightness: -10%);
+    }
+  }
+
+  &--success {
+    background-color: $color-success;
+
+    &:hover {
+      background-color: color.adjust($color-info, $lightness: -10%);
+    }
+  }
+
+  &--info {
+    background-color: $color-info;
+
+    &:hover {
+      background-color: color.adjust($color-info, $lightness: -10%);
+    }
+  }
+
+  // 移动端缩小
+  @include respond-to(sm) {
+    width: 48px;
+    height: 48px;
+    font-size: 18px;
+  }
+}
+
+// 文本按钮
+.text-btn {
+  @include button-base;
+  background: transparent;
+  color: $color-primary;
+  padding: 4px 8px;
+  font-size: $font-size-base;
+
+  &:hover {
+    color: color.adjust($color-primary, $lightness: -10%);
+    background-color: rgba($color-primary, 0.05);
+  }
+}

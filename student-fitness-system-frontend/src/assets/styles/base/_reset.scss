@@ -1,0 +1,130 @@
+// ============================================
+// 样式重置
+// ============================================
+@use '../abstracts/variables' as *;
+
+// 通用盒模型
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+// HTML5 元素显示定义
+article,
+aside,
+details,
+figcaption,
+figure,
+footer,
+header,
+hgroup,
+menu,
+nav,
+section {
+  display: block;
+}
+
+// 基础样式
+body,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+p,
+blockquote,
+pre,
+dl,
+dt,
+dd,
+ul,
+ol,
+li,
+fieldset,
+form,
+legend,
+table,
+th,
+td,
+figure,
+hr {
+  margin: 0;
+  padding: 0;
+}
+
+// 列表样式重置
+ul,
+ol {
+  list-style: none;
+}
+
+// 表单元素重置
+button,
+input,
+select,
+textarea {
+  margin: 0;
+  font: inherit;
+  color: inherit;
+}
+
+// 去除默认边框
+fieldset {
+  border: 0;
+}
+
+// 表格重置
+table {
+  border-collapse: collapse;
+  border-spacing: 0;
+}
+
+// 图片重置
+img {
+  max-width: 100%;
+  height: auto;
+  vertical-align: middle;
+  border: 0;
+}
+
+// 链接重置
+a {
+  color: inherit;
+  text-decoration: none;
+
+  &:hover,
+  &:focus {
+    text-decoration: none;
+  }
+}
+
+// 文本选择颜色
+::selection {
+  background: rgba($color-primary, 0.2);
+}
+
+// 去除 focus 时的外边框
+:focus {
+  outline: none;
+}
+
+// 自定义滚动条（可选）
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: $color-bg-primary;
+}
+
+::-webkit-scrollbar-thumb {
+  background: $color-text-placeholder;
+  border-radius: $border-radius-base;
+
+  &:hover {
+    background: $color-text-secondary;
+  }
+}

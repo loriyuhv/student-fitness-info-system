@@ -1,0 +1,266 @@
+// ============================================
+// SCSS 函数（Functions）
+// 提供颜色计算、单位转换等工具函数
+// ============================================
+@use 'mixins' as *;
+@use 'variables' as *;
+// ---------------- 颜色函数 ----------------
+
+/**
+ * 计算颜色的对比色（深色背景返回白色，浅色背景返回黑色）
+ * @param {Color} $color - 需要计算的颜色
+ * @returns {Color} 对比色（黑色或白色）
+ */
+@function contrast-color($color) {
+  // 将颜色转换为灰度值（亮度）
+  // 使用 0.299*R + 0.587*G + 0.114*B 公式计算相对亮度
+  $r: red($color);
+  $g: green($color);
+  $b: blue($color);
+  $yiq: (($r * 299) + ($g * 587) + ($b * 114)) / 1000;
+
+  // 以 128 为阈值，判断使用深色还是浅色对比色
+  @if $yiq >= 128 {
+    @return $color-black;
+  } @else {
+    @return $color-white;
+  }
+}
+
+/**
+ * 将十六进制颜色转换为 RGB 字符串
+ * @param {Color} $color - 十六进制颜色
+ * @returns {String} "R, G, B" 格式的字符串
+ * @example hex-to-rgb(#409eff) => "64, 158, 255"
+ */
+@function hex-to-rgb($color) {
+  @return '#{red($color)}, #{green($color)}, #{blue($color)}';
+}
+
+/**
+ * 为颜色添加透明度（返回 rgba 格式）
+ * @param {Color} $color - 基础颜色
+ * @param {Number} $alpha - 透明度（0-1）
+ * @returns {Color} rgba 颜色值
+ * @example transparentize(#409eff, 0.1) => rgba(64, 158, 255, 0.1)
+ */
+@function transparentize($color, $alpha) {
+  @return rgba($color, $alpha);
+}
+
+/**
+ * 颜色变亮函数（基于亮度调整）
+ * @param {Color} $color - 基础颜色
+ * @param {Number} $percentage - 变亮百分比（0-100）
+ * @returns {Color} 变亮后的颜色
+ */
+@function lighten-color($color, $percentage) {
+  // 混合白色来变亮颜色
+  @return mix(white, $color, $percentage);
+}
+
+/**
+ * 颜色变暗函数（基于亮度调整）
+ * @param {Color} $color - 基础颜色
+ * @param {Number} $percentage - 变暗百分比（0-100）
+ * @returns {Color} 变暗后的颜色
+ */
+@function darken-color($color, $percentage) {
+  // 混合黑色来变暗颜色
+  @return mix(black, $color, $percentage);
+}
+
+/**
+ * 获取评分等级的颜色
+ * @param {String} $level - 等级名称（excellent, good, pass, fail）
+ * @returns {Color} 对应的颜色值
+ */
+@function score-color($level) {
+  $colors: (
+    'excellent': $color-success,
+    'good': $color-primary,
+    'pass': $color-warning,
+    'fail': $color-danger,
+  );
+
+  @return map-get($colors, $level);
+}
+
+// ---------------- 单位转换函数 ----------------
+
+/**
+ * 将 px 转换为 rem
+ * @param {Number} $px - px 值
+ * @param {Number} $base-font-size - 基础字体大小（默认 14px）
+ * @returns {String} rem 值
+ * @example px-to-rem(16) => 1.1429rem
+ */
+@function px-to-rem($px, $base-font-size: 14) {
+  @return #{$px / $base-font-size}rem;
+}
+
+/**
+ * 将 px 转换为 em
+ * @param {Number} $px - px 值
+ * @param {Number} $context - 上下文字体大小（默认 14px）
+ * @returns {String} em 值
+ * @example px-to-em(16, 14) => 1.1429em
+ */
+@function px-to-em($px, $context: 14) {
+  @return #{$px / $context}em;
+}
+
+/**
+ * 计算两个数值的百分比
+ * @param {Number} $part - 部分值
+ * @param {Number} $whole - 总值
+ * @returns {Number} 百分比值
+ * @example percentage-of(20, 100) => 20
+ */
+@function percentage-of($part, $whole) {
+  @return ($part / $whole) * 100%;
+}
+
+// ---------------- 数学函数 ----------------
+
+/**
+ * 计算阶乘
+ * @param {Number} $n - 非负整数
+ * @returns {Number} 阶乘结果
+ * @example factorial(5) => 120
+ */
+@function factorial($n) {
+  $result: 1;
+  @for $i from 1 through $n {
+    $result: $result * $i;
+  }
+  @return $result;
+}
+
+/**
+ * 计算数字的平方根（使用巴比伦方法）
+ * @param {Number} $number - 需要计算平方根的数
+ * @param {Number} $precision - 精度（小数位数）
+ * @returns {Number} 平方根
+ * @example sqrt(16) => 4
+ */
+@function sqrt($number, $precision: 5) {
+  $x: $number / 2;
+  $y: ($x + $number / $x) / 2;
+
+  @while abs($x - $y) > (1 / pow(10, $precision)) {
+    $x: $y;
+    $y: ($x + $number / $x) / 2;
+  }
+
+  @return round($y * pow(10, $precision)) / pow(10, $precision);
+}
+
+/**
+ * 计算幂次方
+ * @param {Number} $base - 底数
+ * @param {Number} $exponent - 指数
+ * @returns {Number} 幂次方结果
+ */
+@function pow($base, $exponent) {
+  $result: 1;
+  @for $_ from 1 through $exponent {
+    $result: $result * $base;
+  }
+  @return $result;
+}
+
+/**
+ * 计算 BMI 指数
+ * @param {Number} $height - 身高（厘米）
+ * @param {Number} $weight - 体重（公斤）
+ * @returns {String} BMI 值（保留1位小数）或 '--'
+ */
+@function calculate-bmi($height, $weight) {
+  @if not $height or not $weight or $height == 0 {
+    @return '--';
+  }
+
+  $height-in-meter: $height / 100;
+  $bmi: $weight / ($height-in-meter * $height-in-meter);
+
+  @return #{round($bmi * 10) / 10};
+}
+
+// ---------------- 字符串函数 ----------------
+
+/**
+ * 将字符串转换为 kebab-case（短横线命名）
+ * @param {String} $string - 原始字符串
+ * @returns {String} 转换后的字符串
+ * @example to-kebab-case("HelloWorld") => "hello-world"
+ */
+@function to-kebab-case($string) {
+  // 将大写字母替换为 - 小写字母
+  $result: $string;
+  $uppercase-letters:
+    'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S',
+    'T', 'U', 'V', 'W', 'X', 'Y', 'Z';
+
+  @each $letter in $uppercase-letters {
+    $result: str-replace($result, $letter, '-#{to-lower-case($letter)}');
+  }
+
+  @return $result;
+}
+
+/**
+ * 字符串替换函数
+ * @param {String} $string - 原始字符串
+ * @param {String} $search - 要查找的子串
+ * @param {String} $replace - 替换内容
+ * @returns {String} 替换后的字符串
+ */
+@function str-replace($string, $search, $replace) {
+  $index: str-index($string, $search);
+
+  @if $index {
+    @return str-slice($string, 1, $index - 1) + $replace +
+      str-replace(str-slice($string, $index + str-length($search)), $search, $replace);
+  }
+
+  @return $string;
+}
+
+// ---------------- 列表函数 ----------------
+
+/**
+ * 获取列表中的最大值
+ * @param {List} $list - 数值列表
+ * @returns {Number} 最大值
+ * @example max(1, 5, 3, 9, 2) => 9
+ */
+@function max($list...) {
+  $max: nth($list, 1);
+
+  @each $item in $list {
+    @if $item > $max {
+      $max: $item;
+    }
+  }
+
+  @return $max;
+}
+
+/**
+ * 获取列表中的最小值
+ * @param {List} $list - 数值列表
+ * @returns {Number} 最小值
+ * @example min(1, 5, 3, 9, 2) => 1
+ */
+@function min($list...) {
+  $min: nth($list, 1);
+
+  @each $item in $list {
+    @if $item < $min {
+      $min: $item;
+    }
+  }
+
+  @return $min;
+}
