@@ -15,6 +15,7 @@ import com.wsw.fitnesssystem.auth.application.dto.TokenPair;
 import com.wsw.fitnesssystem.auth.domain.model.UserInfo;
 import com.wsw.fitnesssystem.auth.domain.port.SessionRepository;
 import com.wsw.fitnesssystem.auth.domain.port.UserInfoRepository;
+import com.wsw.fitnesssystem.auth.domain.risk.valueobject.RiskFailResult;
 import com.wsw.fitnesssystem.auth.domain.service.AuthDomainService;
 import com.wsw.fitnesssystem.auth.domain.service.SessionDomainService;
 import com.wsw.fitnesssystem.auth.infrastructure.audit.LoginAuditService;
@@ -267,16 +268,16 @@ public class AuthApplicationService {
             );
         } catch (BizException ex) {
             // 登录失败处理（统一收口）
-            int failCount = riskControlService.onFail(cmd.getUsername());
+            RiskFailResult result = riskControlService.onFail(cmd.getUsername());
             // 登录失败审计
             loginAuditService.loginFail(
-                cmd.getUsername(),
-                cmd.getIp(),
-                cmd.getDeviceType(),
-                cmd.getUserAgent(),
-                ex.getMessage(),  // 失败原因
-                failCount,
-                failCount >= 5    // 是否达到锁定阈值
+                    cmd.getUsername(),
+                    cmd.getIp(),
+                    cmd.getDeviceType(),
+                    cmd.getUserAgent(),
+                    ex.getMessage(),  // 失败原因
+                    result.getFailCount(),
+                    result.isLocked()
             );
 
             throw ex;

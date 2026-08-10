@@ -81,7 +81,7 @@ public class LoginSuccessProcessorImpl implements LoginSuccessProcessor {
     public void process(AuthUser user, LoginCommand cmd, TokenPair tokenPair) {
         Operator operator = new Operator(user.getCampusId(), user.getUserId(), null, null);
         // 1. 风控成功处理
-        riskControlService.onSuccess(operator);
+        riskControlService.onSuccess(user.getUsername());
 
         // 2. 限制多端登录
         sessionDomainService.limitSessions(
