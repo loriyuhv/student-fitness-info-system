@@ -5,6 +5,9 @@ import com.wsw.fitnesssystem.shared.response.ApiResult;
 import com.wsw.fitnesssystem.shared.response.ResultCode;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authorization.AuthorizationDeniedException;
+import org.springframework.validation.BindException;
+import org.springframework.validation.FieldError;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
@@ -31,13 +34,28 @@ public class GlobalExceptionHandler {
     }
 
     /**
-     * 系统异常 → 500
+     * JSON请求体 @RequestBody + @Valid 校验失败
+     * @param e 异常
+     * @return 统一响应体
      */
-    @ExceptionHandler(SystemException.class)
-    public ApiResult<Object> handleSystemException(SystemException e) {
-        ResultCode rc = e.getResultCode();
-        log.error("系统异常: {}", rc.getMessage(), e);
-        return ApiResult.error(rc);
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ApiResult<Object> handleMethodArgumentNotValidException(MethodArgumentNotValidException e) {
+        FieldError fieldError = e.getBindingResult().getFieldError();
+        String msg = fieldError != null ? fieldError.getDefaultMessage() : ResultCode.PARAM_INVALID.getMessage();
+        log.warn("参数校验失败：{}", msg);
+        return ApiResult.error(ResultCode.PARAM_INVALID, msg);
+    }
+
+    /**
+     * 表单、GET参数校验失败
+     * @param e 异常
+     * @return 响应体
+     */
+    @ExceptionHandler(BindException.class)
+    public ApiResult<Object> handleBindException(BindException e) {
+        FieldError fieldError = e.getBindingResult().getFieldError();
+        String msg = fieldError != null ? fieldError.getDefaultMessage() : ResultCode.PARAM_INVALID.getMessage();
+        return ApiResult.error(ResultCode.PARAM_INVALID, msg);
     }
 
     /**
@@ -47,6 +65,16 @@ public class GlobalExceptionHandler {
     public ApiResult<Object> handleAccessDeniedException(Exception e) {
         log.warn("权限异常: {}", e.getMessage());
         return ApiResult.error(ResultCode.PERMISSION_DENIED);
+    }
+
+    /**
+     * 系统异常 → 500
+     */
+    @ExceptionHandler(SystemException.class)
+    public ApiResult<Object> handleSystemException(SystemException e) {
+        ResultCode rc = e.getResultCode();
+        log.error("系统异常: {}", rc.getMessage(), e);
+        return ApiResult.error(rc);
     }
 
     /**

@@ -40,7 +40,7 @@ public class RiskControlAppService implements RiskControlService {
     @Override
     public void preCheck(String username) {
         AccountIdentifier identifier = new AccountIdentifier(username);
-        RiskPolicy policy = currentPolicy();
+        // RiskPolicy policy = currentPolicy();
 
         AccountRiskProfile profile = riskRepository
                 .findByIdentifier(identifier)

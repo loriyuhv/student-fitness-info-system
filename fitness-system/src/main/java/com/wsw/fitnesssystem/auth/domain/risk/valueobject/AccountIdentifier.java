@@ -1,5 +1,8 @@
 package com.wsw.fitnesssystem.auth.domain.risk.valueobject;
 
+import com.wsw.fitnesssystem.shared.exception.BizException;
+import com.wsw.fitnesssystem.shared.response.ResultCode;
+
 /**
  * 账号标识 - 值对象
  *
@@ -12,7 +15,7 @@ package com.wsw.fitnesssystem.auth.domain.risk.valueobject;
 public record AccountIdentifier(String username) {
     public AccountIdentifier {
         if (username == null || username.isBlank()) {
-            throw new IllegalArgumentException("username must not be blank");
+            throw new BizException(ResultCode.PARAM_INVALID);
         }
     }
 }

@@ -15,7 +15,7 @@ import java.util.Optional;
 /**
  * 账号风控仓储 - Redis 实现
  *
- * <p>Key 设计（v2 前缀，与旧版隔离）：
+ * <p>Key 设计:
  * <li>auth:risk:fail:{username}  → 失败次数（String）</li>
  * <li>auth:risk:lock:{username}  → 锁定标记（String）</li>
  * @author loriyuhv
