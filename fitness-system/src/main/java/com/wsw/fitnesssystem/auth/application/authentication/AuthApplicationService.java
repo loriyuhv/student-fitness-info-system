@@ -280,7 +280,7 @@ public class AuthApplicationService {
                     result.isLocked()
             );
 
-            throw ex;
+            throw new BizException(ResultCode.USER_LOGIN_ERROR);
         }
     }
 

@@ -29,7 +29,7 @@ public class AuditAsyncService {
     /**
      * 登录成功审计（异步）
      */
-    @Async
+    @Async("taskExecutor")
     public void recordLogin(SysUserLogin login) {
         try {
             loginMapper.insert(login);
@@ -42,7 +42,7 @@ public class AuditAsyncService {
     /**
      * 退出 / 被踢 / 失效（异步）
      */
-    @Async
+    @Async("taskExecutor")
     public void recordLogout(Operator operator, String tokenId, String logoutReason) {
         try {
             loginMapper.update(
