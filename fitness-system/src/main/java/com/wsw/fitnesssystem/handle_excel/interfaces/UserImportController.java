@@ -1,6 +1,7 @@
 package com.wsw.fitnesssystem.handle_excel.interfaces;
 
 import com.wsw.fitnesssystem.handle_excel.application.IUserImportAppService;
+import com.wsw.fitnesssystem.handle_excel.interfaces.dto.ImportProgressDTO;
 import com.wsw.fitnesssystem.shared.response.ApiResult;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
@@ -23,7 +24,7 @@ public class UserImportController {
     }
 
     @GetMapping("/import/progress")
-    public ApiResult<Object>  getProgress(String taskId) {
+    public ApiResult<ImportProgressDTO>  getProgress(@RequestParam String taskId) {
         return ApiResult.success(userImportAppService.getProgress(taskId));
     }
 }

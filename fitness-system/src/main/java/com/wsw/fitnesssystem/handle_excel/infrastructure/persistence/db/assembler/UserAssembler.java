@@ -3,6 +3,7 @@ package com.wsw.fitnesssystem.handle_excel.infrastructure.persistence.db.assembl
 import com.wsw.fitnesssystem.handle_excel.domain.model.User;
 import com.wsw.fitnesssystem.handle_excel.infrastructure.persistence.db.entity.SysUser;
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
@@ -24,13 +25,15 @@ public class UserAssembler {
 
         entity.setCampusId(1L);
         entity.setUsername(user.getUsername());
-        entity.setPassword(passwordEncoder.encode(user.getPassword()));
+        // 密码加密：如果 DomainService 已生成随机密码，这里直接加密
+        String password = StringUtils.isEmpty(user.getPassword()) ? "12345" : user.getPassword();
+        entity.setPassword(passwordEncoder.encode(password));
         entity.setNickname(user.getNickname());
         entity.setPhoneNumber(null);
         entity.setEmail(null);
-        entity.setUserType(2);
-        entity.setStatus(1);
-        entity.setDeleted(0);
+        entity.setUserType(2); // 学生
+        entity.setStatus(1); // 启用
+        entity.setDeleted(0); // 未删除
 
         return entity;
     }

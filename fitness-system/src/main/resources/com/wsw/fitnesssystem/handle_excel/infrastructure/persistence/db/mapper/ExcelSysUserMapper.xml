@@ -7,7 +7,7 @@
 
     <insert id="batchInsert">
         INSERT INTO sys_user
-        (campus_id, username, password, nick_name, phone_number, email, user_type, status, deleted, create_time)
+        (campus_id, username, password, nickname, phone_number, email, user_type, status, deleted, create_time)
         VALUES
         <foreach collection="list" item="item" separator=",">
             (

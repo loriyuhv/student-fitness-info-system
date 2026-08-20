@@ -13,15 +13,28 @@ import java.util.Map;
 public class ImportProgressDTO {
     private int total;
     private int processed;
+    private int successCount;
+    private int failCount;
     private String status;
+    private String errorMsg;
 
     public static ImportProgressDTO from(Map<Object, Object> map) {
         ImportProgressDTO dto = new ImportProgressDTO();
-
-        dto.setTotal(Integer.parseInt((String) map.getOrDefault("total", "0")));
-        dto.setProcessed(Integer.parseInt((String) map.getOrDefault("processed", "0")));
+        dto.setTotal(parseInt(map.get("total")));
+        dto.setProcessed(parseInt(map.get("processed")));
+        dto.setSuccessCount(parseInt(map.get("successCount")));
+        dto.setFailCount(parseInt(map.get("failCount")));
         dto.setStatus((String) map.getOrDefault("status", "INIT"));
-
+        dto.setErrorMsg((String) map.getOrDefault("errorMsg", ""));
         return dto;
+    }
+
+    private static int parseInt(Object val) {
+        if (val == null) return 0;
+        try {
+            return Integer.parseInt(val.toString());
+        } catch (NumberFormatException e) {
+            return 0;
+        }
     }
 }
