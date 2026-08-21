@@ -1,0 +1,179 @@
+package com.wsw.fitnesssystem.handle_excel.core.template;
+
+import com.wsw.fitnesssystem.handle_excel.core.adapter.ImportAdapter;
+import com.wsw.fitnesssystem.handle_excel.core.parser.ExcelParser;
+import com.wsw.fitnesssystem.handle_excel.core.progress.ImportProgressManager;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.io.FileUtils;
+import org.springframework.stereotype.Component;
+
+import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
+
+/**
+ * Excel 导入模板方法
+ * 定义标准导入流程，与具体业务完全解耦
+ * <p>标准流程：</p>
+ * <li>1. 解析 Excel（通用）</li>
+ * <li>2. 业务校验（适配器实现）</li>
+ * <li>3. 数据转换（适配器实现）</li>
+ * <li>4. 批量持久化（适配器实现）</li>
+ * <li>5. 上报进度（通用）</li>
+ * <li>6. 完成/异常处理（通用）</li>
+ * @author loriyuhv
+ * @version 1.0 2026/8/21 12:22
+ * @since 1.0
+ */
+@Slf4j
+@Component
+@RequiredArgsConstructor
+public class ExcelImportTemplate {
+    private final ExcelParser excelParser;
+    private final ImportProgressManager progressManager;
+
+    /**
+     * 执行导入（模板方法）
+     *
+     * @param taskId 任务 ID
+     * @param file Excel 文件（磁盘临时文件）
+     * @param adapter 业务适配器
+     * @param <T> DTO类型
+     * @param <E> Entity类型
+     */
+    public <T, E> void execute(String taskId, File file, ImportAdapter<T, E> adapter) {
+        int total = 0;
+        int successCount = 0;
+        int failCount = 0;
+        List<String> errorMsgList = new ArrayList<>();
+
+        try {
+            // ========== Step 1: 解析 Excel ==========
+            log.info("[{}] 开始解析 Excel, adapter={}, dtoClass={}",
+                    taskId, adapter.getBizType(), adapter.getDtoClass().getSimpleName());
+
+            List<T> list = excelParser.parse(file, adapter.getDtoClass());
+            total = list.size();
+
+            if (total == 0) {
+                log.warn("[{}] Excel 文件为空或无可解析数据", taskId);
+                progressManager.fail(taskId, "Excel 文件为空或无可解析数据");
+                return;
+            }
+
+            log.info("[{}] Excel 解析完成，共 {} 条数据", taskId, total);
+
+            // ========== Step 2: 初始化进度 ==========
+            progressManager.init(taskId, total);
+
+            // ========== Step 3: 分片处理 ==========
+            int batchSize = adapter.getBatchSize();
+            List<List<T>> batches = partition(list, batchSize);
+            log.info("[{}] 分片完成，共 {} 批，每批 {} 条", taskId, batches.size(), batchSize);
+
+            for (int i = 0; i < batches.size(); i++) {
+                List<T> batch = batches.get(i);
+                try {
+                    // 3.1 业务校验（适配器实现）
+                    List<T> validated = adapter.validate(batch);
+                    int filtered = batch.size() - validated.size();
+                    if (filtered > 0) {
+                        log.debug("[{}] 第 {} 批过滤 {} 条重复/非法数据", taskId, i + 1, filtered);
+                    }
+
+                    if (validated.isEmpty()) {
+                        failCount += batch.size();
+                        errorMsgList.add("第" + (i + 1) + "批数据全部校验失败");
+                        progressManager.updateProgress(taskId, successCount, failCount, total, errorMsgList);
+                        continue;
+                    }
+
+                    // 3.2 数据转换（适配器实现）
+                    List<E> entities = adapter.convert(validated);
+
+                    // 3.3 批量持久化（适配器实现）
+                    adapter.persist(entities);
+
+                    successCount += validated.size();
+                    failCount += (batch.size() - validated.size());
+
+                    log.debug("[{}] 第 {}/{} 批处理完成，success={}, fail={}",
+                            taskId, i + 1, batches.size(), validated.size(), filtered);
+
+                } catch (Exception e) {
+                    log.error("[{}] 第 {} 批处理失败, batchSize={}", taskId, i + 1, batch.size(), e);
+                    failCount += batch.size();
+                    errorMsgList.add("第" + (i + 1) + "批:" + truncate(e.getMessage(), 80));
+                }
+
+                // 3.4 更新进度
+                progressManager.updateProgress(taskId, successCount, failCount, total, errorMsgList);
+            }
+
+            // ========== Step 4: 完成 ==========
+            if (failCount == 0) {
+                progressManager.finish(taskId, successCount);
+                log.info("[{}] 导入任务全部成功完成, total={}, success={}", taskId, total, successCount);
+            } else {
+                progressManager.partial(taskId, successCount, failCount, errorMsgList);
+                log.info("[{}] 导入任务部分完成, total={}, success={}, fail={}",
+                    taskId, total, successCount, failCount);
+            }
+        } catch (Exception e) {
+            log.error("[{}] 导入任务异常终止", taskId, e);
+            progressManager.fail(taskId, truncate(e.getMessage(), 200));
+        } finally {
+            // ========== Step 5: 清理临时文件 ==========
+            cleanup(file);
+        }
+    }
+
+    /**
+     * 分片工具：将列表按指定大小切分
+     * @param list 列表
+     * @param size 大小
+     * @return 切片后的列表数据
+     * @param <T> Dto
+     */
+    private <T> List<List<T>> partition(List<T> list, int size) {
+        List<List<T>> result = new ArrayList<>();
+        for (int i = 0; i < list.size(); i += size) {
+            // 使用 new ArrayList 复制子列表，避免 subList 的视图特性导致问题
+            result.add(new ArrayList<>(list.subList(i, Math.min(i + size, list.size()))));
+        }
+        return result;
+    }
+
+    /**
+     * 清理临时文件及目录
+     * @param file Excel文件
+     */
+    private void cleanup(File file) {
+        if (file == null) return;
+        try {
+            if (file.exists()) {
+                FileUtils.delete(file);
+                log.debug("临时文件已删除: {}", file.getAbsolutePath());
+            }
+            File parent = file.getParentFile();
+            if (parent != null && parent.exists()) {
+                FileUtils.deleteDirectory(parent);
+                log.debug("临时目录已删除: {}", parent.getAbsolutePath());
+            }
+        } catch (Exception e) {
+            log.warn("临时文件清理失败, path={}", file.getAbsolutePath(), e);
+        }
+    }
+
+    /**
+     * 截断字符串
+     * @param str 字符串
+     * @param maxLength 最大长度
+     * @return 截断后的字符串
+     */
+    private String truncate(String str, int maxLength) {
+        if (str == null) return "";
+        return str.length() > maxLength ? str.substring(0, maxLength) + "..." : str;
+    }
+}

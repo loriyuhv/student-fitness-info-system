@@ -1,0 +1,78 @@
+package com.wsw.fitnesssystem.handle_excel.core.adapter;
+
+import java.util.List;
+
+/**
+ * 导入适配器契约 — 各业务模块必须实现此接口
+ * 中台通过此接口与具体业务解耦，新增业务只需实现该接口即可接入
+ *
+ * @param <T> Excel 解析对应的 DTO 类型
+ * @param <E> 持久化对应的 Entity 类型
+ * @author loriyuhv
+ * @version 1.0 2026/8/21 11:50
+ * @since 1.0
+ */
+public interface ImportAdapter<T, E> {
+    /**
+     * 业务类型标识，全局唯一
+     * 示例："USER_IMPORT", "FITNESS_RECORD_IMPORT"
+     * @return 具体业务类型
+     */
+    String getBizType();
+
+    /**
+     * Excel 对应的 DTO Class，用于 EasyExcel 反射解析
+     * @return DTO Class
+     */
+    Class<T> getDtoClass();
+
+    /**
+     * 每批处理数量，默认 500 条
+     * 可根据业务调整（如体测数据字段多，可设为 200）
+     *
+     * @return 每批处理数量
+     */
+    default int getBatchSize() {
+        return 500;
+    }
+
+    /**
+     * 业务校验
+     * <p>建议实现：</p>
+     * <li>1. 必填字段校验</li>
+     * <li>2. 格式校验（手机号、邮箱正则）</li>
+     * <li>3. 批量查重（数据库已存在的数据过滤）</li>
+     * @param batch 一批 Excel DTO
+     * @return 校验通过的 DTO 列表（失败的自行记录或过滤）
+     */
+    List<T> validate(List<T> batch);
+
+    /**
+     * 数据转换：DTO → Entity
+     * <p>建议实现：</p>
+     * <li>1. 字段映射</li>
+     * <li>2. 默认值填充（如 campusId、status）</li>
+     * <li>3. 敏感字段处理（如密码加密）</li>
+     * @param dtoList 校验通过的 DTO 列表
+     * @return 待持久化的 Entity 列表
+     */
+    List<E> convert(List<T> dtoList);
+
+    /**
+     * 批量持久化
+     * <p>建议实现：</p>
+     * <li>1. MyBatis-Plus batchInsert</li>
+     * <li>2. 内部再分片（防止 SQL 过长）</li>
+     * <li>3. 可添加 @Transactional 保证原子性</li>
+     * @param entities 转换后的 Entity 列表
+     */
+    void persist(List<E> entities);
+
+    /**
+     * 导出模板文件名（用于下载空模板）
+     * @return 模板文件名
+     */
+    default String getTemplateFileName() {
+        return getBizType().toLowerCase() + "_template.xlsx";
+    }
+}
