@@ -17,6 +17,8 @@
         </encoder>
     </appender>
 
+    <logger name="com.wsw.fitnesssystem" level="INFO"/>
+
     <root level="INFO">
         <appender-ref ref="CONSOLE"/>
     </root>
