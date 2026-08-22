@@ -15,6 +15,7 @@ import com.wsw.fitnesssystem.shared.response.ResultCode;
  */
 @Getter
 public abstract class BaseException extends RuntimeException {
+
     protected final ResultCode resultCode;
 
     protected BaseException(ResultCode resultCode) {
@@ -22,8 +23,19 @@ public abstract class BaseException extends RuntimeException {
         this.resultCode = resultCode;
     }
 
+    protected BaseException(ResultCode resultCode, String message) {
+        super(message);
+        this.resultCode = resultCode;
+    }
+
     protected BaseException(ResultCode resultCode, Throwable cause) {
         super(resultCode.getMessage(), cause);
         this.resultCode = resultCode;
     }
+
+    protected BaseException(ResultCode resultCode, String message, Throwable cause) {
+        super(message, cause);
+        this.resultCode = resultCode;
+    }
+
 }

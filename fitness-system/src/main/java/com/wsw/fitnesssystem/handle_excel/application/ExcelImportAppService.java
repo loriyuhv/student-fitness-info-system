@@ -4,6 +4,7 @@ import com.wsw.fitnesssystem.handle_excel.core.adapter.BusinessAdapterFactory;
 import com.wsw.fitnesssystem.handle_excel.core.adapter.ImportAdapter;
 import com.wsw.fitnesssystem.handle_excel.core.executor.ImportTaskExecutor;
 import com.wsw.fitnesssystem.handle_excel.domain.enums.ExcelBizTypeEnum;
+import com.wsw.fitnesssystem.handle_excel.infrastructure.config.ExcelConstants;
 import com.wsw.fitnesssystem.handle_excel.interfaces.dto.ImportProgressDTO;
 import com.wsw.fitnesssystem.shared.exception.BizException;
 import com.wsw.fitnesssystem.shared.response.ResultCode;
@@ -19,7 +20,8 @@ import java.util.UUID;
 
 /**
  * Excel 导入应用服务
- * 统一入口：接收请求 → 文件转存 → 获取适配器 → 提交线程池 → 返回 taskId
+ * <p>统一入口：接收请求 → 文件转存 → 获取适配器 → 提交线程池 → 返回 taskId</p>
+ * <p>原则：只编排，不写业务逻辑</p>
  * @author loriyuhv
  * @version 1.0 2026/8/21 14:29
  * @since 1.0
@@ -35,7 +37,7 @@ public class ExcelImportAppService {
     /**
      * 统一导入入口
      *
-     * @param bizTypeEnum 业务类型，如 "USER_IMPORT", "FITNESS_TEST_IMPORT"
+     * @param bizTypeEnum 业务类型枚举
      * @param file    上传的 Excel 文件
      * @return taskId 任务 ID，用于后续查询进度
      */
@@ -77,23 +79,26 @@ public class ExcelImportAppService {
 
     private void validateFile(MultipartFile file) {
         if (file == null || file.isEmpty()) {
-            // throw new BizException(ResultCode.PARAM_INVALID, "上传文件不能为空");
-            throw new BizException(ResultCode.PARAM_INVALID);
+            throw new BizException(ResultCode.PARAM_INVALID, "上传文件不能为空");
         }
         String originalFilename = file.getOriginalFilename();
         if (originalFilename == null) {
-            // throw new BizException(ResultCode.PARAM_INVALID, "文件名不能为空");
-            throw new BizException(ResultCode.PARAM_INVALID);
+            throw new BizException(ResultCode.PARAM_INVALID, "文件名不能为空");
         }
         String lowerName = originalFilename.toLowerCase();
-        if (!lowerName.endsWith(".xlsx") && !lowerName.endsWith(".xls")) {
-            // throw new BizException(ResultCode.PARAM_TYPE_ERROR, "仅支持 .xlsx / .xls 格式，当前文件: " + originalFilename);
-            throw new BizException(ResultCode.PARAM_TYPE_ERROR);
+        boolean validExt = false;
+        for (String ext : ExcelConstants.ALLOWED_EXTENSIONS) {
+            if (lowerName.endsWith(ext)) {
+                validExt = true;
+                break;
+            }
+        }
+        if (!validExt) {
+            throw new BizException(ResultCode.PARAM_TYPE_ERROR, "仅支持 .xlsx / .xls 格式，当前文件: " + originalFilename);
         }
         // 限制单文件大小 50MB
-        if (file.getSize() > 50 * 1024 * 1024) {
-            // throw new BizException(ResultCode.PARAM_INVALID, "文件大小超过 50MB 限制");
-            throw new BizException(ResultCode.PARAM_INVALID);
+        if (file.getSize() > ExcelConstants.MAX_FILE_SIZE) {
+            throw new BizException(ResultCode.PARAM_INVALID, "文件大小超过 50MB 限制");
         }
     }
 
@@ -102,13 +107,13 @@ public class ExcelImportAppService {
         String dateDir = java.time.LocalDate.now().toString();
         File tempDir = new File(
                 System.getProperty("java.io.tmpdir"),
-                "excel-import/" + dateDir + "/" + taskId
+                ExcelConstants.TEMP_DIR_ROOT + "/" + dateDir + "/" + taskId
         );
         if (!tempDir.mkdirs()) {
             log.warn("临时目录已存在或创建失败: {}", tempDir.getAbsolutePath());
         }
 
-        File tempFile = new File(tempDir, "data.xlsx");
+        File tempFile = new File(tempDir, ExcelConstants.TEMP_FILE_NAME);
         try {
             file.transferTo(tempFile);
             log.debug("[{}] 文件转存成功: {}", taskId, tempFile.getAbsolutePath());

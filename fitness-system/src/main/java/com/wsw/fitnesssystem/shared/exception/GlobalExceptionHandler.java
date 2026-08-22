@@ -1,5 +1,6 @@
 package com.wsw.fitnesssystem.shared.exception;
 
+import jakarta.servlet.ServletException;
 import lombok.extern.slf4j.Slf4j;
 import com.wsw.fitnesssystem.shared.response.ApiResult;
 import com.wsw.fitnesssystem.shared.response.ResultCode;
@@ -25,12 +26,17 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 public class GlobalExceptionHandler {
     /**
      * 业务异常 → 400
+     * 拼接规则：ResultCode默认消息 + "：" + 自定义消息
      */
     @ExceptionHandler(BizException.class)
     public ApiResult<Object> handleBizException(BizException e) {
         ResultCode rc = e.getResultCode();
-        log.warn("业务异常: {}", rc.getMessage());
-        return ApiResult.error(rc);
+        String defaultMsg = rc.getMessage();
+        String customMsg = e.getMessage();
+        String finalMsg = buildCombineMessage(defaultMsg, customMsg);
+
+        log.warn("业务异常: {}", finalMsg);
+        return ApiResult.error(rc, finalMsg);
     }
 
     /**
@@ -68,13 +74,33 @@ public class GlobalExceptionHandler {
     }
 
     /**
+     * 统一捕获SpringMVC Web层所有客户端请求异常
+     * <p>包含：缺少参数、缺少RequestPart、请求方法不对、媒体类型不对、路径变量缺失、参数类型转换失败等
+     * 全部归类为客户端参数错误 400</p>
+     *
+     * @param e 异常对象
+     * @return 通用响应体
+     */
+    @ExceptionHandler(ServletException.class)
+    public ApiResult<Object> handleServletException(ServletException e) {
+        String defaultMsg = ResultCode.PARAM_INVALID.getMessage();
+        String customMsg = e.getMessage();
+        String finalMsg = buildCombineMessage(defaultMsg, customMsg);
+        log.warn("WEB请求客户端异常：{}", finalMsg);
+        return ApiResult.error(ResultCode.PARAM_INVALID, finalMsg);
+    }
+
+    /**
      * 系统异常 → 500
      */
     @ExceptionHandler(SystemException.class)
     public ApiResult<Object> handleSystemException(SystemException e) {
         ResultCode rc = e.getResultCode();
-        log.error("系统异常: {}", rc.getMessage(), e);
-        return ApiResult.error(rc);
+        String defaultMsg = rc.getMessage();
+        String customMsg = e.getMessage();
+        String finalMsg = buildCombineMessage(defaultMsg, customMsg);
+        log.error("系统异常: {}", finalMsg, e);
+        return ApiResult.error(rc, finalMsg);
     }
 
     /**
@@ -82,7 +108,24 @@ public class GlobalExceptionHandler {
      */
     @ExceptionHandler(Exception.class)
     public ApiResult<Object> handleUnknownException(Exception e) {
-        log.error("未知异常", e);
+        log.error("系统未知异常", e);
         return ApiResult.error(ResultCode.SYSTEM_ERROR);
+    }
+
+    /**
+     * 组装拼接消息
+     * 规则：
+     * 1. customMsg 为 null / 空串 / 和默认消息相同，直接返回 defaultMsg
+     * 2. 否则：defaultMsg + "：" + customMsg
+     *
+     * @param defaultMsg 默认消息
+     * @param customMsg 自定义消息
+     * @return 完整消息
+     */
+    private String buildCombineMessage(String defaultMsg, String customMsg) {
+        if (customMsg == null || customMsg.isBlank() || customMsg.equals(defaultMsg)) {
+            return defaultMsg;
+        }
+        return defaultMsg + "：" + customMsg;
     }
 }

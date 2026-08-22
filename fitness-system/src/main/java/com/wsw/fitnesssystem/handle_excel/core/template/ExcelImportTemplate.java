@@ -1,8 +1,10 @@
 package com.wsw.fitnesssystem.handle_excel.core.template;
 
 import com.wsw.fitnesssystem.handle_excel.core.adapter.ImportAdapter;
+import com.wsw.fitnesssystem.handle_excel.core.exception.ExcelException;
 import com.wsw.fitnesssystem.handle_excel.core.parser.ExcelParser;
 import com.wsw.fitnesssystem.handle_excel.core.progress.ImportProgressManager;
+import com.wsw.fitnesssystem.shared.response.ResultCode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
@@ -14,7 +16,8 @@ import java.util.List;
 
 /**
  * Excel 导入模板方法
- * 定义标准导入流程，与具体业务完全解耦
+ * <p>定义标准导入流程，与具体业务完全解耦</p>
+ *
  * <p>标准流程：</p>
  * <li>1. 解析 Excel（通用）</li>
  * <li>2. 业务校验（适配器实现）</li>
@@ -22,6 +25,13 @@ import java.util.List;
  * <li>4. 批量持久化（适配器实现）</li>
  * <li>5. 上报进度（通用）</li>
  * <li>6. 完成/异常处理（通用）</li>
+ *
+ * <p>异常处理策略：</p>
+ * <li>1. 解析异常：任务终止，status=FAILED</li>
+ * <li>2. 单批异常：故障隔离，继续下一批，status=PARTIAL</li>
+ * <li>3. 全局异常：任务终止，status=FAILED</li>
+ * <li>4. 临时文件：finally 强制清理</li>
+ *
  * @author loriyuhv
  * @version 1.0 2026/8/21 12:22
  * @since 1.0
@@ -30,6 +40,7 @@ import java.util.List;
 @Component
 @RequiredArgsConstructor
 public class ExcelImportTemplate {
+
     private final ExcelParser excelParser;
     private final ImportProgressManager progressManager;
 
@@ -39,11 +50,11 @@ public class ExcelImportTemplate {
      * @param taskId 任务 ID
      * @param file Excel 文件（磁盘临时文件）
      * @param adapter 业务适配器
-     * @param <T> DTO类型
-     * @param <E> Entity类型
+     * @param <T> DTO 类型
+     * @param <E> Entity 类型
      */
     public <T, E> void execute(String taskId, File file, ImportAdapter<T, E> adapter) {
-        int total = 0;
+        int total;
         int successCount = 0;
         int failCount = 0;
         List<String> errorMsgList = new ArrayList<>();
@@ -79,13 +90,13 @@ public class ExcelImportTemplate {
                     List<T> validated = adapter.validate(batch);
                     int filtered = batch.size() - validated.size();
                     if (filtered > 0) {
-                        log.debug("[{}] 第 {} 批过滤 {} 条重复/非法数据", taskId, i + 1, filtered);
+                        log.info("[{}] 第 {} 批过滤 {} 条重复/非法数据", taskId, i + 1, filtered);
                     }
 
                     if (validated.isEmpty()) {
                         failCount += batch.size();
                         errorMsgList.add("第" + (i + 1) + "批数据全部校验失败");
-                        progressManager.updateProgress(taskId, successCount, failCount, total, errorMsgList);
+                        progressManager.updateProgress(taskId, successCount, failCount, errorMsgList);
                         continue;
                     }
 
@@ -98,17 +109,18 @@ public class ExcelImportTemplate {
                     successCount += validated.size();
                     failCount += (batch.size() - validated.size());
 
-                    log.debug("[{}] 第 {}/{} 批处理完成，success={}, fail={}",
+                    log.info("[{}] 第 {}/{} 批处理完成，success={}, fail={}",
                             taskId, i + 1, batches.size(), validated.size(), filtered);
 
                 } catch (Exception e) {
+                    // 故障隔离：单批失败不终止整个任务
                     log.error("[{}] 第 {} 批处理失败, batchSize={}", taskId, i + 1, batch.size(), e);
                     failCount += batch.size();
-                    errorMsgList.add("第" + (i + 1) + "批:" + truncate(e.getMessage(), 80));
+                    errorMsgList.add("第" + (i + 1) + "批:" + truncate(e.getMessage()));
                 }
 
                 // 3.4 更新进度
-                progressManager.updateProgress(taskId, successCount, failCount, total, errorMsgList);
+                progressManager.updateProgress(taskId, successCount, failCount, errorMsgList);
             }
 
             // ========== Step 4: 完成 ==========
@@ -120,9 +132,17 @@ public class ExcelImportTemplate {
                 log.info("[{}] 导入任务部分完成, total={}, success={}, fail={}",
                     taskId, total, successCount, failCount);
             }
+        } catch (ExcelException e) {
+            // Excel 模块已知异常（解析失败等）
+            String defaultMsg = e.getResultCode().getMessage();
+            String customMsg = e.getMessage();
+            String finalMsg = defaultMsg + "：" + customMsg;
+            log.error("[{}] 导入任务业务异常: {}", taskId, finalMsg, e);
+            progressManager.fail(taskId, finalMsg);
         } catch (Exception e) {
+            // 未知异常兜底
             log.error("[{}] 导入任务异常终止", taskId, e);
-            progressManager.fail(taskId, truncate(e.getMessage(), 200));
+            progressManager.fail(taskId, ResultCode.SERVER_TEMP_ERROR.getMessage());
         } finally {
             // ========== Step 5: 清理临时文件 ==========
             cleanup(file);
@@ -131,6 +151,7 @@ public class ExcelImportTemplate {
 
     /**
      * 分片工具：将列表按指定大小切分
+     * 使用 new ArrayList 复制子列表，避免 subList 视图特性导致并发问题
      * @param list 列表
      * @param size 大小
      * @return 切片后的列表数据
@@ -139,14 +160,13 @@ public class ExcelImportTemplate {
     private <T> List<List<T>> partition(List<T> list, int size) {
         List<List<T>> result = new ArrayList<>();
         for (int i = 0; i < list.size(); i += size) {
-            // 使用 new ArrayList 复制子列表，避免 subList 的视图特性导致问题
             result.add(new ArrayList<>(list.subList(i, Math.min(i + size, list.size()))));
         }
         return result;
     }
 
     /**
-     * 清理临时文件及目录
+     * 清理临时文件及父目录
      * @param file Excel文件
      */
     private void cleanup(File file) {
@@ -154,12 +174,12 @@ public class ExcelImportTemplate {
         try {
             if (file.exists()) {
                 FileUtils.delete(file);
-                log.debug("临时文件已删除: {}", file.getAbsolutePath());
+                log.info("临时文件已删除: {}", file.getAbsolutePath());
             }
             File parent = file.getParentFile();
             if (parent != null && parent.exists()) {
                 FileUtils.deleteDirectory(parent);
-                log.debug("临时目录已删除: {}", parent.getAbsolutePath());
+                log.info("临时目录已删除: {}", parent.getAbsolutePath());
             }
         } catch (Exception e) {
             log.warn("临时文件清理失败, path={}", file.getAbsolutePath(), e);
@@ -167,13 +187,13 @@ public class ExcelImportTemplate {
     }
 
     /**
-     * 截断字符串
+     * 截断字符串，防止存入 Redis 过长
+     *
      * @param str 字符串
-     * @param maxLength 最大长度
      * @return 截断后的字符串
      */
-    private String truncate(String str, int maxLength) {
+    private String truncate(String str) {
         if (str == null) return "";
-        return str.length() > maxLength ? str.substring(0, maxLength) + "..." : str;
+        return str.length() > 80 ? str.substring(0, 80) + "..." : str;
     }
 }

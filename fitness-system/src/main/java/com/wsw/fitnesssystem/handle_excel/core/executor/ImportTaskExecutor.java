@@ -13,7 +13,8 @@ import java.util.concurrent.ThreadPoolExecutor;
 
 /**
  * 导入任务执行器
- * 负责任务提交到线程池，以及异常兜底
+ * <p>负责任务提交到线程池，以及异常兜底</p>
+ *
  * @author loriyuhv
  * @version 1.0 2026/8/21 14:16
  * @since 1.0
@@ -34,8 +35,8 @@ public class ImportTaskExecutor {
     /**
      * 提交导入任务到线程池
      * @param taskId 任务ID
-     * @param file excel文件
-     * @param adapter 适配器
+     * @param file Excel 文件
+     * @param adapter 业务适配器
      */
     @SuppressWarnings({"rawtypes", "unchecked"})
     public void submit(String taskId, File file, ImportAdapter adapter) {

@@ -41,7 +41,7 @@ public class BusinessAdapterFactory {
 
     /**
      * 根据业务类型获取导入适配器
-     * @param bizType 业务类型
+     * @param bizType 业务类型编码
      * @return 导入适配器
      * @param <T> DTO类型
      * @param <E> Entity类型
@@ -50,14 +50,14 @@ public class BusinessAdapterFactory {
     public <T, E> ImportAdapter<T, E> getImportAdapter(String bizType) {
         ImportAdapter<?, ?> adapter = adapterMap.get(bizType);
         if (adapter == null) {
-            throw new BizException(ResultCode.PARAM_INVALID);
+            throw new BizException(ResultCode.PARAM_INVALID, "不支持的导入类型: " + bizType + "，已注册类型: " + adapterMap.keySet());
         }
         return (ImportAdapter<T, E>) adapter;
     }
 
     /**
      * 获取所有已注册的 bizType
-     * @return bizType List
+     * @return bizType 编码列表
      */
     public List<String> getAllBizTypes() {
         return List.copyOf(adapterMap.keySet());

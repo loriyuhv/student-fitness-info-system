@@ -1,5 +1,7 @@
 package com.wsw.fitnesssystem.handle_excel.domain.enums;
 
+import com.wsw.fitnesssystem.shared.exception.BizException;
+import com.wsw.fitnesssystem.shared.response.ResultCode;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
@@ -31,7 +33,7 @@ public enum ExcelBizTypeEnum {
         return Arrays.stream(values())
                 .filter(item -> item.getCode().equals(code))
                 .findFirst()
-                .orElseThrow(() -> new IllegalArgumentException("不支持的导入内型" + code));
+                .orElseThrow(() -> new BizException(ResultCode.PARAM_INVALID, "不支持导入类型 ==> " + code));
     }
 
     /**
@@ -43,6 +45,5 @@ public enum ExcelBizTypeEnum {
                 .map(ExcelBizTypeEnum::getCode)
                 .collect(Collectors.toList());
     }
-
 
 }

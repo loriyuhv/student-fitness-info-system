@@ -1,5 +1,7 @@
 package com.wsw.fitnesssystem.handle_excel.core.adapter;
 
+import com.wsw.fitnesssystem.handle_excel.infrastructure.config.ExcelConstants;
+
 import java.util.List;
 
 /**
@@ -33,7 +35,7 @@ public interface ImportAdapter<T, E> {
      * @return 每批处理数量
      */
     default int getBatchSize() {
-        return 500;
+        return ExcelConstants.DEFAULT_BATCH_SIZE;
     }
 
     /**

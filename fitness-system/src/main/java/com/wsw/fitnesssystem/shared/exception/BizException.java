@@ -12,11 +12,21 @@ import com.wsw.fitnesssystem.shared.response.ResultCode;
  * @since 1.0
  */
 public class BizException extends BaseException {
+
     public BizException(ResultCode resultCode) {
         super(resultCode);
+    }
+
+    public BizException(ResultCode resultCode, String message) {
+        super(resultCode, message);
     }
 
     public BizException(ResultCode resultCode, Throwable cause) {
         super(resultCode, cause);
     }
+
+    public BizException(ResultCode resultCode, String message, Throwable cause) {
+        super(resultCode, message, cause);
+    }
+
 }

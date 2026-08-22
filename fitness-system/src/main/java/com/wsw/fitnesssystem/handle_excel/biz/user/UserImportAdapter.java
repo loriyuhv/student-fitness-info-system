@@ -2,6 +2,7 @@ package com.wsw.fitnesssystem.handle_excel.biz.user;
 
 import com.wsw.fitnesssystem.handle_excel.application.dto.UserExcelDTO;
 import com.wsw.fitnesssystem.handle_excel.core.adapter.ImportAdapter;
+import com.wsw.fitnesssystem.handle_excel.infrastructure.config.ExcelConstants;
 import com.wsw.fitnesssystem.handle_excel.infrastructure.persistence.db.entity.SysUser;
 import com.wsw.fitnesssystem.handle_excel.infrastructure.persistence.db.mapper.ExcelSysUserMapper;
 import lombok.RequiredArgsConstructor;
@@ -70,12 +71,12 @@ public class UserImportAdapter implements ImportAdapter<UserExcelDTO, SysUser> {
         List<SysUser> result = new ArrayList<>();
         for (UserExcelDTO dto : dtoList) {
             SysUser entity = new SysUser();
-            entity.setCampusId(1L);
+            entity.setCampusId(ExcelConstants.DEFAULT_CAMPUS_ID);
             entity.setUsername(dto.getUsername().trim());
 
             // 空密码生成随机密码
             String rawPassword = StringUtils.isBlank(dto.getPassword())
-                    ? "123456"
+                    ? ExcelConstants.DEFAULT_PASSWORD
                     : dto.getPassword();
             entity.setPassword(passwordEncoder.encode(rawPassword));
 
@@ -85,9 +86,9 @@ public class UserImportAdapter implements ImportAdapter<UserExcelDTO, SysUser> {
 
             entity.setPhoneNumber(null);
             entity.setEmail(null);
-            entity.setUserType(2);   // 学生
-            entity.setStatus(1);     // 启用
-            entity.setDeleted(0);    // 未删除
+            entity.setUserType(ExcelConstants.DEFAULT_USER_TYPE);   // 学生
+            entity.setStatus(ExcelConstants.DEFAULT_STATUS);     // 启用
+            entity.setDeleted(ExcelConstants.DEFAULT_DELETED);    // 未删除
 
             result.add(entity);
         }

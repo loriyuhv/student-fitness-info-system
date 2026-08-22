@@ -62,6 +62,5 @@ public class ExcelImportController {
     @GetMapping("/import/types")
     public ApiResult<List<String>> getImportTypes() {
         return ApiResult.success(importAppService.getAllBizTypes());
-        // return ApiResult.success(ExcelBizTypeEnum.getAllCodeList());
     }
 }

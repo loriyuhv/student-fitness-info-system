@@ -12,7 +12,21 @@ import com.wsw.fitnesssystem.shared.response.ResultCode;
  * @since 1.0
  */
 public class SystemException extends BaseException {
+
+    public SystemException(ResultCode resultCode) {
+        super(resultCode);
+    }
+
+    public SystemException(ResultCode resultCode, String message) {
+        super(resultCode, message);
+    }
+
     public SystemException(ResultCode resultCode, Throwable cause) {
         super(resultCode, cause);
     }
+
+    public SystemException(ResultCode resultCode, String message, Throwable cause) {
+        super(resultCode, message, cause);
+    }
+
 }

@@ -1,0 +1,18 @@
+spring:
+  datasource:
+    type: com.alibaba.druid.pool.DruidDataSource
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://127.0.0.1:3306/student_fitness_info_db?rewriteBatchedStatements=true
+    username: root
+    password: "0420"
+  data:
+    redis:
+      host: 127.0.0.1
+      port: 6379
+      password: "0420"
+      lettuce:
+        pool:
+          max-active: 16
+          max-idle: 8
+          min-idle: 5
+          max-wait: 2000ms
