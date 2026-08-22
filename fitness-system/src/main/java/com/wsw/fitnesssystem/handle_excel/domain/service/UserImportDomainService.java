@@ -2,8 +2,8 @@ package com.wsw.fitnesssystem.handle_excel.domain.service;
 
 import com.wsw.fitnesssystem.handle_excel.application.dto.UserExcelDTO;
 import com.wsw.fitnesssystem.handle_excel.domain.model.User;
-import com.wsw.fitnesssystem.handle_excel.infrastructure.config.ExcelConstants;
 import com.wsw.fitnesssystem.handle_excel.infrastructure.persistence.db.UserBatchRepository;
+import com.wsw.fitnesssystem.shared.exception.BizException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -12,12 +12,12 @@ import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 /**
  * 用户导入领域服务
- * <p>负责用户导入的业务校验和领域转换，属于领域层核心逻辑</p>
- * <p>原则：只处理业务规则，不处理技术细节（如 Redis、线程池）</p>
+ * <p>负责用户导入的核心业务规则：格式校验、批量查重、领域转换</p>
+ * <p>原则：只处理业务规则，不处理技术细节（如 Redis、线程池、密码加密）</p>
+ *
  * @author loriyuhv
  * @version 1.0 2026/3/26 15:56
  * @since 1.0
@@ -30,70 +30,54 @@ public class UserImportDomainService {
     private final UserBatchRepository userBatchRepository;
 
     /**
-     * 校验并转换：包含格式校验 + 批量查重 + 空密码处理
-     * @param batch 批次
-     * @return 校验通过并转换后的领域模型列表
+     * 批量校验并转换为领域对象
+     * <p>流程：</p>
+     * <li>1. 过滤格式非法的 DTO（空用户名等）</li>
+     * <li>2. 批量查询数据库已存在的用户名</li>
+     * <li>3. 使用充血模型 {@link User#create} 构造合法领域对象</li>
+     * @param batch Excel DTO 批次
+     * @return 校验通过并转换后的领域模型列表（已去重）
      */
     public List<User> validateAndConvert(List<UserExcelDTO> batch) {
+        // 1. 基础格式过滤
+        List<UserExcelDTO> validDtoList = batch.stream()
+                .filter(dto ->
+                        dto != null && StringUtils.isNotBlank(dto.getUsername()))
+                .toList();
 
-        List<User> result = new ArrayList<>();
-
-        // 1. 格式校验 + 过滤
-        List<UserExcelDTO> filtered = batch.stream().filter(this::isValid).collect(Collectors.toList());
-
-        if (filtered.isEmpty()) {
-            return result;
+        if (validDtoList.isEmpty()) {
+            return List.of();
         }
 
         // 2. 批量查重：查询数据库中已存在的用户名
-        List<String> usernames = batch.stream().map(UserExcelDTO::getUsername)
-                .filter(StringUtils::isNotBlank)
+        List<String> usernames = validDtoList.stream()
+                .map(UserExcelDTO::getUsername)
+                .map(String::trim)
+                .distinct()
                 .toList();
+
         if (usernames.isEmpty()) {
-            return result;
+            return List.of();
         }
 
         Set<String> existingUsernames = userBatchRepository.findExistingUsernames(usernames);
 
-        // 3. 转换 + 过滤重复
-        for (UserExcelDTO dto : batch) {
-            String username = dto.getUsername();
-            if (StringUtils.isBlank(username) || existingUsernames.contains(username)) {
+        // 3. 领域转换（通过充血模型的工厂方法保证合法性）
+        List<User> result = new ArrayList<>();
+        for (UserExcelDTO dto : validDtoList) {
+            String username = dto.getUsername().trim();
+            if (existingUsernames.contains(username)) {
+                // log.warn("用户名已存在，跳过: {}", username);
                 continue; // 跳过空用户名或已存在的
             }
-            User user = new User();
-            user.setUsername(dto.getUsername().trim());
-            // 空密码生成密码12456
-            String password = StringUtils.isBlank(dto.getPassword())
-                    ? ExcelConstants.DEFAULT_PASSWORD
-                    : dto.getPassword();
-            user.setPassword(password);
-            user.setNickname(StringUtils.isBlank(dto.getNickname())
-                    ? username
-                    : dto.getNickname().trim());
-            result.add(user);
+            try {
+                User user = User.create(username, dto.getPassword(), dto.getNickname());
+                result.add(user);
+            } catch (BizException e) {
+                log.warn("用户创建失败: {}", e.getMessage());
+            }
         }
         return result;
     }
 
-    /**
-     * 单条格式校验
-     *
-     * @param dto Excel DTO
-     * @return true=合法, false=非法
-     */
-    private boolean isValid(UserExcelDTO dto) {
-        if (dto == null) {
-            return false;
-        }
-        if (StringUtils.isBlank(dto.getUsername())) {
-            log.warn("用户名不能为空，跳过");
-            return false;
-        }
-        if (dto.getUsername().length() > ExcelConstants.USERNAME_MAX_LENGTH) {
-            log.warn("用户名过长，跳过: {}", dto.getUsername());
-            return false;
-        }
-        return true;
-    }
 }

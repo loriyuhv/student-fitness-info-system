@@ -3,7 +3,7 @@ package com.wsw.fitnesssystem.handle_excel.core.template;
 import com.wsw.fitnesssystem.handle_excel.core.adapter.ImportAdapter;
 import com.wsw.fitnesssystem.handle_excel.core.exception.ExcelException;
 import com.wsw.fitnesssystem.handle_excel.core.parser.ExcelParser;
-import com.wsw.fitnesssystem.handle_excel.core.progress.ImportProgressManager;
+import com.wsw.fitnesssystem.handle_excel.core.port.ImportProgressPort;
 import com.wsw.fitnesssystem.shared.response.ResultCode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -42,7 +42,7 @@ import java.util.List;
 public class ExcelImportTemplate {
 
     private final ExcelParser excelParser;
-    private final ImportProgressManager progressManager;
+    private final ImportProgressPort importProgressPort;
 
     /**
      * 执行导入（模板方法）
@@ -69,14 +69,14 @@ public class ExcelImportTemplate {
 
             if (total == 0) {
                 log.warn("[{}] Excel 文件为空或无可解析数据", taskId);
-                progressManager.fail(taskId, "Excel 文件为空或无可解析数据");
+                importProgressPort.fail(taskId, "Excel 文件为空或无可解析数据");
                 return;
             }
 
             log.info("[{}] Excel 解析完成，共 {} 条数据", taskId, total);
 
             // ========== Step 2: 初始化进度 ==========
-            progressManager.init(taskId, total);
+            importProgressPort.init(taskId, total);
 
             // ========== Step 3: 分片处理 ==========
             int batchSize = adapter.getBatchSize();
@@ -96,7 +96,7 @@ public class ExcelImportTemplate {
                     if (validated.isEmpty()) {
                         failCount += batch.size();
                         errorMsgList.add("第" + (i + 1) + "批数据全部校验失败");
-                        progressManager.updateProgress(taskId, successCount, failCount, errorMsgList);
+                        importProgressPort.updateProgress(taskId, successCount, failCount, errorMsgList);
                         continue;
                     }
 
@@ -120,15 +120,15 @@ public class ExcelImportTemplate {
                 }
 
                 // 3.4 更新进度
-                progressManager.updateProgress(taskId, successCount, failCount, errorMsgList);
+                importProgressPort.updateProgress(taskId, successCount, failCount, errorMsgList);
             }
 
             // ========== Step 4: 完成 ==========
             if (failCount == 0) {
-                progressManager.finish(taskId, successCount);
+                importProgressPort.finish(taskId, successCount);
                 log.info("[{}] 导入任务全部成功完成, total={}, success={}", taskId, total, successCount);
             } else {
-                progressManager.partial(taskId, successCount, failCount, errorMsgList);
+                importProgressPort.partial(taskId, successCount, failCount, errorMsgList);
                 log.info("[{}] 导入任务部分完成, total={}, success={}, fail={}",
                     taskId, total, successCount, failCount);
             }
@@ -138,11 +138,11 @@ public class ExcelImportTemplate {
             String customMsg = e.getMessage();
             String finalMsg = defaultMsg + "：" + customMsg;
             log.error("[{}] 导入任务业务异常: {}", taskId, finalMsg, e);
-            progressManager.fail(taskId, finalMsg);
+            importProgressPort.fail(taskId, finalMsg);
         } catch (Exception e) {
             // 未知异常兜底
             log.error("[{}] 导入任务异常终止", taskId, e);
-            progressManager.fail(taskId, ResultCode.SERVER_TEMP_ERROR.getMessage());
+            importProgressPort.fail(taskId, ResultCode.SERVER_TEMP_ERROR.getMessage());
         } finally {
             // ========== Step 5: 清理临时文件 ==========
             cleanup(file);

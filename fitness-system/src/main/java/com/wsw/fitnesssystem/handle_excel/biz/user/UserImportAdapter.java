@@ -2,24 +2,28 @@ package com.wsw.fitnesssystem.handle_excel.biz.user;
 
 import com.wsw.fitnesssystem.handle_excel.application.dto.UserExcelDTO;
 import com.wsw.fitnesssystem.handle_excel.core.adapter.ImportAdapter;
-import com.wsw.fitnesssystem.handle_excel.infrastructure.config.ExcelConstants;
+import com.wsw.fitnesssystem.handle_excel.domain.enums.ExcelBizTypeEnum;
+import com.wsw.fitnesssystem.handle_excel.domain.model.User;
+import com.wsw.fitnesssystem.handle_excel.domain.service.UserImportDomainService;
+import com.wsw.fitnesssystem.handle_excel.infrastructure.persistence.db.assembler.UserAssembler;
 import com.wsw.fitnesssystem.handle_excel.infrastructure.persistence.db.entity.SysUser;
 import com.wsw.fitnesssystem.handle_excel.infrastructure.persistence.db.mapper.ExcelSysUserMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
- * 用户导入适配器 — 业务接入示例
- * 只需实现 ImportAdapter 接口，Spring 自动扫描注册到中台
+ * 用户导入适配器 — 技术适配层
+ * <p>职责边界：</p>
+ * <li>1. 轻量过滤（空用户名等明显非法数据）</li>
+ * <li>2. 调用 DomainService 完成业务校验 + 查重 + 领域转换</li>
+ * <li>3. 通过 Assembler 完成 Domain → Entity 的技术转换</li>
+ * <li>4. 批量持久化</li>
+ * <p>不再包含业务规则（如密码默认值、昵称默认值、长度校验），这些已下沉到 {@link User}</p>
  * @author loriyuhv
  * @version 1.0 2026/8/21 15:48
  * @since 1.0
@@ -28,12 +32,14 @@ import java.util.stream.Collectors;
 @Component
 @RequiredArgsConstructor
 public class UserImportAdapter implements ImportAdapter<UserExcelDTO, SysUser> {
+
     private final ExcelSysUserMapper userMapper;
-    private final PasswordEncoder passwordEncoder;
+    private final UserImportDomainService domainService;
+    private final UserAssembler userAssembler;
 
     @Override
     public String getBizType() {
-        return "USER_IMPORT";
+        return ExcelBizTypeEnum.USER_IMPORT.getCode();
     }
 
     @Override
@@ -43,56 +49,20 @@ public class UserImportAdapter implements ImportAdapter<UserExcelDTO, SysUser> {
 
     @Override
     public List<UserExcelDTO> validate(List<UserExcelDTO> batch) {
-        // 1. 过滤空用户名
-        List<UserExcelDTO> filtered = batch.stream()
-                .filter(dto -> StringUtils.isNotBlank(dto.getUsername()))
-                .collect(Collectors.toList());
-
-        if (filtered.isEmpty()) {
-            return filtered;
-        }
-
-        // 2. 批量查重：查询数据库中已存在的用户名
-        List<String> usernames = filtered.stream()
-                .map(UserExcelDTO::getUsername)
-                .toList();
-
-        List<String> existing = userMapper.selectExistingUsernames(usernames);
-        Set<String> existingSet = new HashSet<>(existing);
-
-        // 3. 过滤已存在的用户名
-        return filtered.stream()
-                .filter(dto -> !existingSet.contains(dto.getUsername()))
+        // 适配器层只做轻量过滤：剔除明显无法解析的行（空用户名）
+        // 复杂的业务查重、格式规则收敛到 DomainService
+        return batch.stream()
+                .filter(dto -> dto != null && StringUtils.isNotBlank(dto.getUsername()))
                 .collect(Collectors.toList());
     }
 
     @Override
     public List<SysUser> convert(List<UserExcelDTO> dtoList) {
-        List<SysUser> result = new ArrayList<>();
-        for (UserExcelDTO dto : dtoList) {
-            SysUser entity = new SysUser();
-            entity.setCampusId(ExcelConstants.DEFAULT_CAMPUS_ID);
-            entity.setUsername(dto.getUsername().trim());
+        // Step 1: 领域层完成业务校验 + 查重 + 领域转换
+        List<User> domainUsers = domainService.validateAndConvert(dtoList);
 
-            // 空密码生成随机密码
-            String rawPassword = StringUtils.isBlank(dto.getPassword())
-                    ? ExcelConstants.DEFAULT_PASSWORD
-                    : dto.getPassword();
-            entity.setPassword(passwordEncoder.encode(rawPassword));
-
-            entity.setNickname(StringUtils.isBlank(dto.getNickname())
-                    ? dto.getUsername()
-                    : dto.getNickname().trim());
-
-            entity.setPhoneNumber(null);
-            entity.setEmail(null);
-            entity.setUserType(ExcelConstants.DEFAULT_USER_TYPE);   // 学生
-            entity.setStatus(ExcelConstants.DEFAULT_STATUS);     // 启用
-            entity.setDeleted(ExcelConstants.DEFAULT_DELETED);    // 未删除
-
-            result.add(entity);
-        }
-        return result;
+        // Step 2: 技术转换：Domain → Entity（含密码加密、默认值填充等技术细节）
+        return userAssembler.toEntityList(domainUsers);
     }
 
     @Override

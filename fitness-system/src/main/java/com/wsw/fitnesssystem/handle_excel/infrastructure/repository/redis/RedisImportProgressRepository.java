@@ -1,5 +1,6 @@
-package com.wsw.fitnesssystem.handle_excel.core.progress;
+package com.wsw.fitnesssystem.handle_excel.infrastructure.repository.redis;
 
+import com.wsw.fitnesssystem.handle_excel.core.port.ImportProgressPort;
 import com.wsw.fitnesssystem.handle_excel.domain.enums.ImportStatus;
 import com.wsw.fitnesssystem.handle_excel.infrastructure.config.ExcelConstants;
 import com.wsw.fitnesssystem.handle_excel.infrastructure.persistence.redis.model.ExcelRedisKeys;
@@ -16,7 +17,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * 导入进度管理器
+ * 导入进度 Redis 实现
  * <p>基于 Redis Hash 存储任务进度，支持 24h 自动过期</p>
  * <p>Key 规范：excel:import:task:{taskId}</p>
  *
@@ -27,7 +28,7 @@ import java.util.Map;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class ImportProgressManager {
+public class RedisImportProgressRepository implements ImportProgressPort {
 
     private final StringRedisTemplate redis;
 
@@ -164,10 +165,19 @@ public class ImportProgressManager {
         }
     }
 
+    /**
+     * 安全 put：支持 String / Integer / List 等多种类型自动序列化
+     * @param map Hash
+     * @param field 键
+     * @param value 值
+     */
     private void put(Map<String, String> map, ImportTaskField field, Object value) {
-        map.put(field.getKey(), String.valueOf(value));
+        if (value instanceof List<?> list) {
+            map.put(field.getKey(), formatErrors(list));
+        } else {
+            map.put(field.getKey(), String.valueOf(value));
+        }
     }
-
 
     private static int parseInt(Object val) {
         if (val == null) return 0;
@@ -196,16 +206,18 @@ public class ImportProgressManager {
      * @param errors 错误
      * @return 格式化之后的信息
      */
-    private String formatErrors(List<String> errors) {
+    private String formatErrors(List<?> errors) {
         if (errors == null || errors.isEmpty()) return "";
-        int limit = Math.min(errors.size(), 3);
+        int limit = Math.min(errors.size(), ExcelConstants.ERROR_MSG_MAX_COUNT);
         StringBuilder sb = new StringBuilder();
         for (int i = 0; i < limit; i++) {
             sb.append(errors.get(i));
             if (i < limit - 1) sb.append(" | ");
         }
         String result = sb.toString();
-        return result.length() > 500 ? result.substring(0, 500) + "..." : result;
+        return result.length() > ExcelConstants.ERROR_MSG_MAX_LENGTH
+                ? result.substring(0, ExcelConstants.ERROR_MSG_MAX_LENGTH) + "..."
+                : result;
     }
 
     /**
