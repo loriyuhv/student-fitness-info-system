@@ -1,6 +1,7 @@
 package com.wsw.fitnesssystem.handle_excel.interfaces;
 
 import com.wsw.fitnesssystem.handle_excel.application.ExcelImportAppService;
+import com.wsw.fitnesssystem.handle_excel.application.ExcelImportProgressQueryAppService;
 import com.wsw.fitnesssystem.handle_excel.domain.enums.ExcelBizTypeEnum;
 import com.wsw.fitnesssystem.handle_excel.interfaces.dto.ImportProgressDTO;
 import com.wsw.fitnesssystem.shared.response.ApiResult;
@@ -24,7 +25,9 @@ import java.util.List;
 @RequiredArgsConstructor
 @RequestMapping("/excel")
 public class ExcelImportController {
+
     private final ExcelImportAppService importAppService;
+    private final ExcelImportProgressQueryAppService importProgressQueryAppService;
 
     /**
      * Excel文件异步导入接口
@@ -51,7 +54,7 @@ public class ExcelImportController {
      */
     @GetMapping("/import/progress")
     public ApiResult<ImportProgressDTO> getProgress(@RequestParam String taskId) {
-        return ApiResult.success(importAppService.getProgress(taskId));
+        return ApiResult.success(importProgressQueryAppService.getProgress(taskId));
     }
 
     /**
@@ -61,6 +64,6 @@ public class ExcelImportController {
      */
     @GetMapping("/import/types")
     public ApiResult<List<String>> getImportTypes() {
-        return ApiResult.success(importAppService.getAllBizTypes());
+        return ApiResult.success(importProgressQueryAppService.getAllBizTypes());
     }
 }

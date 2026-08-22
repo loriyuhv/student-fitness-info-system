@@ -5,7 +5,6 @@ import com.wsw.fitnesssystem.handle_excel.core.adapter.ImportAdapter;
 import com.wsw.fitnesssystem.handle_excel.core.executor.ImportTaskExecutor;
 import com.wsw.fitnesssystem.handle_excel.domain.enums.ExcelBizTypeEnum;
 import com.wsw.fitnesssystem.handle_excel.infrastructure.config.ExcelConstants;
-import com.wsw.fitnesssystem.handle_excel.interfaces.dto.ImportProgressDTO;
 import com.wsw.fitnesssystem.shared.exception.BizException;
 import com.wsw.fitnesssystem.shared.response.ResultCode;
 import lombok.RequiredArgsConstructor;
@@ -15,12 +14,11 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.List;
 import java.util.UUID;
 
 /**
  * Excel 导入应用服务
- * <p>统一入口：接收请求 → 文件转存 → 获取适配器 → 提交线程池 → 返回 taskId</p>
+ * <p>统一入口：文件转存 → 获取适配器 → 提交线程池 → 返回 taskId</p>
  * <p>原则：只编排，不写业务逻辑</p>
  * @author loriyuhv
  * @version 1.0 2026/8/21 14:29
@@ -32,7 +30,6 @@ import java.util.UUID;
 public class ExcelImportAppService {
     private final BusinessAdapterFactory adapterFactory;
     private final ImportTaskExecutor taskExecutor;
-    private final ImportProgressQueryService progressQueryService;
 
     /**
      * 统一导入入口
@@ -61,19 +58,6 @@ public class ExcelImportAppService {
         return taskId;
     }
 
-    /**
-     * 查询导入进度
-     */
-    public ImportProgressDTO getProgress(String taskId) {
-        return progressQueryService.getProgress(taskId);
-    }
-
-    /**
-     * 获取所有已注册的导入类型（用于前端下拉选择）
-     */
-    public List<String> getAllBizTypes() {
-        return adapterFactory.getAllBizTypes();
-    }
 
     // ========== 私有方法 ==========
 
