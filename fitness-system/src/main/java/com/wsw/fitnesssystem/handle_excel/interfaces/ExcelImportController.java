@@ -9,6 +9,7 @@ import com.wsw.fitnesssystem.shared.domain.valueobject.Operator;
 import com.wsw.fitnesssystem.shared.response.ApiResult;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -40,6 +41,7 @@ public class ExcelImportController {
      * @return ApiResult 返回异步任务taskId，用于后续查询导入进度
      */
     @PostMapping("/import")
+    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER')")
     public ApiResult<String> importExcel(
             @RequestParam String bizType,
             @RequestParam("file") MultipartFile file) {
@@ -56,6 +58,7 @@ public class ExcelImportController {
      * @return ApiResult<ImportProgressDTO> 返回任务进度DTO，包含总条数、成功数、失败数、错误信息、任务状态
      */
     @GetMapping("/import/progress")
+    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER')")
     public ApiResult<ImportProgressDTO> getProgress(@RequestParam String taskId) {
         return ApiResult.success(importProgressQueryAppService.getProgress(taskId));
     }
@@ -66,7 +69,9 @@ public class ExcelImportController {
      * @return ApiResult<List<String>> 支持的bizType业务类型集合
      */
     @GetMapping("/import/types")
+    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER')")
     public ApiResult<List<String>> getImportTypes() {
         return ApiResult.success(importProgressQueryAppService.getAllBizTypes());
     }
+
 }
