@@ -288,7 +288,10 @@ public class ExcelImportTemplate {
             }
 
             // 3.2 数据转换：DTO → Domain → Entity（含密码加密、默认值填充等）
+            long start = System.currentTimeMillis();
             List<E> entities = adapter.convert(validated);
+            long end = System.currentTimeMillis();
+            log.warn("数据转换耗时{}", end - start);
 
             // 3.3 批量持久化：写入数据库（适配器内部可再分片，防止 SQL 过长）
             adapter.persist(entities);

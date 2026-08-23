@@ -2,6 +2,7 @@ package com.wsw.fitnesssystem.handle_excel.biz.user;
 
 import com.wsw.fitnesssystem.handle_excel.application.dto.UserExcelDTO;
 import com.wsw.fitnesssystem.handle_excel.core.adapter.ImportAdapter;
+import com.wsw.fitnesssystem.handle_excel.core.executor.ParallelConvertExecutor;
 import com.wsw.fitnesssystem.handle_excel.domain.enums.ExcelBizTypeEnum;
 import com.wsw.fitnesssystem.handle_excel.domain.model.User;
 import com.wsw.fitnesssystem.handle_excel.domain.service.UserImportDomainService;
@@ -19,7 +20,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 /**
- * 用户导入适配器 — 技术适配层
+ * 用户导入适配器 — 技术适配层 支持并行密码加密
  * <p>职责边界：</p>
  * <li>1. 轻量过滤（空用户名等明显非法数据）</li>
  * <li>2. 调用 DomainService 完成业务校验 + 查重 + 领域转换</li>
@@ -38,6 +39,7 @@ public class UserImportAdapter implements ImportAdapter<UserExcelDTO, SysUser> {
     private final ExcelSysUserMapper userMapper;
     private final UserImportDomainService domainService;
     private final UserAssembler userAssembler;
+    private final ParallelConvertExecutor parallelConvertExecutor;
 
     @Override
     public String getBizType() {
@@ -64,7 +66,8 @@ public class UserImportAdapter implements ImportAdapter<UserExcelDTO, SysUser> {
         List<User> domainUsers = domainService.validateAndConvert(dtoList);
 
         // Step 2: 技术转换：Domain → Entity（含密码加密、默认值填充等技术细节）
-        return userAssembler.toEntityList(domainUsers);
+        // return userAssembler.toEntityList(domainUsers);
+        return parallelConvertExecutor.execute(domainUsers, userAssembler::toEntity);
     }
 
     @Override

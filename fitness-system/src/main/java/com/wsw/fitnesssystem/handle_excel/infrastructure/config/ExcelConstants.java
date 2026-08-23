@@ -27,7 +27,7 @@ public class ExcelConstants {
     /**
      * 默认每批处理条数
      */
-    public static final int DEFAULT_BATCH_SIZE = 100;
+    public static final int DEFAULT_BATCH_SIZE = 3000;
 
     /**
      * 小文件阈值（< 此条数用全量解析，≥ 此条数用流式解析）
@@ -37,7 +37,7 @@ public class ExcelConstants {
     /**
      * 批量插入内部分片大小（防止 SQL 过长）
      */
-    public static final int DB_BATCH_SIZE = 500;
+    public static final int DB_BATCH_SIZE = 3000;
 
     // ==================== 用户导入默认值 ====================
     /** 默认校区 ID */
