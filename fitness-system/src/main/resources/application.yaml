@@ -7,6 +7,10 @@ spring:
     name: "fitness-system"
   profiles:
     active: dev
+  servlet:
+    multipart:
+      max-file-size: 100MB
+      max-request-size: 100MB
 mybatis-plus:
   type-aliases-package: com.wsw.fitnesssystem.infrastructure.persistence.entity
   configuration:
