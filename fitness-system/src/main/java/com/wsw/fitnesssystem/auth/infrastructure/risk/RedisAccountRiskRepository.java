@@ -5,6 +5,7 @@ import com.wsw.fitnesssystem.auth.domain.risk.port.AccountRiskRepository;
 import com.wsw.fitnesssystem.auth.domain.risk.valueobject.AccountIdentifier;
 import com.wsw.fitnesssystem.auth.domain.risk.valueobject.AccountLock;
 import com.wsw.fitnesssystem.auth.infrastructure.config.RiskPolicyProperties;
+import com.wsw.fitnesssystem.auth.infrastructure.persistence.redis.model.AuthRedisKeys;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Repository;
@@ -16,8 +17,8 @@ import java.util.Optional;
  * 账号风控仓储 - Redis 实现
  *
  * <p>Key 设计:
- * <li>auth:risk:fail:{username}  → 失败次数（String）</li>
- * <li>auth:risk:lock:{username}  → 锁定标记（String）</li>
+ * <li>auth:risk:fail:{user}:{username}  → 失败次数（String）</li>
+ * <li>auth:risk:lock:{user}:{username}  → 锁定标记（String）</li>
  * @author loriyuhv
  * @version 1.0 2026/8/10 21:27
  * @since 1.0
@@ -25,17 +26,15 @@ import java.util.Optional;
 @Repository
 @RequiredArgsConstructor
 public class RedisAccountRiskRepository implements AccountRiskRepository {
+
     private final StringRedisTemplate redisTemplate;
     private final RiskPolicyProperties policyProperties;
-
-    private static final String FAIL_PREFIX = "auth:risk:fail:";
-    private static final String LOCK_PREFIX = "auth:risk:lock:";
 
     @Override
     public Optional<AccountRiskProfile> findByIdentifier(AccountIdentifier identifier) {
         String username = identifier.username();
-        String failKey = FAIL_PREFIX + username;
-        String lockKey = LOCK_PREFIX + username;
+        String failKey = AuthRedisKeys.riskUserFailKey(username);
+        String lockKey = AuthRedisKeys.riskUserLockKey(username);
 
         String failCountStr = redisTemplate.opsForValue().get(failKey);
         Boolean locked = redisTemplate.hasKey(lockKey);
@@ -56,8 +55,8 @@ public class RedisAccountRiskRepository implements AccountRiskRepository {
     @Override
     public void save(AccountRiskProfile profile) {
         String username = profile.getIdentifier().username();
-        String failKey = FAIL_PREFIX + username;
-        String lockKey = LOCK_PREFIX + username;
+        String failKey = AuthRedisKeys.riskUserFailKey(username);
+        String lockKey = AuthRedisKeys.riskUserLockKey(username);
 
         Duration failTtl = Duration.ofMinutes(policyProperties.getCountWindowMinutes());
         Duration lockTtl = Duration.ofMinutes(policyProperties.getLockDurationMinutes());
@@ -84,7 +83,8 @@ public class RedisAccountRiskRepository implements AccountRiskRepository {
     @Override
     public void delete(AccountIdentifier identifier) {
         String username = identifier.username();
-        redisTemplate.delete(FAIL_PREFIX + username);
-        redisTemplate.delete(LOCK_PREFIX + username);
+        redisTemplate.delete(AuthRedisKeys.riskUserFailKey(username));
+        redisTemplate.delete(AuthRedisKeys.riskUserLockKey(username));
     }
+
 }

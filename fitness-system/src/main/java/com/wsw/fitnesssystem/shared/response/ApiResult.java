@@ -54,6 +54,16 @@ public class ApiResult<T> {
         return from(ResultCode.SUCCESS, data);
     }
 
+    public static <T> ApiResult<T> success(String message) {
+        return new ApiResult<>(
+                ResultCode.SUCCESS.httpCode(),
+                ResultCode.SUCCESS.getCode(),
+                message,
+                null,
+                System.currentTimeMillis()
+        );
+    }
+
     public static <T> ApiResult<T> success(String message, T data) {
         return new ApiResult<>(
             ResultCode.SUCCESS.httpCode(),

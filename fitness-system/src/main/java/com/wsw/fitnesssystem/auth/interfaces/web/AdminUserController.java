@@ -1,5 +1,6 @@
 package com.wsw.fitnesssystem.auth.interfaces.web;
 
+import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 import com.wsw.fitnesssystem.auth.application.authentication.AuthApplicationService;
 import com.wsw.fitnesssystem.shared.domain.valueobject.Operator;
 import com.wsw.fitnesssystem.shared.response.ApiResult;
@@ -8,6 +9,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.Set;
 
 /**
  * @author loriyuhv
@@ -31,17 +34,19 @@ public class AdminUserController {
     @PostMapping("/{campusId}/{userId}/kick")
     @PreAuthorize("hasRole('ROLE_ADMIN')") // 只允许管理员访问
     public ApiResult<String> kickUser(
-        @PathVariable Long campusId,
-        @PathVariable Long userId
-    ) {
+        @PathVariable Long campusId, @PathVariable Long userId) {
+
         Operator operator = new Operator(campusId, userId, null, null);
-        try {
-            authApplicationService.kick(operator);
-            return ApiResult.success(ResultCode.KICKOUT_SUCCESS.getMessage(), "操作完成");
-        } catch (Exception e) {
-            log.error("踢人失败，campusId={} userId={}", campusId, userId, e);
-            return ApiResult.from(ResultCode.KICKOUT_FAILED, e.getMessage());
+        Set<String> onlineSessions = authApplicationService.kick(operator);
+
+        String msg;
+        if (CollectionUtils.isEmpty(onlineSessions)) {
+            msg = ResultCode.SUCCESS.getMessage() + "，该用户当前无在线会话";
+        } else {
+            msg = ResultCode.KICKOUT_SUCCESS.getMessage() + "，已踢出" + onlineSessions.size() + "个会话";
         }
+
+        return ApiResult.success(msg);
     }
 
 }

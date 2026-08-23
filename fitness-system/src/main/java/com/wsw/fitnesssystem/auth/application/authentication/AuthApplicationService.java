@@ -1,5 +1,6 @@
 package com.wsw.fitnesssystem.auth.application.authentication;
 
+import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 import com.wsw.fitnesssystem.auth.application.authentication.command.LoginCommand;
 import com.wsw.fitnesssystem.auth.application.authentication.dto.LoginResponse;
 import com.wsw.fitnesssystem.auth.application.authentication.dto.RefreshTokenResponse;
@@ -132,34 +133,28 @@ public class AuthApplicationService {
      * 踢人操作（管理员使用）
      * @param operator 操作对象
      */
-    public void kick(Operator operator) {
+    public Set<String> kick(Operator operator) {
         // 1. 校验用户是否存在
         if (!authDomainService.userExists(operator)) {
-            throw new BizException(ResultCode.USER_NOT_EXIST);
+            throw new BizException(
+                    ResultCode.KICKOUT_FAILED, ResultCode.USER_NOT_EXIST.getMessage());
         }
 
-        // 2. 获取用户所有在线 Access Token ID
-        Set<String> tokenIds = sessionRepository.getAllSessions(operator);
+        //2. 移除所有在线会话
+        Set<String> onlineSessions = sessionRepository.removeAllSessions(operator);
 
-        if (tokenIds == null || tokenIds.isEmpty()) {
-            log.info("User {} campus {} has no online session to kick.",
-                    operator.userId(), operator.campusId());
-            return;
+        if (!CollectionUtils.isEmpty(onlineSessions)) {
+            for (String tokenId : onlineSessions) {
+                // 3. 记录审计
+                loginAuditService.kick(operator, tokenId);
+            }
+            log.info("Kicked {} sessions for user {} campus {}",
+                    onlineSessions.size(), operator.userId(), operator.campusId());
+        } else {
+            log.info("kick user {}, campus {}: no online sessions", operator.userId(), operator.campusId());
         }
 
-        // 版本号递增 → 所有现有 token 失效
-        sessionRepository.incrementTokenVersion(operator);
-
-        for (String tokenId : tokenIds) {
-            // 2. 从在线会话删除，加入黑名单
-            sessionRepository.removeSession(operator, tokenId);
-
-            // 3. 记录审计
-            loginAuditService.kick(operator, tokenId);
-        }
-
-        log.info("Kicked {} sessions for user {} campus {}",
-                tokenIds.size(), operator.userId(), operator.campusId());
+        return onlineSessions;
     }
 
     public RefreshTokenResponse refreshAccessToken(String refreshToken) {
@@ -171,7 +166,7 @@ public class AuthApplicationService {
         String username = claims.getUsername();
         String oldRefreshTokenId = claims.getJti();
         Operator operator = new Operator(campusId, userId, username, null);
-        String oldAccessTokenId = sessionRepository.getAccessTokenIdByRefreshToken(
+        String oldAccessTokenId = sessionRepository.getAccessTokenIdByRefreshTokenId(
                 operator, oldRefreshTokenId
         );
 

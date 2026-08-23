@@ -31,12 +31,21 @@ public class AuthRedisKeys {
 
     /**
      * 用户Refresh Token索引（Hash）
-     * <li>Key: auth:session:refresh:{campusId}:{userId}:{deviceId}</li>
+     * <li>Key: auth:session:refresh:{campusId}:{userId}</li>
      * <li>Field: {refreshTokenId}</li>
      * <li>Value: 关联的accessTokenId</li>
      * <li>TTL: 7天</li>
      */
-    private static final String SESSION_REFRESH_PREFIX = "auth:session:refresh:";
+    private static final String SESSION_REFRESH_TO_ACCESS_PREFIX = "auth:session:refresh2access:";
+
+    /**
+     * 用户AccessToken索引（Hash）
+     * <li>Key：auth:session:access2refresh:{campusId}:{userId}</li>
+     * <li>Field：{accessTokenId}</li>
+     * <li>Value：关联的refreshTokenId</li>
+     * <li>TTL：7天</li>
+     */
+    private static final String SESSION_ACCESS_TO_REFRESH_PREFIX = "auth:session:access2refresh:";
 
     // ==================== Token黑名单 ====================
 
@@ -74,19 +83,19 @@ public class AuthRedisKeys {
 
     /**
      * 登录失败计数（String）
-     * <li>Key: auth:limit:fail:{type}:{identifier}</li>
+     * <li>Key: auth:risk:fail:{type}:{identifier}</li>
      * <li>type: user/ip</li>
      * <li>identifier: username 或 campusId:username 或 ip地址</li>
      * <li>TTL: 1分钟（滑动窗口）</li>
      */
-    private static final String LIMIT_FAIL_PREFIX = "auth:limit:fail:";
+    private static final String RISK_FAIL_PREFIX = "auth:risk:fail:";
 
     /**
      * 锁定状态（String）
-     * <li>Key: auth:limit:lock:{type}:{identifier}</li>
+     * <li>Key: auth:risk:lock:{type}:{identifier}</li>
      * <li>TTL: 30分钟</li>
      */
-    private static final String LIMIT_LOCK_PREFIX = "auth:limit:lock:";
+    private static final String RISK_LOCK_PREFIX = "auth:risk:lock:";
 
     private AuthRedisKeys() {}
 
@@ -101,10 +110,21 @@ public class AuthRedisKeys {
     }
 
     /**
-     * 用户Refresh Token索引Key
+     * refreshToken -> accessToken hash key
+     * @param operator 操作人
+     * @return redis key
      */
-    public static String refreshIndexKey(Operator operator) {
-        return SESSION_REFRESH_PREFIX + operator.campusId() + ":" + operator.userId();
+    public static String refreshToAccessKey(Operator operator) {
+        return SESSION_REFRESH_TO_ACCESS_PREFIX + operator.campusId() + ":" + operator.userId();
+    }
+
+    /**
+     * accessToken -> refreshToken hash key
+     * @param operator 操作人
+     * @return redis key
+     */
+    public static String accessToRefreshKey(Operator operator) {
+        return SESSION_ACCESS_TO_REFRESH_PREFIX + operator.campusId() + ":" + operator.userId();
     }
 
     // ==================== Token黑名单 ====================
@@ -148,9 +168,9 @@ public class AuthRedisKeys {
      * @param identifier campusId:username 或 username
      * @return key
      */
-    public static String limitUserFailKey(String identifier) {
+    public static String riskUserFailKey(String identifier) {
 
-        return LIMIT_FAIL_PREFIX + "user:" + identifier;
+        return RISK_FAIL_PREFIX + "user:" + identifier;
     }
 
 
@@ -159,8 +179,8 @@ public class AuthRedisKeys {
      * @param identifier campusId:username 或 username
      * @return key
      */
-    public static String limitUserLockKey(String identifier) {
-        return LIMIT_LOCK_PREFIX + "user:" + identifier;
+    public static String riskUserLockKey(String identifier) {
+        return RISK_LOCK_PREFIX + "user:" + identifier;
     }
 
     // ==================== 审计辅助 ====================
