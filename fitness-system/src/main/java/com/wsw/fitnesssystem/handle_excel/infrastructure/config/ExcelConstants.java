@@ -69,6 +69,15 @@ public class ExcelConstants {
     /** 错误信息保留条数 */
     public static final int ERROR_MSG_MAX_COUNT = 3;
 
+    /** 文件锁兜底 TTL：60 分钟（正常由任务完成后主动释放） */
+    public static final long FILE_LOCK_TTL_MINUTES = 60L;
+
+    /** 导入限制时间窗口：60 秒 */
+    public static final int RATE_LIMIT_WINDOW_SECONDS = 60;
+
+    /** 导入限制窗口内最大允许次数 */
+    public static final int RATE_LIMIT_MAX_COUNT = 5;
+
     // ==================== 临时文件 ====================
 
     /** 临时文件根目录 */
