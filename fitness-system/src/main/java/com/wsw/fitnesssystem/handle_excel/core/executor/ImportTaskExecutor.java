@@ -2,10 +2,9 @@ package com.wsw.fitnesssystem.handle_excel.core.executor;
 
 import com.wsw.fitnesssystem.handle_excel.core.adapter.ImportAdapter;
 import com.wsw.fitnesssystem.handle_excel.core.template.ExcelImportTemplate;
-import jakarta.annotation.Resource;
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import java.io.File;
@@ -21,16 +20,19 @@ import java.util.concurrent.ThreadPoolExecutor;
  */
 @Slf4j
 @Component
-@RequiredArgsConstructor
 public class ImportTaskExecutor {
-    /**
-     *  获取线程池状态（用于监控）
-     */
-    @Getter
-    @Resource(name = "excelImportThreadPool")
-    private final ThreadPoolExecutor executor;
 
+    /** 获取线程池状态（用于监控）*/
+    @Getter
+    private final ThreadPoolExecutor executor;
     private final ExcelImportTemplate importTemplate;
+
+    public ImportTaskExecutor(
+            @Qualifier("excelImportThreadPool")  ThreadPoolExecutor executor,
+            ExcelImportTemplate importTemplate) {
+        this.executor = executor;
+        this.importTemplate = importTemplate;
+    }
 
     /**
      * 提交导入任务到线程池
@@ -52,4 +54,5 @@ public class ImportTaskExecutor {
             }
         });
     }
+
 }

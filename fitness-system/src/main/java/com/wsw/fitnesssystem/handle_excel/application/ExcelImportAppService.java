@@ -28,6 +28,7 @@ import java.util.UUID;
 @Service
 @RequiredArgsConstructor
 public class ExcelImportAppService {
+
     private final BusinessAdapterFactory adapterFactory;
     private final ImportTaskExecutor taskExecutor;
 
@@ -65,25 +66,40 @@ public class ExcelImportAppService {
         if (file == null || file.isEmpty()) {
             throw new BizException(ResultCode.PARAM_INVALID, "上传文件不能为空");
         }
+
         String originalFilename = file.getOriginalFilename();
         if (originalFilename == null) {
             throw new BizException(ResultCode.PARAM_INVALID, "文件名不能为空");
         }
-        String lowerName = originalFilename.toLowerCase();
+
+        // FIX: 取真实扩展名，防止 file.xlsx.exe 绕过校验
+        String ext = extractExtension(originalFilename);
         boolean validExt = false;
-        for (String ext : ExcelConstants.ALLOWED_EXTENSIONS) {
-            if (lowerName.endsWith(ext)) {
+        for (String allowed : ExcelConstants.ALLOWED_EXTENSIONS) {
+            if (allowed.equalsIgnoreCase(ext)) {
                 validExt = true;
                 break;
             }
         }
         if (!validExt) {
-            throw new BizException(ResultCode.PARAM_TYPE_ERROR, "仅支持 .xlsx / .xls 格式，当前文件: " + originalFilename);
+            throw new BizException(ResultCode.PARAM_TYPE_ERROR,
+                    "仅支持 .xlsx / .xls 格式，当前文件: " + originalFilename);
         }
+
         // 限制单文件大小 50MB
         if (file.getSize() > ExcelConstants.MAX_FILE_SIZE) {
             throw new BizException(ResultCode.PARAM_INVALID, "文件大小超过 50MB 限制");
         }
+    }
+
+    /**
+     * 提取文件扩展名（含点），如 ".xlsx"
+     * @param filename 文件名称
+     * @return 真实扩展名
+     */
+    private String extractExtension(String filename) {
+        int lastDot = filename.lastIndexOf('.');
+        return lastDot == -1 ? "" : filename.substring(lastDot).toLowerCase();
     }
 
     private File saveTempFile(MultipartFile file, String taskId) {
@@ -103,9 +119,9 @@ public class ExcelImportAppService {
             log.debug("[{}] 文件转存成功: {}", taskId, tempFile.getAbsolutePath());
         } catch (IOException e) {
             log.error("[{}] 文件转存失败", taskId, e);
-            // throw new BizException(ResultCode.SYSTEM_ERROR, "文件转存失败: " + e.getMessage());
-            throw new BizException(ResultCode.SYSTEM_ERROR);
+            throw new BizException(ResultCode.SYSTEM_ERROR, "文件转存失败: " + e.getMessage());
         }
         return tempFile;
     }
+
 }

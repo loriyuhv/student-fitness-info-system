@@ -4,6 +4,7 @@ import com.wsw.fitnesssystem.handle_excel.core.adapter.ImportAdapter;
 import com.wsw.fitnesssystem.handle_excel.core.exception.ExcelException;
 import com.wsw.fitnesssystem.handle_excel.core.parser.ExcelParser;
 import com.wsw.fitnesssystem.handle_excel.core.port.ImportProgressPort;
+import com.wsw.fitnesssystem.handle_excel.infrastructure.config.ExcelConstants;
 import com.wsw.fitnesssystem.shared.response.ResultCode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -95,7 +96,7 @@ public class ExcelImportTemplate {
 
                     if (validated.isEmpty()) {
                         failCount += batch.size();
-                        errorMsgList.add("第" + (i + 1) + "批数据全部校验失败");
+                        addErrorMsg(errorMsgList, "第" + (i + 1) + "批数据全部校验失败");
                         importProgressPort.updateProgress(taskId, successCount, failCount, errorMsgList);
                         continue;
                     }
@@ -116,7 +117,7 @@ public class ExcelImportTemplate {
                     // 故障隔离：单批失败不终止整个任务
                     log.error("[{}] 第 {} 批处理失败, batchSize={}", taskId, i + 1, batch.size(), e);
                     failCount += batch.size();
-                    errorMsgList.add("第" + (i + 1) + "批:" + truncate(e.getMessage()));
+                    addErrorMsg(errorMsgList, "第" + (i + 1) + "批:" + truncate(e.getMessage()));
                 }
 
                 // 3.4 更新进度
@@ -146,6 +147,18 @@ public class ExcelImportTemplate {
         } finally {
             // ========== Step 5: 清理临时文件 ==========
             cleanup(file);
+        }
+    }
+
+    /**
+     * 安全添加错误信息，防止内存无限增长
+     * 仅保留最近 {@link ExcelConstants#ERROR_MSG_MAX_COUNT} 条
+     * @param errorMsgList 错误信息列表
+     * @param msg 错误信息
+     */
+    private void addErrorMsg(List<String> errorMsgList, String msg) {
+        if (errorMsgList.size() < ExcelConstants.ERROR_MSG_MAX_COUNT) {
+            errorMsgList.add(msg);
         }
     }
 

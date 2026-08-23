@@ -227,9 +227,6 @@ public class RedisImportProgressRepository implements ImportProgressPort {
      */
     private ImportProgressDTO from(Map<Object, Object> map) {
         if (map == null || map.isEmpty()) {
-            log.warn("yes!!!");
-        }
-        if (map == null || map.isEmpty()) {
             ImportProgressDTO empty = new ImportProgressDTO();
             empty.setStatus(ImportStatus.NOT_FOUND);
             return empty;

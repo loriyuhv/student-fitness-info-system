@@ -4,6 +4,7 @@ import jakarta.servlet.ServletException;
 import lombok.extern.slf4j.Slf4j;
 import com.wsw.fitnesssystem.shared.response.ApiResult;
 import com.wsw.fitnesssystem.shared.response.ResultCode;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authorization.AuthorizationDeniedException;
 import org.springframework.validation.BindException;
@@ -47,7 +48,9 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ApiResult<Object> handleMethodArgumentNotValidException(MethodArgumentNotValidException e) {
         FieldError fieldError = e.getBindingResult().getFieldError();
-        String msg = fieldError != null ? fieldError.getDefaultMessage() : ResultCode.PARAM_INVALID.getMessage();
+        String msg = fieldError != null
+                ? fieldError.getDefaultMessage()
+                : ResultCode.PARAM_INVALID.getMessage();
         log.warn("参数校验失败：{}", msg);
         return ApiResult.error(ResultCode.PARAM_INVALID, msg);
     }
@@ -60,8 +63,23 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(BindException.class)
     public ApiResult<Object> handleBindException(BindException e) {
         FieldError fieldError = e.getBindingResult().getFieldError();
-        String msg = fieldError != null ? fieldError.getDefaultMessage() : ResultCode.PARAM_INVALID.getMessage();
+        String msg = fieldError != null
+                ? fieldError.getDefaultMessage()
+                : ResultCode.PARAM_INVALID.getMessage();
+        log.warn("参数校验失败 ：{}", msg);
         return ApiResult.error(ResultCode.PARAM_INVALID, msg);
+    }
+
+    /**
+     * FIX: 请求体 JSON 格式非法（如缺少引号、逗号等）
+     * @param e 异常
+     * @return 通用响应体
+     */
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ApiResult<Object> handleHttpMessageNotReadable(HttpMessageNotReadableException e) {
+        log.warn("请求体格式错误：{}", e.getMessage());
+        // return ApiResult.error(ResultCode.REQUEST_FORMAT_ERROR, "请求体 JSON 格式非法");
+        return ApiResult.error(ResultCode.REQUEST_FORMAT_ERROR);
     }
 
     /**

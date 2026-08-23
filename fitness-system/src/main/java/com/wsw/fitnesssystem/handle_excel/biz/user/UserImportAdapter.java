@@ -5,6 +5,7 @@ import com.wsw.fitnesssystem.handle_excel.core.adapter.ImportAdapter;
 import com.wsw.fitnesssystem.handle_excel.domain.enums.ExcelBizTypeEnum;
 import com.wsw.fitnesssystem.handle_excel.domain.model.User;
 import com.wsw.fitnesssystem.handle_excel.domain.service.UserImportDomainService;
+import com.wsw.fitnesssystem.handle_excel.infrastructure.config.ExcelConstants;
 import com.wsw.fitnesssystem.handle_excel.infrastructure.persistence.db.assembler.UserAssembler;
 import com.wsw.fitnesssystem.handle_excel.infrastructure.persistence.db.entity.SysUser;
 import com.wsw.fitnesssystem.handle_excel.infrastructure.persistence.db.mapper.ExcelSysUserMapper;
@@ -12,6 +13,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -66,11 +68,12 @@ public class UserImportAdapter implements ImportAdapter<UserExcelDTO, SysUser> {
     }
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public void persist(List<SysUser> entities) {
         if (entities == null || entities.isEmpty()) return;
 
         // 内部再分片，防止 SQL 过长
-        int batchSize = 500;
+        int batchSize = ExcelConstants.DB_BATCH_SIZE;
         for (int i = 0; i < entities.size(); i += batchSize) {
             List<SysUser> batch = entities.subList(i, Math.min(i + batchSize, entities.size()));
             userMapper.batchInsert(batch);
