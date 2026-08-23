@@ -7,8 +7,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
-import java.util.List;
-
 /**
  * 用户领域模型 → 持久化实体 组装器
  * <p>职责：纯技术转换，包含密码加密、默认值填充等基础设施细节</p>
@@ -46,9 +44,4 @@ public class UserAssembler {
         return entity;
     }
 
-    public List<SysUser> toEntityList(List<User> users) {
-        return users.stream()
-            .map(this::toEntity)
-            .toList();
-    }
 }
