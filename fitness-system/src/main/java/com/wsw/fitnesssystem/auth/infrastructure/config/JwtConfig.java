@@ -24,13 +24,13 @@ public class JwtConfig {
     /**
      * 访问令牌（Access Token）签名密钥
      */
-    @Value("${jwt.access-secret:default-access-secret-key-change-in-production}")
+    @Value("${jwt.access-secret}")
     private String accessSecret;
 
     /**
      * 刷新令牌（Refresh Token）签名密钥
      */
-    @Value("${jwt.refresh-secret:default-refresh-secret-key-change-in-production}")
+    @Value("${jwt.refresh-secret}")
     private String refreshSecret;
 
     /**
