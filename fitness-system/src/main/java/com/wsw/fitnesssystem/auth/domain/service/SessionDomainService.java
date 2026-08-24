@@ -28,11 +28,9 @@ import com.wsw.fitnesssystem.shared.domain.valueobject.Operator;
  * @since 1.0
  */
 public interface SessionDomainService {
+
     /**
      * 限制用户最大登录设备数
-     *
-     * @param operator 操作对象
-     * @param maxSessions 最大允许同时在线的会话数
      *
      * <p>业务说明：</p>
      * <ul>
@@ -46,8 +44,10 @@ public interface SessionDomainService {
      *     <li>体现领域服务的作用：专注业务规则而非技术实现</li>
      *     <li>体现多端登录控制策略：避免账号被无限制多端使用</li>
      * </ul>
+     *
+     * @param operator 操作对象
      */
-    void limitSessions(Operator operator, int maxSessions);
+    void limitSessions(Operator operator);
 
     void verifyRefreshToken(Operator operator, String refreshTokenId);
 

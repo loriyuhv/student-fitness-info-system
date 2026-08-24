@@ -24,43 +24,43 @@ public class JwtConfig {
     /**
      * 访问令牌（Access Token）签名密钥
      */
-    @Value("${jwt.access-secret}")
+    @Value("${auth.jwt.access-secret}")
     private String accessSecret;
 
     /**
      * 刷新令牌（Refresh Token）签名密钥
      */
-    @Value("${jwt.refresh-secret}")
+    @Value("${auth.jwt.refresh-secret}")
     private String refreshSecret;
 
     /**
      * JWT签发者标识，必须与令牌中的iss声明匹配
      */
-    @Value("${jwt.issuer:system}")
+    @Value("${auth.jwt.issuer:system}")
     private String issuer;
 
     /**
      * JWT受众标识，必须与令牌中的aud声明匹配
      */
-    @Value("${jwt.audience}")
+    @Value("${auth.jwt.audience}")
     private String audience;
 
     /**
      * JWT签名密匙最小长度
      */
-    @Value("${jwt.min-length:32}")
+    @Value("${auth.jwt.min-length:32}")
     private int minLength;
 
     /**
      * JWT访问令牌有效期（毫秒），默认2小时
      */
-    @Value("${jwt.expire:7200000}")
+    @Value("${auth.jwt.expire:7200000}")
     private long expire;
 
     /**
      * 刷新令牌有效期（毫秒），默认7天
      */
-    @Value("${jwt.refresh-expire:604800000}")
+    @Value("${auth.jwt.refresh-expire:604800000}")
     private long refreshExpire;
 
     /**

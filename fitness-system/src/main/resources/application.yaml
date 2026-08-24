@@ -21,19 +21,25 @@ mybatis-plus:
       id-type: auto
       logic-delete-value: 1
       logic-not-delete-value: 0
-jwt:
-  access-secret: "84hQeGado6JIMKBNDJudeQuogatipj9xluip2moqvp3qLozvz043hDDTWcSuF8Fn"
-  refresh-secret: "2ySXSQB9puHMYGOmMnykDH4fscjo7NIqNIpiG2SUWcxlvAfLv6WiCUWv590JeuE2"
-  min-length: 32
-  expire: 1800000
-  refresh-expire: 604800000
-  issuer: "student-fitness"
-  audience: "web-client"
 auth:
+  jwt:
+    access-secret: "84hQeGado6JIMKBNDJudeQuogatipj9xluip2moqvp3qLozvz043hDDTWcSuF8Fn"
+    refresh-secret: "2ySXSQB9puHMYGOmMnykDH4fscjo7NIqNIpiG2SUWcxlvAfLv6WiCUWv590JeuE2"
+    min-length: 32
+    expire: 1800000
+    refresh-expire: 604800000
+    issuer: "student-fitness"
+    audience: "web-client"
+  security:
+    permit-all-patterns:
+      - /auth/login
+      - /auth/refresh
+    bcrypt-strength: 6
   session:
     expire-millis: 604800000                # 登录态会话过期时间：7天
     access-token-expire-minutes: 30         # AccessToken 过期时间：30分钟
     refresh-token-expire-millis: 1209600000 # RefreshToken 过期时间：14天
+    max-online-sessions: 3                  # 登录态在线最大会话数
   risk:
     max-fail-count: 5
     lock-duration-minutes: 30

@@ -84,10 +84,7 @@ public class LoginSuccessProcessorImpl implements LoginSuccessProcessor {
         riskControlService.onSuccess(user.getUsername());
 
         // 2. 限制多端登录
-        sessionDomainService.limitSessions(
-                operator,
-            3
-        );
+        sessionDomainService.limitSessions(operator);
 
         // 3. 保存会话
         sessionRepository.saveSession(

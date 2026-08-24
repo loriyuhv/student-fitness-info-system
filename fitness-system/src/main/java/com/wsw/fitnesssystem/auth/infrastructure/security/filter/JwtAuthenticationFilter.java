@@ -4,6 +4,7 @@ import com.wsw.fitnesssystem.auth.application.service.AuthorizationQueryService;
 import com.wsw.fitnesssystem.auth.application.dto.AuthorizationQuery;
 import com.wsw.fitnesssystem.auth.application.dto.UserAuthorization;
 import com.wsw.fitnesssystem.auth.domain.port.SessionRepository;
+import com.wsw.fitnesssystem.auth.infrastructure.config.SecurityProperties;
 import com.wsw.fitnesssystem.auth.infrastructure.token.model.AccessTokenClaims;
 import com.wsw.fitnesssystem.auth.infrastructure.security.handler.JwtAuthenticationEntryPoint;
 import com.wsw.fitnesssystem.auth.infrastructure.security.model.JwtUserPrincipal;
@@ -30,7 +31,6 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
-import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -69,19 +69,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     /** 存放Token的Http请求头名称 */
     private static final String AUTH_HEADER = "Authorization";
 
-    /**
-     * 白名单接口
-     * 无需经过AccessToken校验的接口：登录、刷新Token
-     * 注意：白名单接口仍然会经过整条过滤器链，因此在本过滤器直接跳过所有JWT校验逻辑
-     */
-    private static final List<String> WHITE_URI_LIST = List.of(
-            "/api/auth/login",
-            "/api/auth/refresh"
-    );
-
     private final JwtTokenService jwtTokenService;
     private final LoginAuditService loginAuditService;
     private final SessionRepository sessionRepository;
+    private final SecurityProperties securityProperties;
     private final JwtAuthenticationEntryPoint authenticationEntryPoint;
     private final AuthorizationQueryService authorizationQueryService;
 
@@ -102,8 +93,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         try {
             // 1. 白名单与无Token分支处理
             // 1.1 白名单优先匹配：白名单接口直接跳过JWT校验，放行后续过滤器
-            String uri = request.getRequestURI();
-            if (WHITE_URI_LIST.contains(uri)) {
+            String uri = request.getServletPath();
+            boolean isPermitAll = securityProperties.getPermitAllPatterns().stream()
+                    .anyMatch(p -> p.matches(uri));
+            if (isPermitAll) {
                 filterChain.doFilter(request, response);
                 return;
             }
@@ -212,4 +205,5 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             SecurityContextHolder.clearContext();
         }
     }
+
 }

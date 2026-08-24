@@ -32,9 +32,11 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @RequiredArgsConstructor
 @EnableMethodSecurity
 public class SecurityConfig {
+
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
     private final JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
     private final JwtAccessDeniedHandler jwtAccessDeniedHandler;
+    private final SecurityProperties securityProperties;
 
     /***
      * 请求的安全过滤规则。核心功能如下：
@@ -62,7 +64,8 @@ public class SecurityConfig {
             // 4. 接口权限规则
             .authorizeHttpRequests(auth -> auth
                     // 放行登录等认证接口
-                    .requestMatchers("/auth/login", "/auth/refresh").permitAll()
+                    .requestMatchers(securityProperties.getPermitAllPatterns()
+                            .toArray(new String[0])).permitAll()
                     // 其余全部需要认证
                     .anyRequest().authenticated()
                 // 所有接口都放行（不需要鉴权）
@@ -83,7 +86,7 @@ public class SecurityConfig {
      */
     @Bean
     public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder(6);
+        return new BCryptPasswordEncoder(securityProperties.getBcryptStrength());
     }
 
     /**

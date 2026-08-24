@@ -21,4 +21,7 @@ public class SessionProperties {
 
     /** RefreshToken 过期时间（JWT） */
     private long refreshTokenExpireMillis;
+
+    /** 单账号最大在线会话数 **/
+    private int maxOnlineSessions;
 }

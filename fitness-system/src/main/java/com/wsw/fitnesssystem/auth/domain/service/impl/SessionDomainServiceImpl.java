@@ -2,6 +2,7 @@ package com.wsw.fitnesssystem.auth.domain.service.impl;
 
 import com.wsw.fitnesssystem.auth.domain.port.SessionRepository;
 import com.wsw.fitnesssystem.auth.domain.service.SessionDomainService;
+import com.wsw.fitnesssystem.auth.infrastructure.config.SessionProperties;
 import com.wsw.fitnesssystem.shared.domain.valueobject.Operator;
 import com.wsw.fitnesssystem.shared.exception.BizException;
 import com.wsw.fitnesssystem.shared.response.ResultCode;
@@ -16,11 +17,14 @@ import org.springframework.stereotype.Service;
 @Service
 @RequiredArgsConstructor
 public class SessionDomainServiceImpl implements SessionDomainService {
+
     private final SessionRepository sessionRepository;
+    private final SessionProperties sessionProperties;
 
     @Override
-    public void limitSessions(Operator operator, int maxSessions) {
+    public void limitSessions(Operator operator) {
         Long size = sessionRepository.countSessions(operator);
+        int maxSessions = sessionProperties.getMaxOnlineSessions();
         if (size == null || size < maxSessions) return;
 
         sessionRepository.getOldestSession(operator)
@@ -53,4 +57,5 @@ public class SessionDomainServiceImpl implements SessionDomainService {
                 newAccessTokenId
         );
     }
+
 }
