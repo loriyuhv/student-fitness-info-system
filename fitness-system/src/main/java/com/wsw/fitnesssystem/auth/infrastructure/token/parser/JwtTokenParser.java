@@ -84,7 +84,7 @@ public class JwtTokenParser {
                     .build();
         } catch (IncorrectClaimException e) {
             log.warn("AccessToken 必要声明缺失或类型错误", e);
-            throw new BadCredentialsException("无效刷新凭证", e);
+            throw new BadCredentialsException("无效访问凭证", e);
         }
     }
 
@@ -127,7 +127,7 @@ public class JwtTokenParser {
                     .userId(claims.get("userId", Long.class))
                     .campusId(claims.get("campusId", Long.class))
                     .deviceId(claims.get("deviceId", String.class))
-                    .tokenVersion(claims.get("tokenVersion", Integer.class))
+                    .tokenVersion(claims.get("tokenVersion", Long.class))
                     .build();
         } catch (IncorrectClaimException e) {
             log.warn("RefreshToken 必要声明缺失或类型错误", e);
@@ -192,10 +192,11 @@ public class JwtTokenParser {
                 throw new BadCredentialsException("访问凭证缺少唯一标识jti");
             }
 
-            log.info("JWT 解析成功: sub={}, jti={}, exp={}",
+            log.debug("JWT 解析成功: sub={}, jti={}, exp={}",
                 claims.getSubject(),
                 claims.getId(),
                 claims.getExpiration());
+
             // 4. 返回Claims对象
             return claims;
         } catch (ExpiredJwtException e) {
@@ -221,7 +222,7 @@ public class JwtTokenParser {
             log.warn("JWT解析异常:{}", e.getMessage());
             throw new BadCredentialsException("无效访问凭证", e);
         } catch (IllegalArgumentException e) {
-            log.error("JWT解析构造参数异常", e);
+            log.warn("JWT解析构造参数异常", e);
             throw new AuthenticationServiceException("令牌校验服务内部错误", e);
         } catch (Exception e) {
             log.error("JWT解析未知异常", e);

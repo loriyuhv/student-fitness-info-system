@@ -17,10 +17,11 @@
         </encoder>
     </appender>
 
-    <logger name="com.wsw.fitnesssystem" level="INFO"/>
-
-    <!-- dev环境才开启mapper SQL打印 -->
+    <!-- dev环境：业务包开启DEBUG，mapper打印SQL -->
     <springProfile name="dev">
+        <!-- 业务包开启DEBUG：自己代码log.debug()可以输出 -->
+        <logger name="com.wsw.fitnesssystem" level="DEBUG"/>
+
         <!-- auth 上下文 mapper -->
         <logger name="com.wsw.fitnesssystem.auth.infrastructure.persistence.db.mapper"
                 level="DEBUG" additivity="false">
