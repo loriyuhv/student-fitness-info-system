@@ -24,13 +24,15 @@
 
         <!-- auth 上下文 mapper -->
         <logger name="com.wsw.fitnesssystem.auth.infrastructure.persistence.db.mapper"
-                level="DEBUG" additivity="false">
+                level="INFO" additivity="false">
+                <!-- level="DEBUG" additivity="false"> -->
             <appender-ref ref="CONSOLE"/>
         </logger>
 
         <!-- handle_excel 上下文 mapper -->
         <logger name="com.wsw.fitnesssystem.handle_excel.infrastructure.persistence.db.mapper"
-                level="DEBUG" additivity="false">
+                level="INFO" additivity="false">
+                <!-- level="DEBUG" additivity="false"> -->
             <appender-ref ref="CONSOLE"/>
         </logger>
     </springProfile>
