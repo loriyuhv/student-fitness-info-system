@@ -20,7 +20,6 @@ import com.wsw.fitnesssystem.auth.domain.risk.valueobject.RiskFailResult;
 import com.wsw.fitnesssystem.auth.domain.service.AuthDomainService;
 import com.wsw.fitnesssystem.auth.domain.service.SessionDomainService;
 import com.wsw.fitnesssystem.auth.infrastructure.audit.LoginAuditService;
-import com.wsw.fitnesssystem.auth.infrastructure.config.SessionProperties;
 import com.wsw.fitnesssystem.auth.infrastructure.token.model.RefreshTokenClaims;
 import com.wsw.fitnesssystem.auth.infrastructure.security.model.JwtUserPrincipal;
 import com.wsw.fitnesssystem.shared.domain.valueobject.Operator;
@@ -56,7 +55,6 @@ public class AuthApplicationService {
     private final AuthDomainService authDomainService;
     private final LoginAuditService loginAuditService;
     private final SessionRepository sessionRepository;
-    private final SessionProperties sessionProperties;
     private final UserInfoRepository userInfoRepository;
     private final SessionDomainService sessionDomainService;
     private final LoginSuccessProcessor loginSuccessProcessor;
@@ -117,10 +115,7 @@ public class AuthApplicationService {
      */
     public void logout(Operator operator, String accessTokenId) {
         // 1. 将当前 accessToken 加入黑名单
-        sessionRepository.addToBlacklist(
-            accessTokenId,
-            sessionProperties.getAccessTokenExpireMinutes() * 60
-        );
+        sessionRepository.addToBlacklist(accessTokenId);
 
         // 2. 从 ZSET 中删除（会话下线）
         sessionRepository.removeSession(operator, accessTokenId);

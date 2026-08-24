@@ -52,16 +52,36 @@ public class JwtConfig {
     private int minLength;
 
     /**
-     * JWT访问令牌有效期（毫秒），默认2小时
+     * JWT访问令牌有效期（秒），默认15分钟(900秒)
      */
-    @Value("${auth.jwt.expire:7200000}")
+    @Value("${auth.jwt.expire:900}")
     private long expire;
 
     /**
-     * 刷新令牌有效期（毫秒），默认7天
+     * JWT刷新令牌有效期（秒），默认7天(604800秒)
      */
-    @Value("${auth.jwt.refresh-expire:604800000}")
+    @Value("${auth.jwt.refresh-expire:604800}")
     private long refreshExpire;
+
+    /**
+     * 获取访问令牌过期时间（毫秒）
+     * <p>配置值expire单位为秒，内部自动转换为毫秒，用于JWT生成签发过期时间</p>
+     *
+     * @return 访问令牌过期时间，单位：毫秒
+     */
+    public long getExpire() {
+        return expire * 1000L;
+    }
+
+    /**
+     * 获取刷新令牌过期时间（毫秒）
+     * <p>配置值refreshExpire单位为秒，内部自动转换为毫秒，用于刷新Token过期判断</p>
+     *
+     * @return 刷新令牌过期时间，单位：毫秒
+     */
+    public long getRefreshExpire() {
+        return refreshExpire * 1000L;
+    }
 
     /**
      * @return 用于短期JWT签名令牌的SecretKey

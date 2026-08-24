@@ -13,15 +13,24 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 @ConfigurationProperties(prefix = "auth.session")
 public class SessionProperties {
-    /** 登录态过期时间（ZSet / Hash） */
-    private long expireMillis;
 
-    /** AccessToken 过期时间（JWT） */
-    private long accessTokenExpireMinutes;
+    /**
+     * 会话过期时间（单位：秒）
+     * 适用：ZSet、Hash
+     */
+    private long expire;
 
-    /** RefreshToken 过期时间（JWT） */
-    private long refreshTokenExpireMillis;
-
-    /** 单账号最大在线会话数 **/
+    /**
+     * 单账号最大在线会话数
+     */
     private int maxOnlineSessions;
+
+    /**
+     * 获取会话过期时间，转换为毫秒
+     * @return 过期时间（毫秒）
+     */
+    public long getExpire() {
+        return expire * 1000L;
+    }
+
 }

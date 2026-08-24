@@ -71,8 +71,13 @@ public interface SessionRepository {
      * 删除该用户全部会话（踢掉所有设备）
      * <p>实现细节：</p>
      * <ul>
-     *     <li>删除 online ZSet 和 refresh Hash</li>
-     *     <li>通常用于用户主动退出或管理员强制下线</li>
+     *     <li>Lua脚本原子执行：递增用户令牌全局版本号，删除online ZSet、refresh双向映射等全部会话Redis数据</li>
+     *     <li>依靠tokenVersion全局版本实现批量令牌失效，不再批量写入黑名单；
+     *     refreshToken映射会被直接清除，无法刷新新凭证</li>
+     *     <li>返回的tokenId集合为执行前查询快照，存在极小竞态窗口，，允许审计数据源有些许偏差</li>
+     *     <li>安全说明：本方案无法拦截
+     *     <strong>已泄露、且版本号匹配、尚未过期的AccessToken</strong>；
+     *     缩短AccessToken有效期可缩小风险窗口，发现泄露可手动将单条tokenId加入黑名单处置</li>
      * </ul>
      * @param operator 操作对象
      */
@@ -107,9 +112,8 @@ public interface SessionRepository {
      *     <li>配合 removeSession 使用</li>
      * </ul>
      * @param accessTokenId AccessToken ID
-     * @param expireSeconds 黑名单 TTL（秒），通常等于 AccessToken 生命周期
      */
-    void addToBlacklist(String accessTokenId, long expireSeconds);
+    void addToBlacklist(String accessTokenId);
 
     /**
      * 判断指定 AccessToken 是否在黑名单
@@ -148,13 +152,6 @@ public interface SessionRepository {
      * @return token版本号
      */
     long getTokenVersion(Operator operator);
-
-    /**
-     * 递增版本号（修改密码时调用）
-     * @param operator 操作对象
-     * @return token版本号
-     */
-    long incrementTokenVersion(Operator operator);
 
     /**
      * 校验refreshToken是否存在

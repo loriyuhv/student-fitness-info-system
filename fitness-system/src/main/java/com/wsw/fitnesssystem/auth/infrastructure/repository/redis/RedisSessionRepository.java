@@ -1,17 +1,23 @@
 package com.wsw.fitnesssystem.auth.infrastructure.repository.redis;
 
 import com.wsw.fitnesssystem.auth.domain.port.SessionRepository;
+import com.wsw.fitnesssystem.auth.infrastructure.config.JwtConfig;
 import com.wsw.fitnesssystem.auth.infrastructure.config.SessionProperties;
 import com.wsw.fitnesssystem.auth.infrastructure.persistence.redis.model.AuthRedisKeys;
 import com.wsw.fitnesssystem.shared.domain.valueobject.Operator;
 import com.wsw.fitnesssystem.shared.exception.BizException;
 import com.wsw.fitnesssystem.shared.response.ResultCode;
+import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.script.DefaultRedisScript;
+import org.springframework.data.redis.core.script.RedisScript;
 import org.springframework.stereotype.Repository;
 import org.springframework.util.CollectionUtils;
 
+import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
@@ -28,28 +34,128 @@ public class RedisSessionRepository implements SessionRepository {
 
     private final RedisTemplate<String, String> redisTemplate;
     private final SessionProperties sessionProperties;
+    private final JwtConfig jwtConfig;
+
+    // ==================== Lua 脚本定义 ====================
+
+    private RedisScript<Long> saveSessionScript;
+    private RedisScript<String> removeSessionScript;
+    private RedisScript<Long> removeAllSessionsScript;
+    private RedisScript<Long> rotateRefreshTokenScript;
+
+    @PostConstruct
+    public void init() {
+        // 1. 保存会话
+        String saveSessionLua = """
+            local onlineKey = KEYS[1]
+            local refreshToAccessKey = KEYS[2]
+            local accessToRefreshKey = KEYS[3]
+            local accessTokenId = ARGV[1]
+            local refreshTokenId = ARGV[2]
+            local now = ARGV[3]
+            local ttl = ARGV[4]
+            
+            redis.call('ZADD', onlineKey, now, accessTokenId)
+            redis.call('HSET', refreshToAccessKey, refreshTokenId, accessTokenId)
+            redis.call('HSET', accessToRefreshKey, accessTokenId, refreshTokenId)
+            redis.call('PEXPIRE', onlineKey, ttl)
+            redis.call('PEXPIRE', refreshToAccessKey, ttl)
+            redis.call('PEXPIRE', accessToRefreshKey, ttl)
+            
+            return 1
+            """;
+        saveSessionScript = new DefaultRedisScript<>(saveSessionLua, Long.class);
+
+        // 2. 移除单个会话
+        String removeSessionLua = """
+            local onlineKey = KEYS[1]
+            local refreshToAccessKey = KEYS[2]
+            local accessToRefreshKey = KEYS[3]
+            local blacklistKey = KEYS[4]
+            local accessTokenId = ARGV[1]
+            local expireMilliseconds = ARGV[2]
+            
+            redis.call('ZREM', onlineKey, accessTokenId)
+            local refreshTokenId = redis.call('HGET', accessToRefreshKey, accessTokenId)
+            redis.call('HDEL', accessToRefreshKey, accessTokenId)
+            
+            if refreshTokenId then
+                redis.call('HDEL', refreshToAccessKey, refreshTokenId)
+            end
+            
+            redis.call('SET', blacklistKey, "1", 'PX', expireMilliseconds)
+            return refreshTokenId or ""
+            """;
+
+        removeSessionScript = new DefaultRedisScript<>(removeSessionLua, String.class);
+
+        // 3. 移除所有会话（返回 token 列表，Java 端批量拉黑）
+        String removeAllSessionsLua = """
+            local onlineKey = KEYS[1]
+            local refreshToAccessKey = KEYS[2]
+            local accessToRefreshKey = KEYS[3]
+            local tokenVersionKey = KEYS[4]
+
+            local newVersion = redis.call('INCR', tokenVersionKey)
+
+            redis.call('DEL', onlineKey)
+            redis.call('DEL', refreshToAccessKey)
+            redis.call('DEL', accessToRefreshKey)
+
+            return newVersion
+            """;
+        removeAllSessionsScript = new DefaultRedisScript<>(removeAllSessionsLua, Long.class);
+
+        // 4. 轮换 RefreshToken
+        String rotateRefreshTokenLua = """
+            local onlineKey = KEYS[1]
+            local refreshToAccessKey = KEYS[2]
+            local accessToRefreshKey = KEYS[3]
+            local blacklistKey = KEYS[4]
+            local oldRefreshTokenId = ARGV[1]
+            local oldAccessTokenId = ARGV[2]
+            local newRefreshTokenId = ARGV[3]
+            local newAccessTokenId = ARGV[4]
+            local now = ARGV[5]
+            local sessionTtl = ARGV[6]
+            local blacklistExpire = ARGV[7]
+
+            redis.call('HDEL', refreshToAccessKey, oldRefreshTokenId)
+            redis.call('HSET', refreshToAccessKey, newRefreshTokenId, newAccessTokenId)
+
+            redis.call('HDEL', accessToRefreshKey, oldAccessTokenId)
+            redis.call('HSET', accessToRefreshKey, newAccessTokenId, newRefreshTokenId)
+
+            redis.call('ZREM', onlineKey, oldAccessTokenId)
+            redis.call('ZADD', onlineKey, now, newAccessTokenId)
+
+            redis.call('PEXPIRE', refreshToAccessKey, sessionTtl)
+            redis.call('PEXPIRE', accessToRefreshKey, sessionTtl)
+            redis.call('PEXPIRE', onlineKey, sessionTtl)
+
+            redis.call('SET', blacklistKey, "1", 'PX', blacklistExpire)
+            return 1
+            """;
+        rotateRefreshTokenScript = new DefaultRedisScript<>(rotateRefreshTokenLua, Long.class);
+    }
+
+    // ==================== 业务方法实现 ====================
 
     @Override
     public void saveSession(Operator operator, String accessTokenId, String refreshTokenId) {
         long now = System.currentTimeMillis();
-        String onlineKey = AuthRedisKeys.onlineKey(operator);
-        String refreshToAccessKey = AuthRedisKeys.refreshToAccessKey(operator);
-        String accessToRefreshKey = AuthRedisKeys.accessToRefreshKey(operator);
+        long ttl = sessionProperties.getExpire();
 
-        // 1. 保存 AccessToken：用户当前在线的 accessToken 用途：1）查看用户在线设备 2）踢掉某个token
-        redisTemplate.opsForZSet().add(onlineKey, accessTokenId, now);
-
-        // 2. 保存 refreshToken -> accessToken 用途：通过refreshToken找到旧的accessToken，使它失效，生成新token
-        redisTemplate.opsForHash().put(refreshToAccessKey, refreshTokenId, accessTokenId);
-
-        // 3. 保存 accessToken -> refreshToken 用途：通过accessToken找到旧的refreshToken
-        redisTemplate.opsForHash().put(accessToRefreshKey, accessTokenId, refreshTokenId);
-
-        // 4. 为什么都用ttl，因为这是会话声明周期，不是accessToken的生命周期
-        long ttl = sessionProperties.getExpireMillis();
-        redisTemplate.expire(onlineKey, ttl, TimeUnit.MILLISECONDS);
-        redisTemplate.expire(refreshToAccessKey, ttl, TimeUnit.MILLISECONDS);
-        redisTemplate.expire(accessToRefreshKey, ttl, TimeUnit.MILLISECONDS);
+        redisTemplate.execute(
+            saveSessionScript,
+            List.of(
+                AuthRedisKeys.onlineKey(operator),
+                AuthRedisKeys.refreshToAccessKey(operator),
+                AuthRedisKeys.accessToRefreshKey(operator)
+            ),
+            accessTokenId, refreshTokenId,
+            String.valueOf(now), String.valueOf(ttl)
+        );
 
         log.info("Save session for user {} campus {}, accessTokenId {}",
                 operator.userId(), operator.campusId(), accessTokenId);
@@ -57,58 +163,47 @@ public class RedisSessionRepository implements SessionRepository {
 
     @Override
     public void removeSession(Operator operator, String accessTokenId) {
-        String onlineKey = AuthRedisKeys.onlineKey(operator);
-        String refreshToAccessKey = AuthRedisKeys.refreshToAccessKey(operator);
-        String accessToRefreshKey = AuthRedisKeys.accessToRefreshKey(operator);
+        String refreshTokenId = redisTemplate.execute(
+            removeSessionScript,
+            List.of(
+                AuthRedisKeys.onlineKey(operator),
+                AuthRedisKeys.refreshToAccessKey(operator),
+                AuthRedisKeys.accessToRefreshKey(operator),
+                AuthRedisKeys.blacklistKey(accessTokenId)
+            ),
+            accessTokenId,
+            String.valueOf(jwtConfig.getExpire())
+        );
 
-        // 1. 移除在线状态
-        redisTemplate.opsForZSet().remove(onlineKey, accessTokenId);
-
-        // 2. 通过accessTokenId拿到关联的refreshTokenId
-        Object refreshTokenIdObj = redisTemplate.opsForHash().get(accessToRefreshKey, accessTokenId);
-        if (refreshTokenIdObj == null) {
-            // token不存在，直接返回，已经失效
-            return;
+        // refreshTokenId 为 "" 表示原本就不存在，已经失效
+        if (refreshTokenId.isEmpty()) {
+            log.warn("Token {} not found or already expired", accessTokenId);
         }
-        String refreshTokenId = refreshTokenIdObj.toString();
-
-        // 3. 删除access侧field
-        redisTemplate.opsForHash().delete(accessToRefreshKey, accessTokenId);
-
-        // 4. 删除refresh侧field
-        redisTemplate.opsForHash().delete(refreshToAccessKey, refreshTokenId);
-
-        // 5. 加入黑名单，TTL 使用 AccessToken 过期时间
-        addToBlacklist(accessTokenId, sessionProperties.getAccessTokenExpireMinutes() * 60);
     }
 
     @Override
     public Set<String> removeAllSessions(Operator operator) {
-        // 1. 获取用户所有在线 Access Token ID 集合
+        // 1. Java查询当前在线tokenId，用于审计与接口返回
         Set<String> tokenIds = getAllSessions(operator);
-
         if (tokenIds == null || tokenIds.isEmpty()) {
             log.info("User {} campus {} has no online session to kick.",
                     operator.userId(), operator.campusId());
-            return null;
+            return Collections.emptySet();
         }
 
-        // 2. 加入黑名单
-        for (String tokenId : tokenIds) {
-            addToBlacklist(
-                    tokenId, sessionProperties.getAccessTokenExpireMinutes() * 60);
-        }
-
-        // 3. 递增版本号，使所有旧令牌失效
-        long newVersion = incrementTokenVersion(operator);
-
-        // 4. 清除在线会话数据
-        redisTemplate.delete(AuthRedisKeys.onlineKey(operator));
-        redisTemplate.delete(AuthRedisKeys.refreshToAccessKey(operator));
-        redisTemplate.delete(AuthRedisKeys.accessToRefreshKey(operator));
+        // 2. Lua脚本原子操作：版本自增 + 删除全部会话相关key, 返回递增后的新版本号
+        Long newTokenVersion = redisTemplate.execute(
+            removeAllSessionsScript,
+            List.of(
+                AuthRedisKeys.onlineKey(operator),
+                AuthRedisKeys.refreshToAccessKey(operator),
+                AuthRedisKeys.accessToRefreshKey(operator),
+                AuthRedisKeys.tokenVersionKey(operator)
+            )
+        );
 
         log.info("Removed all sessions for user {} campus {}, version incremented to {}",
-            operator.userId(), operator.campusId(), newVersion);
+            operator.userId(), operator.campusId(), newTokenVersion);
 
         return tokenIds;
     }
@@ -130,9 +225,10 @@ public class RedisSessionRepository implements SessionRepository {
     }
 
     @Override
-    public void addToBlacklist(String accessTokenId, long expireSeconds) {
+    public void addToBlacklist(String accessTokenId) {
         String blacklistKey = AuthRedisKeys.blacklistKey(accessTokenId);
-        redisTemplate.opsForValue().set(blacklistKey, "1", expireSeconds, TimeUnit.SECONDS);
+        long ttl = jwtConfig.getExpire();
+        redisTemplate.opsForValue().set(blacklistKey, "1", ttl, TimeUnit.MILLISECONDS);
     }
 
     @Override
@@ -168,20 +264,10 @@ public class RedisSessionRepository implements SessionRepository {
         if (value == null) {
             // 首次使用，初始化为 1
             redisTemplate.opsForValue()
-                    .set(key, "1", sessionProperties.getExpireMillis(), TimeUnit.MILLISECONDS);
+                    .set(key, "1", jwtConfig.getExpire(), TimeUnit.MILLISECONDS);
             return 1L;
         }
         return Long.parseLong(value);
-    }
-
-    @Override
-    public long incrementTokenVersion(Operator operator) {
-        String key = AuthRedisKeys.tokenVersionKey(operator);
-        // increment 方法会返回递增后的新值，如果 key 不存在则从 0 开始递增（返回 1）
-        Long newVersion = redisTemplate.opsForValue().increment(key);
-        // 可选：设置 TTL（版本号通常永久有效，也可以与用户生命周期一致）
-        redisTemplate.expire(key, sessionProperties.getExpireMillis(), TimeUnit.MILLISECONDS);
-        return newVersion == null ? 1 : newVersion;
     }
 
     @Override
@@ -193,32 +279,21 @@ public class RedisSessionRepository implements SessionRepository {
     @Override
     public void rotateRefreshToken(Operator operator, String oldRefreshTokenId, String oldAccessTokenId, String newRefreshTokenId, String newAccessTokenId) {
         long now = System.currentTimeMillis();
-        long sessionTtl = sessionProperties.getExpireMillis();
-        String onlineKey = AuthRedisKeys.onlineKey(operator);
-        String refreshToAccessKey = AuthRedisKeys.refreshToAccessKey(operator);
-        String accessToRefreshKey = AuthRedisKeys.accessToRefreshKey(operator);
+        long sessionTtl = sessionProperties.getExpire();
 
-        // 1. Hash：移除旧RefreshToken映射，写入新RefreshToken <-> 新AccessToken映射
-        redisTemplate.opsForHash().delete(refreshToAccessKey, oldRefreshTokenId);
-        redisTemplate.opsForHash().put(refreshToAccessKey, newRefreshTokenId, newAccessTokenId);
-
-        // 2. Hash：移除旧AccessToken映射，写入新AccessToken <-> 新RefreshToken映射
-        redisTemplate.opsForHash().delete(accessToRefreshKey, oldAccessTokenId);
-        redisTemplate.opsForHash().put(accessToRefreshKey, newAccessTokenId, newRefreshTokenId);
-
-        // 3. ZSet在线列表：移除旧AccessTokenId，新增新AccessTokenId
-        redisTemplate.opsForZSet().remove(onlineKey, oldAccessTokenId);
-        redisTemplate.opsForZSet().add(onlineKey, newAccessTokenId, now);
-
-        // 4. 会话续期：刷新代表用户活跃，两个key统一重置TTL（和登录saveSession行为一致）
-        redisTemplate.expire(refreshToAccessKey, sessionTtl, TimeUnit.MILLISECONDS);
-        redisTemplate.expire(accessToRefreshKey, sessionTtl, TimeUnit.MILLISECONDS);
-        redisTemplate.expire(onlineKey, sessionTtl, TimeUnit.MILLISECONDS);
-
-        // 5. 旧AccessToken加入黑名单，拒绝后续访问
-        addToBlacklist(
-                oldAccessTokenId,
-                sessionProperties.getAccessTokenExpireMinutes() * 60
+        redisTemplate.execute(
+            rotateRefreshTokenScript,
+            List.of(
+                AuthRedisKeys.onlineKey(operator),
+                AuthRedisKeys.refreshToAccessKey(operator),
+                AuthRedisKeys.accessToRefreshKey(operator),
+                AuthRedisKeys.blacklistKey(oldAccessTokenId)
+            ),
+            oldRefreshTokenId, oldAccessTokenId,
+            newRefreshTokenId, newAccessTokenId,
+            String.valueOf(now),
+            String.valueOf(sessionTtl),
+            String.valueOf(sessionProperties.getExpire())
         );
     }
 
