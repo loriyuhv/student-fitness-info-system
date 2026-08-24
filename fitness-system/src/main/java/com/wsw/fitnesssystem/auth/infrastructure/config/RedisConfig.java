@@ -89,7 +89,7 @@ public class RedisConfig {
 
         // 4.2 忽略值为 null 的字段，节省存储空间
         // 例如：permissions 为 null 时，JSON 中不包含该字段，而不是 "permissions":null
-        mapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
+        mapper.setDefaultPropertyInclusion(JsonInclude.Include.NON_NULL);
 
         // 4.3 【关键】禁用 Jackson 的类型信息功能
         // 默认情况下，Jackson 会在 JSON 中写入 "@class": "完整类名"，用于反序列化时自动推断类型

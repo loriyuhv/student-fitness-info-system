@@ -42,6 +42,7 @@ public class RedisSessionRepository implements SessionRepository {
     private RedisScript<String> removeSessionScript;
     private RedisScript<Long> removeAllSessionsScript;
     private RedisScript<Long> rotateRefreshTokenScript;
+    private RedisScript<Long> getTokenVersionScript;
 
     @PostConstruct
     public void init() {
@@ -137,6 +138,20 @@ public class RedisSessionRepository implements SessionRepository {
             return 1
             """;
         rotateRefreshTokenScript = new DefaultRedisScript<>(rotateRefreshTokenLua, Long.class);
+
+        // 5. 获取 Token 版本号（带初始化）
+        String getTokenVersionLua = """
+            local tokenVersionKey = KEYS[1]
+            
+            local currentVersion = redis.call('GET', tokenVersionKey)
+            if currentVersion then
+                return currentVersion
+            end
+            
+            redis.call('SET', tokenVersionKey, 1)
+            return 1
+            """;
+        getTokenVersionScript = new DefaultRedisScript<>(getTokenVersionLua, Long.class);
     }
 
     // ==================== 业务方法实现 ====================
@@ -259,15 +274,10 @@ public class RedisSessionRepository implements SessionRepository {
 
     @Override
     public long getTokenVersion(Operator operator) {
-        String key = AuthRedisKeys.tokenVersionKey(operator);
-        String value = redisTemplate.opsForValue().get(key);
-        if (value == null) {
-            // 首次使用，初始化为 1
-            redisTemplate.opsForValue()
-                    .set(key, "1", jwtConfig.getExpire(), TimeUnit.MILLISECONDS);
-            return 1L;
-        }
-        return Long.parseLong(value);
+        return redisTemplate.execute(
+            getTokenVersionScript,
+            Collections.singletonList(AuthRedisKeys.tokenVersionKey(operator))
+        );
     }
 
     @Override
