@@ -22,6 +22,7 @@ import java.util.Set;
 @RequiredArgsConstructor
 @RequestMapping("/admin/users")
 public class AdminUserController {
+
     private final AuthApplicationService authApplicationService;
 
     /**
@@ -32,7 +33,7 @@ public class AdminUserController {
      * @return 成功返回操作结果
      */
     @PostMapping("/{campusId}/{userId}/kick")
-    @PreAuthorize("hasRole('ROLE_ADMIN')") // 只允许管理员访问
+    @PreAuthorize("hasRole('ADMIN')")
     public ApiResult<String> kickUser(
         @PathVariable Long campusId, @PathVariable Long userId) {
 
