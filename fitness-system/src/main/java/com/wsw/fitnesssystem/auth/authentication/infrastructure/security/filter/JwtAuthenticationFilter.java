@@ -1,14 +1,14 @@
 package com.wsw.fitnesssystem.auth.authentication.infrastructure.security.filter;
 
+import com.wsw.fitnesssystem.auth.authentication.application.port.TokenPort;
 import com.wsw.fitnesssystem.auth.authentication.application.service.AuthorizationQueryService;
 import com.wsw.fitnesssystem.auth.authorization.application.dto.AuthorizationQuery;
 import com.wsw.fitnesssystem.auth.authorization.application.dto.UserAuthorization;
 import com.wsw.fitnesssystem.auth.session.domain.port.SessionRepository;
 import com.wsw.fitnesssystem.auth.authentication.infrastructure.config.SecurityProperties;
-import com.wsw.fitnesssystem.auth.authentication.infrastructure.token.model.AccessTokenClaims;
+import com.wsw.fitnesssystem.auth.authentication.application.dto.AccessTokenClaims;
 import com.wsw.fitnesssystem.auth.authentication.infrastructure.security.handler.JwtAuthenticationEntryPoint;
 import com.wsw.fitnesssystem.auth.authentication.infrastructure.security.model.JwtUserPrincipal;
-import com.wsw.fitnesssystem.auth.authentication.infrastructure.token.service.JwtTokenService;
 import com.wsw.fitnesssystem.shared.context.LoginContext;
 import com.wsw.fitnesssystem.shared.domain.valueobject.Operator;
 import jakarta.servlet.FilterChain;
@@ -71,7 +71,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     /** 存放Token的Http请求头名称 */
     private static final String AUTH_HEADER = "Authorization";
 
-    private final JwtTokenService jwtTokenService;
+    private final TokenPort tokenPort;
     private final SessionRepository sessionRepository;
     private final SecurityProperties securityProperties;
     private final JwtAuthenticationEntryPoint authenticationEntryPoint;
@@ -115,7 +115,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
             // 2. 解析AccessToken，完成验签、过期、签发者、受众校验
             // 底层JwtTokenService会将原生Jwt异常转换为AuthenticationException，向上抛出
-            AccessTokenClaims claims = jwtTokenService.parseAccessToken(token);
+            AccessTokenClaims claims = tokenPort.parseAccessToken(token);
 
             String tokenId = claims.getJti();
             Long userId = claims.getUserId();

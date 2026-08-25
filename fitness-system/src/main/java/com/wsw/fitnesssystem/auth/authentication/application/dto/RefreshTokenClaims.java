@@ -1,4 +1,4 @@
-package com.wsw.fitnesssystem.auth.authentication.infrastructure.token.model;
+package com.wsw.fitnesssystem.auth.authentication.application.dto;
 
 import lombok.Builder;
 import lombok.Data;
@@ -45,4 +45,5 @@ public class RefreshTokenClaims {
 
     /** Token 版本号，用于全局或单用户 Token 失效控制 */
     private Long tokenVersion;
+
 }

@@ -1,4 +1,4 @@
-package com.wsw.fitnesssystem.auth.authentication.infrastructure.token.model;
+package com.wsw.fitnesssystem.auth.authentication.application.dto;
 
 import lombok.Builder;
 import lombok.Data;
@@ -26,6 +26,7 @@ import lombok.Data;
 @Data
 @Builder
 public class AccessTokenClaims {
+
     /** JWT唯一标识（jti），可用于单设备下线或 Token 撤销 */
     private String jti;
 
@@ -43,4 +44,5 @@ public class AccessTokenClaims {
 
     /** Token 版本号，用于全局或单用户 Token 失效控制 */
     private Long tokenVersion;
+
 }

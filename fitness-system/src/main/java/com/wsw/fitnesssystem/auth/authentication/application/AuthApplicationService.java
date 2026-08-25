@@ -11,7 +11,7 @@ import com.wsw.fitnesssystem.auth.authorization.application.dto.AuthorizationQue
 import com.wsw.fitnesssystem.auth.authorization.application.dto.UserAuthorization;
 import com.wsw.fitnesssystem.auth.authentication.application.service.LoginSuccessProcessor;
 import com.wsw.fitnesssystem.auth.risk.application.RiskControlService;
-import com.wsw.fitnesssystem.auth.authentication.application.port.TokenService;
+import com.wsw.fitnesssystem.auth.authentication.application.port.TokenPort;
 import com.wsw.fitnesssystem.auth.audit.domain.valueobject.LogoutReason;
 import com.wsw.fitnesssystem.auth.authentication.domain.model.AuthUser;
 import com.wsw.fitnesssystem.auth.authentication.application.dto.TokenPair;
@@ -21,7 +21,7 @@ import com.wsw.fitnesssystem.auth.authentication.domain.port.UserInfoRepository;
 import com.wsw.fitnesssystem.auth.risk.domain.valueobject.RiskFailResult;
 import com.wsw.fitnesssystem.auth.authentication.domain.service.AuthDomainService;
 import com.wsw.fitnesssystem.auth.session.domain.service.SessionDomainService;
-import com.wsw.fitnesssystem.auth.authentication.infrastructure.token.model.RefreshTokenClaims;
+import com.wsw.fitnesssystem.auth.authentication.application.dto.RefreshTokenClaims;
 import com.wsw.fitnesssystem.auth.authentication.infrastructure.security.model.JwtUserPrincipal;
 import com.wsw.fitnesssystem.shared.domain.valueobject.Operator;
 import com.wsw.fitnesssystem.shared.exception.BizException;
@@ -51,7 +51,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class AuthApplicationService {
 
-    private final TokenService tokenService;
+    private final TokenPort tokenPort;
     private final AuditAppService auditAppService;
     private final SessionRepository sessionRepository;
     private final AuthDomainService authDomainService;
@@ -68,7 +68,7 @@ public class AuthApplicationService {
      * <ol>
      *     <li>风控前置检查：校验账号是否被锁定及失败次数限制 {@link RiskControlService#preCheck(String)}</li>
      *     <li>用户认证：调用领域服务验证用户名和密码 {@link #authenticate(LoginCommand)}</li>
-     *     <li>生成 Token：生成 Access Token 与 Refresh Token {@link TokenService}</li>
+     *     <li>生成 Token：生成 Access Token 与 Refresh Token {@link TokenPort}</li>
      *     <li>登录成功后处理：多端限制、会话持久化、授权缓存、审计 {@link LoginSuccessProcessor}</li>
      *     <li>构建返回结果：封装登录响应 {@link #buildResponse(TokenPair)}</li>
      * </ol>
@@ -99,7 +99,7 @@ public class AuthApplicationService {
                 user.getUsername(), user.getUserType()
         );
         long tokenVersion = sessionRepository.getTokenVersion(operator);
-        TokenPair tokenPair = tokenService.generate(
+        TokenPair tokenPair = tokenPort.generate(
                 operator, cmd.getDeviceId(),
                 tokenVersion, accessTokenId, refreshTokenId
         );
@@ -155,7 +155,7 @@ public class AuthApplicationService {
 
     public RefreshTokenResponse refreshAccessToken(String refreshToken) {
         // 1.解析refresh token
-        RefreshTokenClaims claims = tokenService.parseRefreshToken(refreshToken);
+        RefreshTokenClaims claims = tokenPort.parseRefreshToken(refreshToken);
 
         Long campusId = claims.getCampusId();
         Long userId = claims.getUserId();
@@ -176,7 +176,7 @@ public class AuthApplicationService {
         String newAccessTokenId = UUID.randomUUID().toString();
         String newRefreshTokenId = UUID.randomUUID().toString();
         long tokenVersion = sessionRepository.getTokenVersion(operator);
-        TokenPair tokenPair = tokenService.generate(
+        TokenPair tokenPair = tokenPort.generate(
                 operator,
                 claims.getDeviceId(),
                 tokenVersion,

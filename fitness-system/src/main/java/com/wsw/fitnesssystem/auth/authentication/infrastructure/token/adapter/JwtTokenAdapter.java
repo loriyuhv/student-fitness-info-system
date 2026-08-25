@@ -1,10 +1,10 @@
-package com.wsw.fitnesssystem.auth.authentication.infrastructure.token.service;
+package com.wsw.fitnesssystem.auth.authentication.infrastructure.token.adapter;
 
 import com.wsw.fitnesssystem.auth.authentication.application.dto.TokenPair;
-import com.wsw.fitnesssystem.auth.authentication.application.port.TokenService;
+import com.wsw.fitnesssystem.auth.authentication.application.port.TokenPort;
 import com.wsw.fitnesssystem.auth.authentication.infrastructure.config.JwtConfig;
-import com.wsw.fitnesssystem.auth.authentication.infrastructure.token.model.AccessTokenClaims;
-import com.wsw.fitnesssystem.auth.authentication.infrastructure.token.model.RefreshTokenClaims;
+import com.wsw.fitnesssystem.auth.authentication.application.dto.AccessTokenClaims;
+import com.wsw.fitnesssystem.auth.authentication.application.dto.RefreshTokenClaims;
 import com.wsw.fitnesssystem.auth.authentication.infrastructure.token.model.TokenPrincipal;
 import com.wsw.fitnesssystem.auth.authentication.infrastructure.token.parser.JwtTokenParser;
 import com.wsw.fitnesssystem.auth.authentication.infrastructure.token.provider.JwtTokenProvider;
@@ -52,15 +52,16 @@ import org.springframework.stereotype.Service;
 @Service
 @Getter
 @RequiredArgsConstructor
-public class JwtTokenService implements TokenService {
+public class JwtTokenAdapter implements TokenPort {
+
     private final JwtConfig jwtConfig;
     private final JwtTokenProvider jwtTokenProvider;
     private final JwtTokenParser jwtTokenParser;
 
     @Override
-    public TokenPair generate(
-            Operator operator, String deviceId, Long tokenVersion,
+    public TokenPair generate(Operator operator, String deviceId, Long tokenVersion,
             String accessTokenId, String refreshTokenId) {
+
         String accessToken = generateAccessToken(
                 operator,
                 tokenVersion,
@@ -70,8 +71,8 @@ public class JwtTokenService implements TokenService {
                 operator,
                 deviceId,
                 tokenVersion,
-                refreshTokenId);
-
+                refreshTokenId
+        );
         return TokenPair.builder()
             .accessTokenId(accessTokenId)
             .refreshTokenId(refreshTokenId)
@@ -80,41 +81,48 @@ public class JwtTokenService implements TokenService {
             .accessTokenExpiresIn(jwtConfig.getExpire() / 1000L)
             .refreshTokenExpiresIn(jwtConfig.getRefreshExpire() / 1000L)
             .build();
+
     }
 
+    @Override
     public AccessTokenClaims parseAccessToken(String accessToken) {
         return jwtTokenParser.parseAccessToken(accessToken);
     }
 
+    @Override
     public RefreshTokenClaims parseRefreshToken(String refreshToken) {
         return jwtTokenParser.parseRefreshToken(refreshToken);
     }
 
     private String generateAccessToken(
-            Operator operator, Long tokenVersion, String accessTokenId) {
+        Operator operator, Long tokenVersion, String accessTokenId) {
 
         return jwtTokenProvider.generateAccessToken(
             TokenPrincipal.builder()
-                    .userId(operator.userId())
-                    .campusId(operator.campusId())
-                    .username(operator.username())
-                    .userType(operator.userType())
-                    .tokenVersion(tokenVersion)
-                    .build(),
-                accessTokenId);
+                .userId(operator.userId())
+                .campusId(operator.campusId())
+                .username(operator.username())
+                .userType(operator.userType())
+                .tokenVersion(tokenVersion)
+                .build(),
+            accessTokenId
+        );
+
     }
 
     private String generateRefreshToken(
-            Operator operator, String deviceId, Long tokenVersion,
-            String refreshTokenId) {
+            Operator operator, String deviceId, Long tokenVersion, String refreshTokenId) {
 
         return jwtTokenProvider.generateRefreshToken(
             TokenPrincipal.builder()
-                    .campusId(operator.campusId())
-                    .userId(operator.userId())
-                    .deviceId(deviceId)
-                    .tokenVersion(tokenVersion)
-                    .build(),
-                refreshTokenId);
+                .campusId(operator.campusId())
+                .userId(operator.userId())
+                .deviceId(deviceId)
+                .tokenVersion(tokenVersion)
+                .build(),
+            refreshTokenId
+        );
+
     }
+
 }
