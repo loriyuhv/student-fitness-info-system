@@ -1,6 +1,6 @@
 package com.wsw.fitnesssystem.auth.application.risk;
 
-import com.wsw.fitnesssystem.auth.application.service.RiskControlService;
+import com.wsw.fitnesssystem.auth.risk.application.RiskControlService;
 import com.wsw.fitnesssystem.shared.exception.BizException;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

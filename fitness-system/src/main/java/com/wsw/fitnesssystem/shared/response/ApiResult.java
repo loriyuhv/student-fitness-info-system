@@ -47,21 +47,20 @@ public class ApiResult<T> {
     /* ================= 成功响应 ================= */
 
     public static <T> ApiResult<T> success() {
-        return success(null);
+        return success(ResultCode.SUCCESS);
     }
 
     public static <T> ApiResult<T> success(T data) {
         return from(ResultCode.SUCCESS, data);
     }
 
-    public static <T> ApiResult<T> success(String message) {
-        return new ApiResult<>(
-                ResultCode.SUCCESS.httpCode(),
-                ResultCode.SUCCESS.getCode(),
-                message,
-                null,
-                System.currentTimeMillis()
-        );
+    public static <T> ApiResult<T> success(ResultCode resultCode) {
+        return from(resultCode, null);
+    }
+
+
+    public static <T> ApiResult<T> success(ResultCode resultCode, String message) {
+        return from(resultCode, null, message);
     }
 
     public static <T> ApiResult<T> success(String message, T data) {
