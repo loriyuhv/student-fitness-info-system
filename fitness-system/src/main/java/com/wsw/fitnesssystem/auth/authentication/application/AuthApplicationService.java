@@ -6,7 +6,7 @@ import com.wsw.fitnesssystem.auth.authentication.application.command.LoginComman
 import com.wsw.fitnesssystem.auth.authentication.application.dto.LoginResponse;
 import com.wsw.fitnesssystem.auth.authentication.application.dto.RefreshTokenResponse;
 import com.wsw.fitnesssystem.auth.authentication.application.vo.UserInfoVO;
-import com.wsw.fitnesssystem.auth.authentication.application.service.AuthorizationQueryService;
+import com.wsw.fitnesssystem.auth.authorization.application.service.AuthorizationQueryService;
 import com.wsw.fitnesssystem.auth.authorization.application.dto.AuthorizationQuery;
 import com.wsw.fitnesssystem.auth.authorization.application.dto.UserAuthorization;
 import com.wsw.fitnesssystem.auth.authentication.application.service.LoginSuccessProcessor;
