@@ -5,7 +5,8 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
-import java.util.concurrent.ForkJoinPool;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executor;
 import java.util.function.Function;
 
 /**
@@ -20,10 +21,10 @@ import java.util.function.Function;
 @Component
 public class ParallelConvertExecutor {
 
-    private final ForkJoinPool convertPool;
+    private final Executor computeExecutor;
 
-    public ParallelConvertExecutor(@Qualifier("cpuIntensiveConvertPool") ForkJoinPool pool) {
-        this.convertPool = pool;
+    public ParallelConvertExecutor(@Qualifier("computeExecutor") Executor computeExecutor) {
+        this.computeExecutor = computeExecutor;
     }
 
     /**
@@ -41,17 +42,13 @@ public class ParallelConvertExecutor {
         }
 
         try {
-            // 在自定义 ForkJoinPool 中执行 parallelStream，
-            // parallelStream 会自动使用该 Pool 而非 common pool
-            return convertPool.submit(() ->
-                    list.parallelStream()
-                            .map(converter)
-                            .toList()
-            ).get();
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            log.warn("并行转换被中断，降级为单线程处理");
-            return list.stream().map(converter).toList();
+            List<CompletableFuture<R>> futures = list.stream()
+                .map(item -> CompletableFuture.supplyAsync(() -> converter.apply(item),
+                    this.computeExecutor)
+                ).toList();
+
+            // 等待全部转换完成
+            return futures.stream().map(CompletableFuture::join).toList();
         } catch (Exception e) {
             log.warn("并行转换异常，降级为单线程处理", e);
             return list.stream().map(converter).toList();
