@@ -77,8 +77,8 @@ public class JwtTokenService implements TokenService {
             .refreshTokenId(refreshTokenId)
             .accessToken(accessToken)
             .refreshToken(refreshToken)
-            .accessTokenExpiresIn(jwtConfig.getExpire())
-            .refreshTokenExpiresIn(jwtConfig.getRefreshExpire())
+            .accessTokenExpiresIn(jwtConfig.getExpire() / 1000L)
+            .refreshTokenExpiresIn(jwtConfig.getRefreshExpire() / 1000L)
             .build();
     }
 

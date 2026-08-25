@@ -1,7 +1,7 @@
-package com.wsw.fitnesssystem.auth.infrastructure.persistence.db.mapper;
+package com.wsw.fitnesssystem.auth.infrastructure.audit.persistence.db.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
-import com.wsw.fitnesssystem.auth.infrastructure.persistence.db.entity.SysUserLogin;
+import com.wsw.fitnesssystem.auth.infrastructure.audit.persistence.db.entity.SysUserLogin;
 import org.apache.ibatis.annotations.Mapper;
 
 /**

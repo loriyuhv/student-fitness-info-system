@@ -1,5 +1,6 @@
 package com.wsw.fitnesssystem.auth.application.service.impl;
 
+import com.wsw.fitnesssystem.auth.application.audit.AuditAppService;
 import com.wsw.fitnesssystem.auth.application.authentication.command.LoginCommand;
 import com.wsw.fitnesssystem.auth.application.service.AuthorizationQueryService;
 import com.wsw.fitnesssystem.auth.application.dto.AuthorizationQuery;
@@ -9,10 +10,11 @@ import com.wsw.fitnesssystem.auth.domain.model.AuthUser;
 import com.wsw.fitnesssystem.auth.application.dto.TokenPair;
 import com.wsw.fitnesssystem.auth.domain.port.SessionRepository;
 import com.wsw.fitnesssystem.auth.domain.service.SessionDomainService;
-import com.wsw.fitnesssystem.auth.infrastructure.audit.LoginAuditService;
 import com.wsw.fitnesssystem.shared.domain.valueobject.Operator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+
+import java.time.LocalDateTime;
 
 /**
  * 登录成功处理器实现类
@@ -36,7 +38,7 @@ import org.springframework.stereotype.Service;
  *     <li>{@link SessionDomainService} - 多端登录限制策略</li>
  *     <li>{@link SessionRepository} - 会话持久化</li>
  *     <li>{@link AuthorizationQueryService} - 授权服务</li>
- *     <li>{@link LoginAuditService} - 登录审计</li>
+ *     <li>{@link AuditAppService} - 登录审计</li>
  * </ul>
  * @author loriyuhv
  * @version 1.0 2026/3/21 14:06
@@ -59,7 +61,7 @@ public class LoginSuccessProcessorImpl implements LoginSuccessProcessor {
     private final AuthorizationQueryService authorizationQueryService;
 
     /** 登录审计服务，用于记录登录成功事件 */
-    private final LoginAuditService loginAuditService;
+    private final AuditAppService auditAppService;
 
     /**
      * 处理登录成功后的业务操作
@@ -79,7 +81,7 @@ public class LoginSuccessProcessorImpl implements LoginSuccessProcessor {
      */
     @Override
     public void process(AuthUser user, LoginCommand cmd, TokenPair tokenPair) {
-        Operator operator = new Operator(user.getCampusId(), user.getUserId(), null, null);
+        Operator operator = new Operator(user.getCampusId(), user.getUserId(), user.getUsername(), null);
         // 1. 风控成功处理
         riskControlService.onSuccess(user.getUsername());
 
@@ -100,8 +102,18 @@ public class LoginSuccessProcessorImpl implements LoginSuccessProcessor {
                 .build();
         authorizationQueryService.authorize(authorizationQuery);
 
-        // 5. 审计日志
-        loginAuditService.loginSuccess(
-                operator.userId(), cmd, tokenPair);
+        // 5. 审计日志 （应用层编排，异步执行）
+        LocalDateTime tokenExpiresIn = LocalDateTime.now()
+            .plusSeconds(tokenPair.getAccessTokenExpiresIn());
+        auditAppService.recordLoginSuccess(
+            operator.userId(),
+            operator.username(),
+            tokenPair.getAccessTokenId(),
+            tokenExpiresIn,
+            cmd.getDeviceType(),
+            cmd.getUserAgent(),
+            cmd.getIp()
+        );
     }
+
 }

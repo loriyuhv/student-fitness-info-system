@@ -8,7 +8,6 @@ import com.wsw.fitnesssystem.auth.infrastructure.config.SecurityProperties;
 import com.wsw.fitnesssystem.auth.infrastructure.token.model.AccessTokenClaims;
 import com.wsw.fitnesssystem.auth.infrastructure.security.handler.JwtAuthenticationEntryPoint;
 import com.wsw.fitnesssystem.auth.infrastructure.security.model.JwtUserPrincipal;
-import com.wsw.fitnesssystem.auth.infrastructure.audit.LoginAuditService;
 import com.wsw.fitnesssystem.auth.infrastructure.token.service.JwtTokenService;
 import com.wsw.fitnesssystem.shared.context.LoginContext;
 import com.wsw.fitnesssystem.shared.domain.valueobject.Operator;
@@ -47,12 +46,15 @@ import java.util.stream.Stream;
  * 6. 设置业务线程上下文 {@link LoginContext}；
  * 7. 放行过滤器链；请求结束自动清理ThreadLocal上下文；
  * </p>
- * <p>
- * 架构说明：
- * 本过滤器不再就地捕获认证异常、直接输出响应；所有认证异常向上冒泡，由 {@code JwtAuthenticationEntryPoint} 统一处理返回JSON；
- * 使用双层finally兜底清理ThreadLocal，防止线程池复用产生上下文泄漏；
- * 权限过期属于业务异常，本过滤器直接输出响应。
- * </p>
+ *
+ * <p><b>架构说明：</b></p>
+ * <li>本过滤器不再就地捕获认证异常、直接输出响应；所有认证异常向上冒泡，
+ * 由 {@code JwtAuthenticationEntryPoint} 统一处理返回JSON；</li>
+ * <li>使用双层finally兜底清理ThreadLocal，防止线程池复用产生上下文泄漏；</li>
+ * <li>权限过期属于业务异常，本过滤器直接输出响应。</li>
+ *
+ * <p><b>审计边界说明</b>：</p>
+ * 本过滤器不做登录审计入库。认证失败（版本失效/黑名单/不在线）只记录安全日志，
  *
  * @author loriyuhv
  * @version 1.0
@@ -70,7 +72,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private static final String AUTH_HEADER = "Authorization";
 
     private final JwtTokenService jwtTokenService;
-    private final LoginAuditService loginAuditService;
     private final SessionRepository sessionRepository;
     private final SecurityProperties securityProperties;
     private final JwtAuthenticationEntryPoint authenticationEntryPoint;
@@ -135,20 +136,23 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             long currentVersion = sessionRepository.getTokenVersion(operator);
             // 版本号不一致 → 失效（密码已改）
             if (tokenVersion != currentVersion) {
-                loginAuditService.kick(operator, tokenId);
+                log.warn("[安全审计] Token版本失效: uri={}, userId={}, tokenId={}, " +
+                    "reason=VERSION_MISMATCH", uri, userId, tokenId);
                 throw new BadCredentialsException("Token版本已失效");
             }
 
             // 3.2 黑名单校验：注销/主动踢人后的Token加入黑名单
             boolean blacklisted = sessionRepository.isBlacklisted(tokenId);
             if (blacklisted) {
-                loginAuditService.kick(operator, tokenId);
+                log.warn("[安全审计] Token黑名单拒绝: uri={}, userId={}, tokenId={}, " +
+                    "reason=BLACKLISTED", uri, userId, tokenId);
                 throw new BadCredentialsException("Token已加入黑名单");
             }
 
             // 3.3 会话在线校验：实现单点登录、会话下线控制
             if (!sessionRepository.isOnline(operator, tokenId)) {
-                loginAuditService.expire(operator, tokenId);
+                log.warn("[安全审计] Token不在线: uri={}, userId={}, tokenId={}," +
+                    " reason=SESSION_OFFLINE", uri, userId, tokenId);
                 throw new BadCredentialsException("会话已下线");
             }
 

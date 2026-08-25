@@ -1,6 +1,7 @@
 package com.wsw.fitnesssystem.auth.application.authentication;
 
 import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
+import com.wsw.fitnesssystem.auth.application.audit.AuditAppService;
 import com.wsw.fitnesssystem.auth.application.authentication.command.LoginCommand;
 import com.wsw.fitnesssystem.auth.application.authentication.dto.LoginResponse;
 import com.wsw.fitnesssystem.auth.application.authentication.dto.RefreshTokenResponse;
@@ -11,6 +12,7 @@ import com.wsw.fitnesssystem.auth.application.dto.UserAuthorization;
 import com.wsw.fitnesssystem.auth.application.service.LoginSuccessProcessor;
 import com.wsw.fitnesssystem.auth.application.service.RiskControlService;
 import com.wsw.fitnesssystem.auth.application.service.TokenService;
+import com.wsw.fitnesssystem.auth.domain.audit.valueobject.LogoutReason;
 import com.wsw.fitnesssystem.auth.domain.model.AuthUser;
 import com.wsw.fitnesssystem.auth.application.dto.TokenPair;
 import com.wsw.fitnesssystem.auth.domain.model.UserInfo;
@@ -19,7 +21,6 @@ import com.wsw.fitnesssystem.auth.domain.port.UserInfoRepository;
 import com.wsw.fitnesssystem.auth.domain.risk.valueobject.RiskFailResult;
 import com.wsw.fitnesssystem.auth.domain.service.AuthDomainService;
 import com.wsw.fitnesssystem.auth.domain.service.SessionDomainService;
-import com.wsw.fitnesssystem.auth.infrastructure.audit.LoginAuditService;
 import com.wsw.fitnesssystem.auth.infrastructure.token.model.RefreshTokenClaims;
 import com.wsw.fitnesssystem.auth.infrastructure.security.model.JwtUserPrincipal;
 import com.wsw.fitnesssystem.shared.domain.valueobject.Operator;
@@ -51,10 +52,10 @@ import java.util.UUID;
 public class AuthApplicationService {
 
     private final TokenService tokenService;
-    private final RiskControlService riskControlService;
-    private final AuthDomainService authDomainService;
-    private final LoginAuditService loginAuditService;
+    private final AuditAppService auditAppService;
     private final SessionRepository sessionRepository;
+    private final AuthDomainService authDomainService;
+    private final RiskControlService riskControlService;
     private final UserInfoRepository userInfoRepository;
     private final SessionDomainService sessionDomainService;
     private final LoginSuccessProcessor loginSuccessProcessor;
@@ -121,7 +122,7 @@ public class AuthApplicationService {
         sessionRepository.removeSession(operator, accessTokenId);
 
         // 3. 记录登出审计
-        loginAuditService.logout(operator, accessTokenId);
+        auditAppService.terminateSession(accessTokenId, LogoutReason.LOGOUT);
     }
 
     /**
@@ -141,7 +142,7 @@ public class AuthApplicationService {
         if (!CollectionUtils.isEmpty(onlineSessions)) {
             for (String tokenId : onlineSessions) {
                 // 3. 记录审计
-                loginAuditService.kick(operator, tokenId);
+                auditAppService.terminateSession(tokenId, LogoutReason.KICK);
             }
             log.info("Kicked {} sessions for user {} campus {}",
                     onlineSessions.size(), operator.userId(), operator.campusId());
@@ -260,16 +261,10 @@ public class AuthApplicationService {
             // 登录失败处理（统一收口）
             RiskFailResult result = riskControlService.onFail(cmd.getUsername());
             // 登录失败审计
-            loginAuditService.loginFail(
-                    cmd.getUsername(),
-                    cmd.getIp(),
-                    cmd.getDeviceType(),
-                    cmd.getUserAgent(),
-                    ex.getMessage(),  // 失败原因
-                    result.getFailCount(),
-                    result.isLocked()
+            auditAppService.recordLoginFailure(
+                cmd.getUsername(), cmd.getIp(), cmd.getDeviceType(),
+                cmd.getUserAgent(), ex.getMessage()
             );
-
             throw new BizException(ResultCode.USER_LOGIN_ERROR);
         }
     }
@@ -296,4 +291,5 @@ public class AuthApplicationService {
             .expiresIn(tokenPair.getAccessTokenExpiresIn())
             .build();
     }
+
 }

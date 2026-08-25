@@ -1,4 +1,4 @@
-package com.wsw.fitnesssystem.auth.infrastructure.persistence.db.entity;
+package com.wsw.fitnesssystem.auth.infrastructure.audit.persistence.db.entity;
 
 import com.baomidou.mybatisplus.annotation.*;
 import lombok.Data;
@@ -61,20 +61,6 @@ public class SysUserLogin implements Serializable {
      * - ACCOUNT_LOCKED
      */
     private String failReason;
-
-    /**
-     * 当前失败次数（发生本次失败后的累计次数）
-     * - 便于直接审计查看
-     * - 与 Redis 中的失败计数保持一致
-     */
-    private Integer failCount;
-
-    /**
-     * 是否触发锁定
-     * 1 - 已锁定
-     * 0 - 未锁定
-     */
-    private Integer locked;
 
     /**
      * JWT 中的 tokenId
