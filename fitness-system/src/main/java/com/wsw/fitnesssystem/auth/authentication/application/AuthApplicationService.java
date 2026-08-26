@@ -64,7 +64,7 @@ public class AuthApplicationService {
      *     <li>风控前置检查：校验账号是否被锁定及失败次数限制 {@link RiskControlService#preCheck(String)}</li>
      *     <li>用户认证：调用领域服务验证用户名和密码 {@link #authenticate(LoginCommand)}</li>
      *     <li>生成 Token：生成 Access Token 与 Refresh Token {@link TokenPort}</li>
-     *     <li>登录成功后处理：多端限制、会话持久化、授权缓存、审计 {@link LoginSuccessProcessor}</li>
+     *     <li>登录成功后处理：多端限制、会话持久化、审计 {@link LoginSuccessProcessor}</li>
      *     <li>构建返回结果：封装登录响应 {@link #buildLoginResult(TokenPair)}</li>
      * </ol>
      *

@@ -3,7 +3,6 @@ package com.wsw.fitnesssystem.auth.authentication.application.service.impl;
 import com.wsw.fitnesssystem.auth.audit.application.AuditAppService;
 import com.wsw.fitnesssystem.auth.authentication.application.dto.command.LoginCommand;
 import com.wsw.fitnesssystem.auth.authorization.application.service.AuthorizationQueryService;
-import com.wsw.fitnesssystem.auth.authorization.application.dto.AuthorizationQuery;
 import com.wsw.fitnesssystem.auth.authentication.application.service.LoginSuccessProcessor;
 import com.wsw.fitnesssystem.auth.risk.application.RiskControlService;
 import com.wsw.fitnesssystem.auth.authentication.application.dto.port.TokenPair;
@@ -24,7 +23,6 @@ import java.time.LocalDateTime;
  *     <li>风控成功处理：重置失败次数并解锁账号</li>
  *     <li>多端登录限制：保证用户同时在线设备数量符合策略</li>
  *     <li>会话持久化：保存 Access Token 与 Refresh Token 关联的会话信息</li>
- *     <li>权限授权：根据用户信息进行一次性授权并更新缓存（懒加载）</li>
  *     <li>登录审计：记录登录成功事件，用于安全审计与统计分析</li>
  * </ul>
  *
@@ -56,9 +54,6 @@ public class LoginSuccessProcessorImpl implements LoginSuccessProcessor {
     /** 会话持久化接口，用于保存 AccessToken 与 RefreshToken */
     private final SessionRepository sessionRepository;
 
-    /** 授权应用服务，用于执行一次性授权和缓存更新 */
-    private final AuthorizationQueryService authorizationQueryService;
-
     /** 登录审计服务，用于记录登录成功事件 */
     private final AuditAppService auditAppService;
 
@@ -70,7 +65,6 @@ public class LoginSuccessProcessorImpl implements LoginSuccessProcessor {
      *     <li>风控成功处理</li>
      *     <li>限制多端登录</li>
      *     <li>保存会话信息</li>
-     *     <li>用户授权（懒加载缓存）</li>
      *     <li>记录登录审计日志</li>
      * </ol>
      *
@@ -92,14 +86,7 @@ public class LoginSuccessProcessorImpl implements LoginSuccessProcessor {
             tokenPair.getAccessTokenId(), tokenPair.getRefreshTokenId()
         );
 
-        // 4. 授权（懒加载缓存）
-        AuthorizationQuery authorizationQuery = AuthorizationQuery.builder()
-                .userId(operator.userId())
-                .campusId(operator.campusId())
-                .build();
-        authorizationQueryService.authorize(operator, authorizationQuery);
-
-        // 5. 审计日志 （应用层编排，异步执行）
+        // 4. 审计日志 （应用层编排，异步执行）
         LocalDateTime tokenExpiresIn = LocalDateTime.now()
             .plusSeconds(tokenPair.getAccessTokenExpiresIn());
         auditAppService.recordLoginSuccess(
