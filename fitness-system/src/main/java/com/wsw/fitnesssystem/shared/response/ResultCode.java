@@ -47,6 +47,7 @@ public enum ResultCode {
     TOKEN_MALFORMED(401104, HttpStatus.UNAUTHORIZED, "Token格式错误"),
     REFRESH_TOKEN_EXPIRED(401105, HttpStatus.UNAUTHORIZED, "RefreshToken已过期"),
     REFRESH_TOKEN_INVALID(401106, HttpStatus.UNAUTHORIZED, "RefreshToken无效"),
+    CREDENTIAL_INVALID(401102, HttpStatus.UNAUTHORIZED, "凭证无效"),
 
     /* ================= 权限 / 访问控制 403xxx ================= */
     PERMISSION_DENIED(403001, HttpStatus.FORBIDDEN, "权限不足"),

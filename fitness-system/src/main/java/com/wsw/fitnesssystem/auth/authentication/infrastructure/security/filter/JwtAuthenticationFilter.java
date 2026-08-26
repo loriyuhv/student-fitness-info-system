@@ -192,13 +192,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             }
 
             // 6. 继续过滤器链
-            try {
-                filterChain.doFilter(request, response);
-            } finally {
-                // 请求正常走完链路后清理上下文
-                RequestContextHolder.clear();
-                SecurityContextHolder.clearContext();
-            }
+            filterChain.doFilter(request, response);
+
         } catch (AuthenticationException e) {
             authenticationEntryPoint.commence(request, response, e);
         }

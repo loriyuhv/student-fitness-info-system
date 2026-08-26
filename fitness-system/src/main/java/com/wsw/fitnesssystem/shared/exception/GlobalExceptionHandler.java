@@ -7,6 +7,7 @@ import com.wsw.fitnesssystem.shared.response.ResultCode;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authorization.AuthorizationDeniedException;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.validation.BindException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -89,6 +90,21 @@ public class GlobalExceptionHandler {
     public ApiResult<Object> handleAccessDeniedException(Exception e) {
         log.warn("权限异常: {}", e.getMessage());
         return ApiResult.error(ResultCode.PERMISSION_DENIED);
+    }
+
+
+    /**
+     * 认证异常 → 401
+     * @param e 异常
+     * @return 错误响应体
+     */
+    @ExceptionHandler(AuthenticationException.class)
+    public ApiResult<Object> handleAuthenticationException(AuthenticationException e) {
+        String defaultMsg = ResultCode.CREDENTIAL_INVALID.getMessage();
+        String customMsg = e.getMessage();
+        String finalMsg = buildCombineMessage(defaultMsg, customMsg);
+        log.warn("认证失败: {}", finalMsg);
+        return ApiResult.error(ResultCode.CREDENTIAL_INVALID, finalMsg);
     }
 
     /**
