@@ -1,4 +1,4 @@
-package com.wsw.fitnesssystem.auth.authentication.interfaces.web;
+package com.wsw.fitnesssystem.auth.authentication.interfaces.web.controller;
 
 import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 import com.wsw.fitnesssystem.auth.authentication.application.AuthApplicationService;

@@ -77,10 +77,11 @@ public class JwtTokenProvider {
             .issuedAt(now)
             .expiration(new Date(now.getTime() + jwtConfig.getRefreshExpire()))
             // ===== 自定义声明 =====
-            .claim("userId", tokenPrincipal.getUserId())
             .claim("campusId", tokenPrincipal.getCampusId())
-            .claim("deviceId", tokenPrincipal.getDeviceId())
+            .claim("userId", tokenPrincipal.getUserId())
+            .claim("username", tokenPrincipal.getUsername())
             .claim("userType", tokenPrincipal.getUserType())
+            .claim("deviceId", tokenPrincipal.getDeviceId())
             .claim("type", TokenType.REFRESH.name())
             .claim("tokenVersion", tokenPrincipal.getTokenVersion())
             // ===== 签名 =====

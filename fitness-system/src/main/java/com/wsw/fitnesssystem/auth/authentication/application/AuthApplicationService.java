@@ -2,9 +2,10 @@ package com.wsw.fitnesssystem.auth.authentication.application;
 
 import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 import com.wsw.fitnesssystem.auth.audit.application.AuditAppService;
-import com.wsw.fitnesssystem.auth.authentication.application.command.LoginCommand;
-import com.wsw.fitnesssystem.auth.authentication.application.dto.LoginResponse;
-import com.wsw.fitnesssystem.auth.authentication.application.dto.RefreshTokenResponse;
+import com.wsw.fitnesssystem.auth.authentication.application.dto.command.LoginCommand;
+import com.wsw.fitnesssystem.auth.authentication.application.dto.command.RefreshCommand;
+import com.wsw.fitnesssystem.auth.authentication.application.dto.result.LoginResult;
+import com.wsw.fitnesssystem.auth.authentication.application.dto.result.RefreshResult;
 import com.wsw.fitnesssystem.auth.authentication.application.vo.UserInfoVO;
 import com.wsw.fitnesssystem.auth.authorization.application.service.AuthorizationQueryService;
 import com.wsw.fitnesssystem.auth.authorization.application.dto.AuthorizationQuery;
@@ -78,10 +79,10 @@ public class AuthApplicationService {
      * </ul>
      *
      * @param cmd 登录请求命令对象 {@link LoginCommand}，包含用户名和密码
-     * @return {@link LoginResponse} 登录响应对象，包含 Access Token、Refresh Token、Token ID 及过期时间
+     * @return {@link LoginResult} 登录响应对象，包含 Access Token、Refresh Token、Token ID 及过期时间
      * @throws BizException 当用户名或密码错误，或其他业务异常时抛出
      */
-    public LoginResponse login(LoginCommand cmd) {
+    public LoginResult login(LoginCommand cmd) {
         /* 1. 风控前置检查 */
         riskControlService.preCheck(cmd.getUsername());
 
@@ -160,9 +161,9 @@ public class AuthApplicationService {
         return onlineSessions;
     }
 
-    public RefreshTokenResponse refreshAccessToken(String refreshToken) {
+    public RefreshResult refreshAccessToken(RefreshCommand command) {
         // 1.解析refresh token
-        RefreshTokenClaims claims = tokenPort.parseRefreshToken(refreshToken);
+        RefreshTokenClaims claims = tokenPort.parseRefreshToken(command.getRefreshToken());
 
         long campusId = claims.getCampusId();
         long userId = claims.getUserId();
@@ -190,7 +191,7 @@ public class AuthApplicationService {
             newRefreshTokenId, newAccessTokenId
         );
 
-        return RefreshTokenResponse.builder()
+        return RefreshResult.builder()
                 .accessToken(tokenPair.getAccessToken())
                 .refreshToken(tokenPair.getRefreshToken())
                 .expiresIn(tokenPair.getAccessTokenExpiresIn())
@@ -268,7 +269,7 @@ public class AuthApplicationService {
     /**
      * 构建登录响应对象
      *
-     * <p>将生成的 {@link TokenPair} 转换为应用层的 {@link LoginResponse} 返回给客户端。
+     * <p>将生成的 {@link TokenPair} 转换为应用层的 {@link LoginResult} 返回给客户端。
      * 负责封装：
      * <ul>
      *     <li>Access Token</li>
@@ -277,10 +278,10 @@ public class AuthApplicationService {
      * </ul>
      *
      * @param tokenPair 登录成功生成的 Token 对象 {@link TokenPair}
-     * @return {@link LoginResponse} 返回给客户端的登录响应
+     * @return {@link LoginResult} 返回给客户端的登录响应
      */
-    private LoginResponse buildResponse(TokenPair tokenPair) {
-        return LoginResponse.builder()
+    private LoginResult buildResponse(TokenPair tokenPair) {
+        return LoginResult.builder()
             .accessToken(tokenPair.getAccessToken())
             .refreshToken(tokenPair.getRefreshToken())
             .expiresIn(tokenPair.getAccessTokenExpiresIn())
