@@ -14,7 +14,7 @@ import java.util.Optional;
 public interface UserRepository {
 
     /** 根据 ID 和校区查询 */
-    Optional<User> findById(Long campusId, Long userId);
+    Optional<User> findByCampusIdAndUserId(Long campusId, Long userId);
 
     /** 根据用户名（唯一索引）查询（含逻辑删除未删除的） */
     Optional<User> findByUsername(String username);

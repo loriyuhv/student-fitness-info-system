@@ -4,23 +4,20 @@ import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 import com.wsw.fitnesssystem.auth.audit.application.AuditAppService;
 import com.wsw.fitnesssystem.auth.authentication.application.dto.command.LoginCommand;
 import com.wsw.fitnesssystem.auth.authentication.application.dto.command.RefreshCommand;
+import com.wsw.fitnesssystem.auth.authentication.application.dto.port.AuthUserCredential;
 import com.wsw.fitnesssystem.auth.authentication.application.dto.result.LoginResult;
 import com.wsw.fitnesssystem.auth.authentication.application.dto.result.RefreshResult;
-import com.wsw.fitnesssystem.auth.authentication.application.vo.UserInfoVO;
+import com.wsw.fitnesssystem.auth.authentication.application.port.AuthUserDataProvider;
+import com.wsw.fitnesssystem.auth.authentication.domain.port.PasswordEncryptor;
 import com.wsw.fitnesssystem.auth.authorization.application.service.AuthorizationQueryService;
-import com.wsw.fitnesssystem.auth.authorization.application.dto.AuthorizationQuery;
-import com.wsw.fitnesssystem.auth.authorization.application.dto.UserAuthorization;
 import com.wsw.fitnesssystem.auth.authentication.application.service.LoginSuccessProcessor;
 import com.wsw.fitnesssystem.auth.risk.application.RiskControlService;
 import com.wsw.fitnesssystem.auth.authentication.application.port.TokenPort;
 import com.wsw.fitnesssystem.auth.audit.domain.valueobject.LogoutReason;
 import com.wsw.fitnesssystem.auth.authentication.domain.model.AuthUser;
 import com.wsw.fitnesssystem.auth.authentication.application.dto.port.TokenPair;
-import com.wsw.fitnesssystem.auth.authentication.domain.model.UserInfo;
 import com.wsw.fitnesssystem.auth.session.domain.port.SessionRepository;
-import com.wsw.fitnesssystem.auth.authentication.domain.port.UserInfoRepository;
 import com.wsw.fitnesssystem.auth.risk.domain.valueobject.RiskFailResult;
-import com.wsw.fitnesssystem.auth.authentication.domain.service.AuthDomainService;
 import com.wsw.fitnesssystem.auth.session.domain.service.SessionDomainService;
 import com.wsw.fitnesssystem.auth.authentication.application.dto.port.RefreshTokenClaims;
 import com.wsw.fitnesssystem.shared.domain.valueobject.Operator;
@@ -52,10 +49,10 @@ public class AuthApplicationService {
     private final TokenPort tokenPort;
     private final AuditAppService auditAppService;
     private final SessionRepository sessionRepository;
-    private final AuthDomainService authDomainService;
+    private final PasswordEncryptor passwordEncryptor;
     private final RiskControlService riskControlService;
-    private final UserInfoRepository userInfoRepository;
     private final SessionDomainService sessionDomainService;
+    private final AuthUserDataProvider authUserDataProvider;
     private final LoginSuccessProcessor loginSuccessProcessor;
     private final AuthorizationQueryService authorizationQueryService;
 
@@ -135,10 +132,10 @@ public class AuthApplicationService {
      * @return 用户TokenID集合
      */
     public Set<String> kick(long campusId, long userId) {
-        // 1. 校验用户是否存在
-        if (!authDomainService.userExists(campusId, userId)) {
-            throw new BizException(
-                    ResultCode.KICKOUT_FAILED, ResultCode.USER_NOT_EXIST.getMessage());
+        // 1. 校验用户是否存在（通过适配器查）
+        AuthUserCredential credential = authUserDataProvider.getAuthDataByCampusIdAndUserId(campusId, userId);
+        if (credential == null) {
+            throw new BizException(ResultCode.KICKOUT_FAILED, ResultCode.USER_NOT_EXIST.getMessage());
         }
 
         // 2. 移除用户权限
@@ -199,42 +196,10 @@ public class AuthApplicationService {
     }
 
     /**
-     * 获取用户信息
-     * @return 用户信息视图
-     */
-    public UserInfoVO getUserInfo(Operator operator) {
-        Long userId = operator.userId();
-        Long campusId = operator.campusId();
-
-        // 获取当前用户核心信息
-        UserInfo userInfo = userInfoRepository.findById(userId, campusId);
-
-        // 获取当前用户权限
-        AuthorizationQuery authorizationQuery = AuthorizationQuery.builder()
-                .userId(userId)
-                .campusId(campusId)
-                .build();
-        UserAuthorization authorize = authorizationQueryService.authorize(operator, authorizationQuery);
-
-        return UserInfoVO.builder()
-                .userId(userInfo.getUserId())
-                .campusId(userInfo.getCampusId())
-                .username(userInfo.getUsername())
-                .nickname(userInfo.getNickname())
-                .userType(userInfo.getUserType())
-                .phoneNumber(userInfo.getPhoneNumber())
-                .email(userInfo.getEmail())
-                .remark(userInfo.getRemark())
-                .permissions(authorize.getPermissions())
-                .build();
-    }
-
-    /**
      * 执行用户认证
      *
-     * <p>调用领域服务 {@link AuthDomainService} 完成用户认证。
-     * 认证成功返回 {@link AuthUser}；认证失败则通过 {@link RiskControlService#onFail(String)} 统一处理失败计数和锁定策略，
-     * 然后抛出异常。
+     * <p>完成用户认证，认证成功返回 {@link AuthUser}；认证失败则通过
+     * {@link RiskControlService#onFail(String)} 统一处理失败计数和锁定策略，然后抛出异常。
      *
      * <p>职责说明：
      * <ul>
@@ -249,13 +214,26 @@ public class AuthApplicationService {
      */
     private AuthUser authenticate(LoginCommand cmd) {
         try {
-            return authDomainService.login(
-                cmd.getUsername(),
-                cmd.getPassword()
-            );
+            // 1. 获取认证数据（通过适配器，无感本地/远程）
+            AuthUserCredential credential = authUserDataProvider.getAuthDataByUsername(cmd.getUsername());
+
+            if (credential == null) {
+                throw new BizException(ResultCode.USER_NOT_EXIST);
+            }
+
+            // 2. 加载领域模型
+            AuthUser user = AuthUser.loadFromCredential(credential);
+
+            // 3. 验证密码（领域逻辑）
+            user.verifyPassword(cmd.getPassword(), passwordEncryptor);
+
+            return user;
         } catch (BizException ex) {
             // 登录失败处理（统一收口）
             RiskFailResult result = riskControlService.onFail(cmd.getUsername());
+
+            log.debug("result {}", result);
+
             // 登录失败审计
             auditAppService.recordLoginFailure(
                 cmd.getUsername(), cmd.getIp(), cmd.getDeviceType(),

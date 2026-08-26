@@ -5,8 +5,6 @@ import com.wsw.fitnesssystem.auth.authentication.application.dto.command.LoginCo
 import com.wsw.fitnesssystem.auth.authentication.application.dto.command.RefreshCommand;
 import com.wsw.fitnesssystem.auth.authentication.application.dto.result.LoginResult;
 import com.wsw.fitnesssystem.auth.authentication.application.dto.result.RefreshResult;
-import com.wsw.fitnesssystem.auth.authentication.application.vo.UserInfoVO;
-import com.wsw.fitnesssystem.auth.authentication.infrastructure.security.model.JwtUserPrincipal;
 import com.wsw.fitnesssystem.auth.authentication.interfaces.web.dto.response.LoginResponse;
 import com.wsw.fitnesssystem.auth.authentication.interfaces.web.dto.request.RefreshRequest;
 import com.wsw.fitnesssystem.auth.authentication.interfaces.web.dto.response.RefreshResponse;
@@ -20,8 +18,6 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 /**
@@ -74,11 +70,8 @@ public class AuthController {
     public ApiResult<Void> logout() {
         try {
 
-            Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-            JwtUserPrincipal principal = (JwtUserPrincipal) auth.getPrincipal();
-            String accessTokenId = principal.accessTokenId();
-
             Operator operator = RequestContextHolder.getRequiredOperator();
+            String accessTokenId = RequestContextHolder.getTokenId();
 
             // 1. 调用 Application Service 协调登出
             authApplicationService.logout(operator, accessTokenId);
@@ -112,12 +105,6 @@ public class AuthController {
 
         return ApiResult.success(response);
 
-    }
-
-    @GetMapping("/user-info")
-    public ApiResult<UserInfoVO> userInfo() {
-        Operator operator = RequestContextHolder.getRequiredOperator();
-        return ApiResult.success(authApplicationService.getUserInfo(operator));
     }
 
 }

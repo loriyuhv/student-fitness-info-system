@@ -1,4 +1,4 @@
-package com.wsw.fitnesssystem.user.application;
+package com.wsw.fitnesssystem.user.application.service;
 
 import com.wsw.fitnesssystem.user.application.dto.port.UserAuthData;
 import com.wsw.fitnesssystem.user.domain.model.User;
@@ -19,6 +19,23 @@ public class UserAuthQueryService {
 
     public UserAuthData getAuthUserData(String username) {
         User user = userRepository.findByUsername(username).orElse(null);
+
+        if (user == null) {
+            return null;
+        }
+
+        return UserAuthData.builder()
+            .userId(user.getUserId())
+            .campusId(user.getCampusId())
+            .username(user.getUsername())
+            .password(user.getPassword())
+            .userType(user.getUserType().getCode())
+            .status(user.getStatus().getCode())
+            .build();
+    }
+
+    public UserAuthData getAuthUserData(long campusId, long userId) {
+        User user = userRepository.findByCampusIdAndUserId(campusId, userId).orElse(null);
 
         if (user == null) {
             return null;

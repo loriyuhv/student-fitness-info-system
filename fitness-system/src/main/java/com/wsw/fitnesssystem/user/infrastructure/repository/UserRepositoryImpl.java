@@ -24,8 +24,9 @@ public class UserRepositoryImpl implements UserRepository {
     private final SysUserMapper userMapper;
 
     @Override
-    public Optional<User> findById(Long campusId, Long userId) {
-        return Optional.empty();
+    public Optional<User> findByCampusIdAndUserId(Long campusId, Long userId) {
+        UserPo po = userMapper.selectByCampusIdAndUserId(campusId, userId);
+        return Optional.ofNullable(po).map(this::toDomain);
     }
 
     @Override

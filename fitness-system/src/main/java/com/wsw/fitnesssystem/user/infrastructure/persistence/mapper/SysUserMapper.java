@@ -17,24 +17,18 @@ public interface SysUserMapper extends BaseMapper<UserPo> {
     /**
      * 根据用户账号查询用户信息
      * @param username 用户账号
-     * @return SysUser
+     * @return UserPo
      */
     @Select("SELECT * FROM sys_user WHERE username = #{username} AND deleted = 0;")
     UserPo selectByUsername(@Param("username") String username);
 
     /**
-     * 判断用户是否存在（根据 campusId + userId）
-     */
-    @Select("SELECT COUNT(1) FROM sys_user WHERE user_id = #{userId} AND campus_id = #{campusId} AND deleted = 0")
-    int existsByCampusAndId(@Param("campusId") Long campusId, @Param("userId") Long userId);
-
-    /**
      * 根据用户ID和校区ID查询
-     * @param userId 用户ID
      * @param campusId 校区ID
-     * @return SysUser
+     * @param userId 用户ID
+     * @return UserPo
      */
-    @Select("SELECT * FROM sys_user WHERE user_id = #{userId} AND campus_id = #{campusId};")
-    UserPo selectByUserIdAndCampusId(@Param("userId") Long userId, @Param("campusId") Long campusId);
+    @Select("SELECT * FROM sys_user WHERE campus_id = #{campusId} AND user_id = #{userId} AND deleted =  0;")
+    UserPo selectByCampusIdAndUserId(@Param("campusId") Long campusId, @Param("userId") Long userId);
 
 }

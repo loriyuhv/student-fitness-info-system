@@ -1,6 +1,6 @@
 package com.wsw.fitnesssystem.auth.authentication.application.port;
 
-import com.wsw.fitnesssystem.auth.authentication.application.dto.port.AuthUserData;
+import com.wsw.fitnesssystem.auth.authentication.application.dto.port.AuthUserCredential;
 
 /**
  * 用户认证数据提供者端口（由 auth.authentication 模块定义，user 模块实现）
@@ -24,6 +24,15 @@ public interface AuthUserDataProvider {
      * @param username 用户名（唯一索引）
      * @return 认证数据对象，若用户不存在则返回 null
      */
-    AuthUserData getAuthDataByUsername(String username);
+    AuthUserCredential getAuthDataByUsername(String username);
+
+    /**
+     * 根据CampusId + UserId获取认证数据
+     *
+     * @param campusId 校园ID
+     * @param userId 用户ID
+     * @return 认证数据对象，若用户不存在则返回 null
+     */
+    AuthUserCredential getAuthDataByCampusIdAndUserId(long campusId, long userId);
     
 }
