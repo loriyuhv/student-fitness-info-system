@@ -1,7 +1,5 @@
 package com.wsw.fitnesssystem.auth.session.domain.service;
 
-import com.wsw.fitnesssystem.shared.domain.valueobject.Operator;
-
 /**
  * 登录会话领域服务（Domain Service）
  *
@@ -45,17 +43,13 @@ public interface SessionDomainService {
      *     <li>体现多端登录控制策略：避免账号被无限制多端使用</li>
      * </ul>
      *
-     * @param operator 操作对象
      */
-    void limitSessions(Operator operator);
+    void limitSessions(long campusId, long userId);
 
-    void verifyRefreshToken(Operator operator, String refreshTokenId);
+    void verifyRefreshToken(long campusId, long userId, String refreshTokenId);
 
-    void rotateRefreshToken(
-            Operator operator,
-            String oldRefreshTokenId,
-            String oldAccessTokenId,
-            String newRefreshTokenId,
-            String newAccessTokenId
+    void rotateRefreshToken(long campusId, long userId, String oldRefreshTokenId,
+        String oldAccessTokenId, String newRefreshTokenId, String newAccessTokenId
     );
+
 }

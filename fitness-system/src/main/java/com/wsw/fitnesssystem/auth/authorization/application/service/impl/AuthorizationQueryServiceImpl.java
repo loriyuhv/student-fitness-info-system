@@ -27,18 +27,18 @@ import java.util.Set;
 @Service
 @RequiredArgsConstructor
 public class AuthorizationQueryServiceImpl implements AuthorizationQueryService {
+
     private final AuthorizationRepository authorizationRepository;
     private final AuthorizationCacheService cacheService;
 
     @Override
-    public UserAuthorization authorize(AuthorizationQuery authorizationQuery) {
+    public UserAuthorization authorize(Operator operator, AuthorizationQuery authorizationQuery) {
 
-        Long campusId = authorizationQuery.getCampusId();
-        Long userId = authorizationQuery.getUserId();
-        Operator operator = new Operator(campusId, userId, null, null);
+        long campusId = operator.campusId();
+        long userId = operator.userId();
 
         // 1. 先查缓存
-        UserAuthorization cached = cacheService.get(operator);
+        UserAuthorization cached = cacheService.get(campusId, userId);
         if (cached != null) {
             log.info("权限缓存命中：{}:{}", campusId, userId);
             return cached;
@@ -53,9 +53,14 @@ public class AuthorizationQueryServiceImpl implements AuthorizationQueryService 
         UserAuthorization fresh = new UserAuthorization(campusId, userId, roles, permissions);
 
         // 3. 写缓存
-        cacheService.cache(operator, fresh);
+        cacheService.cache(campusId, userId, fresh);
         log.info("权限缓存写入: {}:{}",campusId, userId);
 
         return fresh;
+    }
+
+    @Override
+    public void removeAuthorization(long campusId, long userId) {
+        cacheService.evict(campusId, userId);
     }
 }

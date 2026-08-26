@@ -10,8 +10,5 @@ import java.io.Serializable;
  * @since 1.0
  */
 public record JwtUserPrincipal(
-    String username,
-    String accessTokenId,
-    Long campusId,
-    Long userId
+    long campusId, long userId, String username, int userType, String accessTokenId
 ) implements Serializable {}

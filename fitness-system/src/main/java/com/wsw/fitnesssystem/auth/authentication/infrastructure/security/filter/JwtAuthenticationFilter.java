@@ -9,7 +9,8 @@ import com.wsw.fitnesssystem.auth.authentication.infrastructure.config.SecurityP
 import com.wsw.fitnesssystem.auth.authentication.application.dto.AccessTokenClaims;
 import com.wsw.fitnesssystem.auth.authentication.infrastructure.security.handler.JwtAuthenticationEntryPoint;
 import com.wsw.fitnesssystem.auth.authentication.infrastructure.security.model.JwtUserPrincipal;
-import com.wsw.fitnesssystem.shared.context.LoginContext;
+import com.wsw.fitnesssystem.shared.context.RequestContext;
+import com.wsw.fitnesssystem.shared.context.RequestContextHolder;
 import com.wsw.fitnesssystem.shared.domain.valueobject.Operator;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -43,7 +44,7 @@ import java.util.stream.Stream;
  * 3. 调用JwtTokenService完成AccessToken验签、解析；底层会将Jwt原生异常转换为Spring标准AuthenticationException；
  * 4. 依次校验Token载荷完整性、版本号、黑名单、在线会话状态；校验失败抛出 {@link BadCredentialsException}；
  * 5. 从Redis加载用户权限（不信任Token内权限信息），组装认证对象写入Security上下文；
- * 6. 设置业务线程上下文 {@link LoginContext}；
+ * 6. 设置业务线程上下文 {@link RequestContext}；
  * 7. 放行过滤器链；请求结束自动清理ThreadLocal上下文；
  * </p>
  *
@@ -126,14 +127,14 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             Operator operator = new Operator(campusId, userId, username, userType);
 
             // 校验Token必要载荷是否缺失
-            if (userId == null || campusId == null || !StringUtils.hasText(tokenId)) {
+            if (!StringUtils.hasText(tokenId)) {
                 // 属于凭证非法，主动抛出标准认证异常
                 throw new BadCredentialsException("Token缺失必要载荷信息");
             }
 
             // 3.1 Token版本校验：版本不匹配代表密码修改、强制下线，Token失效
             // 获取 Redis 中的当前版本号
-            long currentVersion = sessionRepository.getTokenVersion(operator);
+            long currentVersion = sessionRepository.getTokenVersion(campusId, userId);
             // 版本号不一致 → 失效（密码已改）
             if (tokenVersion != currentVersion) {
                 log.warn("[安全审计] Token版本失效: uri={}, userId={}, tokenId={}, " +
@@ -150,7 +151,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             }
 
             // 3.3 会话在线校验：实现单点登录、会话下线控制
-            if (!sessionRepository.isOnline(operator, tokenId)) {
+            if (!sessionRepository.isOnline(campusId, userId, tokenId)) {
                 log.warn("[安全审计] Token不在线: uri={}, userId={}, tokenId={}," +
                     " reason=SESSION_OFFLINE", uri, userId, tokenId);
                 throw new BadCredentialsException("会话已下线");
@@ -158,7 +159,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
             // 4. 加载用户权限：权限信任Redis缓存，不直接使用Token内携带权限
             UserAuthorization authorization =
-                    authorizationQueryService.authorize(
+                    authorizationQueryService.authorize(operator,
                             AuthorizationQuery.builder().userId(userId).campusId(campusId).build());
 
             // 组装SpringSecurity权限集合：角色自动添加ROLE_前缀，权限标识原样保留
@@ -174,7 +175,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             // 5. 构造认证信息存入Security上下文（避免重复覆盖已有认证对象）
             if (SecurityContextHolder.getContext().getAuthentication() == null) {
                 JwtUserPrincipal principal = new JwtUserPrincipal(
-                        username, tokenId, campusId, userId
+                    campusId, userId, username, userType, tokenId
                 );
 
                 UsernamePasswordAuthenticationToken authentication =
@@ -189,7 +190,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 SecurityContextHolder.getContext().setAuthentication(authentication);
 
                 // 设置业务ThreadLocal上下文，供业务代码直接获取登录用户信息
-                LoginContext.setOperator(operator);
+                RequestContext requestContext = RequestContext.of(operator, tokenId);
+                RequestContextHolder.setContext(requestContext);
             }
 
             // 6. 继续过滤器链
@@ -197,7 +199,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 filterChain.doFilter(request, response);
             } finally {
                 // 请求正常走完链路后清理上下文
-                LoginContext.clear();
+                RequestContextHolder.clear();
                 SecurityContextHolder.clearContext();
             }
         } catch (AuthenticationException e) {
@@ -205,7 +207,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         }
         finally {
             // 兜底清理：在校验中途抛出异常时，内层finally无法执行，防止ThreadLocal线程复用泄露
-            LoginContext.clear();
+            RequestContextHolder.clear();
             SecurityContextHolder.clearContext();
         }
     }

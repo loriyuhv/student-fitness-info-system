@@ -3,7 +3,6 @@ package com.wsw.fitnesssystem.auth.authentication.application.port;
 import com.wsw.fitnesssystem.auth.authentication.application.dto.AccessTokenClaims;
 import com.wsw.fitnesssystem.auth.authentication.application.dto.TokenPair;
 import com.wsw.fitnesssystem.auth.authentication.application.dto.RefreshTokenClaims;
-import com.wsw.fitnesssystem.shared.domain.valueobject.Operator;
 
 /**
  * Token 管理端口（出站端口）
@@ -27,15 +26,16 @@ public interface TokenPort {
     /**
      * 生成完整的令牌对（Access Token + Refresh Token）。
      *
-     * @param operator 当前操作人（包含用户 ID、校区、用户名、用户类型等信息）
      * @param deviceId 设备唯一标识（用于绑定刷新令牌到具体设备）
      * @param tokenVersion 令牌版本号（每次生成时从外部传入，通常来自用户聚合的版本字段）
      * @param accessTokenId 访问令牌 ID（用于后续缓存或撤销）
      * @param refreshTokenId 刷新令牌 ID（用于后续缓存或撤销）
      * @return 包含完整令牌信息的 {@link TokenPair}，包括令牌字符串、ID 和过期秒数
      */
-    TokenPair generate(Operator operator, String deviceId, Long tokenVersion,
-            String accessTokenId, String refreshTokenId);
+    TokenPair generate(
+        long campusId, long userId, String username, int userType, String deviceId,
+        Long tokenVersion, String accessTokenId, String refreshTokenId
+    );
 
     /**
      * 解析刷新令牌，提取其声明信息。

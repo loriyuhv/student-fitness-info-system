@@ -1,5 +1,6 @@
 package com.wsw.fitnesssystem.auth.authentication.application.dto;
 
+import com.wsw.fitnesssystem.auth.authentication.application.port.TokenPort;
 import lombok.Builder;
 import lombok.Data;
 
@@ -10,9 +11,9 @@ import lombok.Data;
  * 只包含访问接口所需的最小字段，不包含业务逻辑。
  *
  * <p>设计原则：
- * 1. 放在 infrastructure 层。
- * 2. 字段精简，避免不必要的信息（如 deviceId）。
- * 3. 用于解析 AccessToken 后填充 SecurityContext。
+ * <li>作为 {@link TokenPort} 返回契约，定义在 application 层。</li>
+ * <li>字段精简，避免不必要的信息（如 deviceId）。</li>
+ * <li>用于解析 AccessToken 后填充 SecurityContext。</li>
  *
  * <p>典型用途：
  * <ul>

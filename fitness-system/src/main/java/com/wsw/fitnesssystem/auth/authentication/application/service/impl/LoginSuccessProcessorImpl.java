@@ -6,7 +6,6 @@ import com.wsw.fitnesssystem.auth.authorization.application.service.Authorizatio
 import com.wsw.fitnesssystem.auth.authorization.application.dto.AuthorizationQuery;
 import com.wsw.fitnesssystem.auth.authentication.application.service.LoginSuccessProcessor;
 import com.wsw.fitnesssystem.auth.risk.application.RiskControlService;
-import com.wsw.fitnesssystem.auth.authentication.domain.model.AuthUser;
 import com.wsw.fitnesssystem.auth.authentication.application.dto.TokenPair;
 import com.wsw.fitnesssystem.auth.session.domain.port.SessionRepository;
 import com.wsw.fitnesssystem.auth.session.domain.service.SessionDomainService;
@@ -75,24 +74,22 @@ public class LoginSuccessProcessorImpl implements LoginSuccessProcessor {
      *     <li>记录登录审计日志</li>
      * </ol>
      *
-     * @param user 登录成功的用户信息 {@link AuthUser}
+     * @param operator 操作者 {@link Operator}
      * @param cmd 登录请求命令对象 {@link LoginCommand}
      * @param tokenPair 生成的 AccessToken 与 RefreshToken 对象 {@link TokenPair}
      */
     @Override
-    public void process(AuthUser user, LoginCommand cmd, TokenPair tokenPair) {
-        Operator operator = new Operator(user.getCampusId(), user.getUserId(), user.getUsername(), null);
+    public void process(Operator operator, LoginCommand cmd, TokenPair tokenPair) {
         // 1. 风控成功处理
-        riskControlService.onSuccess(user.getUsername());
+        riskControlService.onSuccess(operator.username());
 
         // 2. 限制多端登录
-        sessionDomainService.limitSessions(operator);
+        sessionDomainService.limitSessions(operator.campusId(), operator.userId());
 
         // 3. 保存会话
         sessionRepository.saveSession(
-                operator,
-                tokenPair.getAccessTokenId(),
-                tokenPair.getRefreshTokenId()
+            operator.campusId(), operator.userId(),
+            tokenPair.getAccessTokenId(), tokenPair.getRefreshTokenId()
         );
 
         // 4. 授权（懒加载缓存）
@@ -100,7 +97,7 @@ public class LoginSuccessProcessorImpl implements LoginSuccessProcessor {
                 .userId(operator.userId())
                 .campusId(operator.campusId())
                 .build();
-        authorizationQueryService.authorize(authorizationQuery);
+        authorizationQueryService.authorize(operator, authorizationQuery);
 
         // 5. 审计日志 （应用层编排，异步执行）
         LocalDateTime tokenExpiresIn = LocalDateTime.now()

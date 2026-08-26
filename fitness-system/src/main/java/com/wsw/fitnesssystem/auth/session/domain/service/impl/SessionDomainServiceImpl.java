@@ -3,7 +3,6 @@ package com.wsw.fitnesssystem.auth.session.domain.service.impl;
 import com.wsw.fitnesssystem.auth.session.domain.port.SessionRepository;
 import com.wsw.fitnesssystem.auth.session.domain.service.SessionDomainService;
 import com.wsw.fitnesssystem.auth.session.infrastructure.config.SessionProperties;
-import com.wsw.fitnesssystem.shared.domain.valueobject.Operator;
 import com.wsw.fitnesssystem.shared.exception.BizException;
 import com.wsw.fitnesssystem.shared.response.ResultCode;
 import lombok.RequiredArgsConstructor;
@@ -22,20 +21,18 @@ public class SessionDomainServiceImpl implements SessionDomainService {
     private final SessionProperties sessionProperties;
 
     @Override
-    public void limitSessions(Operator operator) {
-        Long size = sessionRepository.countSessions(operator);
+    public void limitSessions(long campusId, long userId) {
+        Long size = sessionRepository.countSessions(campusId, userId);
         int maxSessions = sessionProperties.getMaxOnlineSessions();
         if (size == null || size < maxSessions) return;
 
-        sessionRepository.getOldestSession(operator)
-                .ifPresent(oldest -> sessionRepository.removeSession(operator, oldest)
-            );
+        sessionRepository.getOldestSession(campusId, userId)
+            .ifPresent(oldest -> sessionRepository.removeSession(campusId, userId, oldest));
     }
 
     @Override
-    public void verifyRefreshToken(Operator operator, String refreshTokenId) {
-        boolean exists = sessionRepository.existsRefreshToken(
-                operator, refreshTokenId);
+    public void verifyRefreshToken(long campusId, long userId, String refreshTokenId) {
+        boolean exists = sessionRepository.existsRefreshToken(campusId, userId, refreshTokenId);
 
         if(!exists){
             throw new BizException(ResultCode.TOKEN_INVALID);
@@ -44,17 +41,12 @@ public class SessionDomainServiceImpl implements SessionDomainService {
 
     @Override
     public void rotateRefreshToken(
-            Operator operator,
-            String oldRefreshTokenId,
-            String oldAccessTokenId,
-            String newRefreshTokenId,
-            String newAccessTokenId) {
+        long campusId, long userId, String oldRefreshTokenId, String oldAccessTokenId,
+        String newRefreshTokenId, String newAccessTokenId) {
+
         sessionRepository.rotateRefreshToken(
-                operator,
-                oldRefreshTokenId,
-                oldAccessTokenId,
-                newRefreshTokenId,
-                newAccessTokenId
+            campusId, userId, oldRefreshTokenId,
+            oldAccessTokenId, newRefreshTokenId, newAccessTokenId
         );
     }
 

@@ -15,6 +15,7 @@ import lombok.AllArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class TokenPair {
+
     /** 访问令牌ID */
     private String accessTokenId;
 
@@ -32,4 +33,5 @@ public class TokenPair {
 
     /** 刷新令牌过期时间（秒） */
     private long refreshTokenExpiresIn;
+
 }

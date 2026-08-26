@@ -2,7 +2,6 @@ package com.wsw.fitnesssystem.auth.authentication.domain.service.impl;
 
 import com.wsw.fitnesssystem.auth.authentication.domain.port.PasswordEncryptor;
 import com.wsw.fitnesssystem.auth.authentication.domain.service.AuthDomainService;
-import com.wsw.fitnesssystem.shared.domain.valueobject.Operator;
 import com.wsw.fitnesssystem.shared.exception.BizException;
 import com.wsw.fitnesssystem.auth.authentication.domain.model.AuthUser;
 import com.wsw.fitnesssystem.auth.authentication.domain.port.AuthUserRepository;
@@ -48,7 +47,7 @@ public class AuthDomainServiceImpl implements AuthDomainService {
     }
 
     @Override
-    public boolean userExists(Operator operator) {
-        return authUserRepository.exists(operator);
+    public boolean userExists(long campusId, long userId) {
+        return authUserRepository.exists(campusId, userId);
     }
 }

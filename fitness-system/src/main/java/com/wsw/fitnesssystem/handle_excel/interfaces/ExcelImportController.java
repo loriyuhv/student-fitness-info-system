@@ -4,7 +4,7 @@ import com.wsw.fitnesssystem.handle_excel.application.ExcelImportAppService;
 import com.wsw.fitnesssystem.handle_excel.application.ExcelImportProgressQueryAppService;
 import com.wsw.fitnesssystem.handle_excel.domain.enums.ExcelBizTypeEnum;
 import com.wsw.fitnesssystem.handle_excel.interfaces.dto.ImportProgressDTO;
-import com.wsw.fitnesssystem.shared.context.LoginContext;
+import com.wsw.fitnesssystem.shared.context.RequestContextHolder;
 import com.wsw.fitnesssystem.shared.domain.valueobject.Operator;
 import com.wsw.fitnesssystem.shared.response.ApiResult;
 import lombok.RequiredArgsConstructor;
@@ -47,7 +47,7 @@ public class ExcelImportController {
             @RequestParam("file") MultipartFile file) {
         // 字符串转枚举，非法参数直接抛出异常
         ExcelBizTypeEnum bizTypeEnum = ExcelBizTypeEnum.getByCode(bizType);
-        Operator operator = LoginContext.getOperator();
+        Operator operator = RequestContextHolder.getRequiredOperator();
         String taskId = importAppService.importExcel(bizTypeEnum, file, operator.userId());
         return ApiResult.success(taskId);
     }

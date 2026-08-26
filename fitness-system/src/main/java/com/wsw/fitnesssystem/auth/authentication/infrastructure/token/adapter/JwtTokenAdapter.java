@@ -8,7 +8,6 @@ import com.wsw.fitnesssystem.auth.authentication.application.dto.RefreshTokenCla
 import com.wsw.fitnesssystem.auth.authentication.infrastructure.token.model.TokenPrincipal;
 import com.wsw.fitnesssystem.auth.authentication.infrastructure.token.parser.JwtTokenParser;
 import com.wsw.fitnesssystem.auth.authentication.infrastructure.token.provider.JwtTokenProvider;
-import com.wsw.fitnesssystem.shared.domain.valueobject.Operator;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -59,20 +58,18 @@ public class JwtTokenAdapter implements TokenPort {
     private final JwtTokenParser jwtTokenParser;
 
     @Override
-    public TokenPair generate(Operator operator, String deviceId, Long tokenVersion,
-            String accessTokenId, String refreshTokenId) {
+    public TokenPair generate(
+        long campusId, long userId, String username, int userType,
+        String deviceId, Long tokenVersion, String accessTokenId, String refreshTokenId) {
 
         String accessToken = generateAccessToken(
-                operator,
-                tokenVersion,
-                accessTokenId
+            campusId, userId, username, userType, tokenVersion, accessTokenId
         );
+
         String refreshToken = generateRefreshToken(
-                operator,
-                deviceId,
-                tokenVersion,
-                refreshTokenId
+            campusId, userId, username, userType, deviceId, tokenVersion, refreshTokenId
         );
+
         return TokenPair.builder()
             .accessTokenId(accessTokenId)
             .refreshTokenId(refreshTokenId)
@@ -95,14 +92,15 @@ public class JwtTokenAdapter implements TokenPort {
     }
 
     private String generateAccessToken(
-        Operator operator, Long tokenVersion, String accessTokenId) {
+        long campusId, long userId, String username, int userType,
+        Long tokenVersion, String accessTokenId) {
 
         return jwtTokenProvider.generateAccessToken(
             TokenPrincipal.builder()
-                .userId(operator.userId())
-                .campusId(operator.campusId())
-                .username(operator.username())
-                .userType(operator.userType())
+                .campusId(campusId)
+                .userId(userId)
+                .username(username)
+                .userType(userType)
                 .tokenVersion(tokenVersion)
                 .build(),
             accessTokenId
@@ -111,12 +109,15 @@ public class JwtTokenAdapter implements TokenPort {
     }
 
     private String generateRefreshToken(
-            Operator operator, String deviceId, Long tokenVersion, String refreshTokenId) {
+        long campusId, long userId, String username, int userType,
+        String deviceId, Long tokenVersion, String refreshTokenId) {
 
         return jwtTokenProvider.generateRefreshToken(
             TokenPrincipal.builder()
-                .campusId(operator.campusId())
-                .userId(operator.userId())
+                .campusId(campusId)
+                .userId(userId)
+                .username(username)
+                .userType(userType)
                 .deviceId(deviceId)
                 .tokenVersion(tokenVersion)
                 .build(),

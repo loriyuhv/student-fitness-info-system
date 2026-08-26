@@ -1,5 +1,6 @@
 package com.wsw.fitnesssystem.auth.authentication.application.dto;
 
+import com.wsw.fitnesssystem.auth.authentication.application.port.TokenPort;
 import lombok.Builder;
 import lombok.Data;
 
@@ -10,9 +11,9 @@ import lombok.Data;
  * 只包含刷新所需字段，不包含业务逻辑。
  *
  * <p>设计原则：
- * 1. 放在 infrastructure 层。
- * 2. 包含 deviceId，用于多端登录控制和单设备下线。
- * 3. 用于解析 RefreshToken 后生成安全上下文或刷新逻辑。
+ * <li>作为 {@link TokenPort} 返回契约，定义在 application 层。</li>
+ * <li>包含 deviceId，用于多端登录控制和单设备下线。</li>
+ * <li>用于解析 RefreshToken 后生成安全上下文或刷新逻辑。</li>
  *
  * <p>典型用途：
  * <ul>
@@ -42,6 +43,9 @@ public class RefreshTokenClaims {
 
     /** 用户账号 */
     private String username;
+
+    /** 用户类型 */
+    private Integer userType;
 
     /** Token 版本号，用于全局或单用户 Token 失效控制 */
     private Long tokenVersion;

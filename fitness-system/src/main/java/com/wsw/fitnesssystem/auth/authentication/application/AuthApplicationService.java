@@ -22,14 +22,11 @@ import com.wsw.fitnesssystem.auth.risk.domain.valueobject.RiskFailResult;
 import com.wsw.fitnesssystem.auth.authentication.domain.service.AuthDomainService;
 import com.wsw.fitnesssystem.auth.session.domain.service.SessionDomainService;
 import com.wsw.fitnesssystem.auth.authentication.application.dto.RefreshTokenClaims;
-import com.wsw.fitnesssystem.auth.authentication.infrastructure.security.model.JwtUserPrincipal;
 import com.wsw.fitnesssystem.shared.domain.valueobject.Operator;
 import com.wsw.fitnesssystem.shared.exception.BizException;
 import com.wsw.fitnesssystem.shared.response.ResultCode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.util.Set;
@@ -95,17 +92,21 @@ public class AuthApplicationService {
         String accessTokenId = UUID.randomUUID().toString();
         String refreshTokenId = UUID.randomUUID().toString();
         Operator operator = new Operator(
-                user.getCampusId(), user.getUserId(),
-                user.getUsername(), user.getUserType()
+            user.getCampusId(), user.getUserId(), user.getUsername(), user.getUserType()
         );
-        long tokenVersion = sessionRepository.getTokenVersion(operator);
+        long campusId = user.getCampusId();
+        long userId = user.getUserId();
+        String username = user.getUsername();
+        int userType = user.getUserType();
+
+        long tokenVersion = sessionRepository.getTokenVersion(campusId, userId);
         TokenPair tokenPair = tokenPort.generate(
-                operator, cmd.getDeviceId(),
-                tokenVersion, accessTokenId, refreshTokenId
+            campusId, userId, username, userType, cmd.getDeviceId(),
+            tokenVersion, accessTokenId, refreshTokenId
         );
 
         // 4. 登录成功后处理
-        loginSuccessProcessor.process(user, cmd, tokenPair);
+        loginSuccessProcessor.process(operator, cmd, tokenPair);
 
         // 5. 返回
         return buildResponse(tokenPair);
@@ -119,7 +120,7 @@ public class AuthApplicationService {
         sessionRepository.addToBlacklist(accessTokenId);
 
         // 2. 从 ZSET 中删除（会话下线）
-        sessionRepository.removeSession(operator, accessTokenId);
+        sessionRepository.removeSession(operator.campusId(), operator.userId(), accessTokenId);
 
         // 3. 记录登出审计
         auditAppService.terminateSession(accessTokenId, LogoutReason.LOGOUT);
@@ -127,17 +128,23 @@ public class AuthApplicationService {
 
     /**
      * 踢人操作（管理员使用）
-     * @param operator 操作对象
+     *
+     * @param campusId 学校ID
+     * @param userId 用户ID
+     * @return 用户TokenID集合
      */
-    public Set<String> kick(Operator operator) {
+    public Set<String> kick(long campusId, long userId) {
         // 1. 校验用户是否存在
-        if (!authDomainService.userExists(operator)) {
+        if (!authDomainService.userExists(campusId, userId)) {
             throw new BizException(
                     ResultCode.KICKOUT_FAILED, ResultCode.USER_NOT_EXIST.getMessage());
         }
 
+        // 2. 移除用户权限
+        authorizationQueryService.removeAuthorization(campusId, userId);
+
         //2. 移除所有在线会话
-        Set<String> onlineSessions = sessionRepository.removeAllSessions(operator);
+        Set<String> onlineSessions = sessionRepository.removeAllSessions(campusId, userId);
 
         if (!CollectionUtils.isEmpty(onlineSessions)) {
             for (String tokenId : onlineSessions) {
@@ -145,9 +152,9 @@ public class AuthApplicationService {
                 auditAppService.terminateSession(tokenId, LogoutReason.KICK);
             }
             log.info("Kicked {} sessions for user {} campus {}",
-                    onlineSessions.size(), operator.userId(), operator.campusId());
+                    onlineSessions.size(), userId, campusId);
         } else {
-            log.info("kick user {}, campus {}: no online sessions", operator.userId(), operator.campusId());
+            log.info("kick user {}, campus {}: no online sessions", userId, campusId);
         }
 
         return onlineSessions;
@@ -157,40 +164,30 @@ public class AuthApplicationService {
         // 1.解析refresh token
         RefreshTokenClaims claims = tokenPort.parseRefreshToken(refreshToken);
 
-        Long campusId = claims.getCampusId();
-        Long userId = claims.getUserId();
+        long campusId = claims.getCampusId();
+        long userId = claims.getUserId();
         String username = claims.getUsername();
+        int userType = claims.getUserType();
         String oldRefreshTokenId = claims.getJti();
-        Operator operator = new Operator(campusId, userId, username, null);
-        String oldAccessTokenId = sessionRepository.getAccessTokenIdByRefreshTokenId(
-                operator, oldRefreshTokenId
-        );
+        String oldAccessTokenId = sessionRepository
+            .getAccessTokenIdByRefreshTokenId(campusId, userId, oldRefreshTokenId);
 
         // 2. 校验refresh session
-        sessionDomainService.verifyRefreshToken(
-                operator,
-                oldRefreshTokenId
-        );
+        sessionDomainService.verifyRefreshToken(campusId, userId, oldRefreshTokenId);
 
         // 3.生成新的token
         String newAccessTokenId = UUID.randomUUID().toString();
         String newRefreshTokenId = UUID.randomUUID().toString();
-        long tokenVersion = sessionRepository.getTokenVersion(operator);
+        long tokenVersion = sessionRepository.getTokenVersion(campusId, userId);
         TokenPair tokenPair = tokenPort.generate(
-                operator,
-                claims.getDeviceId(),
-                tokenVersion,
-                newAccessTokenId,
-                newRefreshTokenId
+            campusId, userId, username, userType, claims.getDeviceId(),
+            tokenVersion, newAccessTokenId, newRefreshTokenId
         );
 
         // 4.Refresh Token Rotation
         sessionDomainService.rotateRefreshToken(
-                operator,
-                oldRefreshTokenId,
-                oldAccessTokenId,
-                newRefreshTokenId,
-                newAccessTokenId
+            campusId, userId, oldRefreshTokenId, oldAccessTokenId,
+            newRefreshTokenId, newAccessTokenId
         );
 
         return RefreshTokenResponse.builder()
@@ -204,11 +201,9 @@ public class AuthApplicationService {
      * 获取用户信息
      * @return 用户信息视图
      */
-    public UserInfoVO getUserInfo() {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        JwtUserPrincipal principal = (JwtUserPrincipal) auth.getPrincipal();
-        Long campusId = principal.campusId();
-        Long userId = principal.userId();
+    public UserInfoVO getUserInfo(Operator operator) {
+        Long userId = operator.userId();
+        Long campusId = operator.campusId();
 
         // 获取当前用户核心信息
         UserInfo userInfo = userInfoRepository.findById(userId, campusId);
@@ -218,7 +213,7 @@ public class AuthApplicationService {
                 .userId(userId)
                 .campusId(campusId)
                 .build();
-        UserAuthorization authorize = authorizationQueryService.authorize(authorizationQuery);
+        UserAuthorization authorize = authorizationQueryService.authorize(operator, authorizationQuery);
 
         return UserInfoVO.builder()
                 .userId(userInfo.getUserId())

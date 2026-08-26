@@ -1,7 +1,5 @@
 package com.wsw.fitnesssystem.auth.authorization.infrastructure.persistence.redis.model;
 
-import com.wsw.fitnesssystem.shared.domain.valueobject.Operator;
-
 /**
  * 认证授权Redis Key规范
  * <p>设计原则：</p>
@@ -105,26 +103,26 @@ public class AuthRedisKeys {
      * 用户在线会话Key
      * 存储该用户所有有效的accessTokenId
      */
-    public static String onlineKey(Operator operator) {
-        return SESSION_ONLINE_PREFIX + operator.campusId() + ":" + operator.userId();
+    public static String onlineKey(long campusId, long userId) {
+        return SESSION_ONLINE_PREFIX + campusId + ":" + userId;
     }
 
     /**
      * refreshToken -> accessToken hash key
-     * @param operator 操作人
+     * @param campusId 学校ID
+     * @param userId 用户ID
      * @return redis key
      */
-    public static String refreshToAccessKey(Operator operator) {
-        return SESSION_REFRESH_TO_ACCESS_PREFIX + operator.campusId() + ":" + operator.userId();
+    public static String refreshToAccessKey(long campusId, long userId) {
+        return SESSION_REFRESH_TO_ACCESS_PREFIX + campusId + ":" + userId;
     }
 
     /**
      * accessToken -> refreshToken hash key
-     * @param operator 操作人
      * @return redis key
      */
-    public static String accessToRefreshKey(Operator operator) {
-        return SESSION_ACCESS_TO_REFRESH_PREFIX + operator.campusId() + ":" + operator.userId();
+    public static String accessToRefreshKey(long campusId, long userId) {
+        return SESSION_ACCESS_TO_REFRESH_PREFIX + campusId + ":" + userId;
     }
 
     // ==================== Token黑名单 ====================
@@ -140,8 +138,8 @@ public class AuthRedisKeys {
     /**
      * 用户权限缓存Key（全局，不区分token）
      */
-    public static String permUserKey(Operator operator) {
-        return PERM_USER_PREFIX + operator.campusId() + ":" + operator.userId();
+    public static String permUserKey(long campusId, long userId) {
+        return PERM_USER_PREFIX + campusId + ":" + userId;
     }
 
     // ==================== Token版本控制 ====================
@@ -154,11 +152,10 @@ public class AuthRedisKeys {
      *     <li>管理员踢人 ==> 全端下线</li>
      *     <li>风控封禁 ==> 秒级生效</li>
      * </p>
-     * @param operator 操作对象
      * @return Redis Key
      */
-    public static String tokenVersionKey(Operator operator) {
-        return TOKEN_VERSION_PREFIX + operator.campusId() + ":" + operator.userId();
+    public static String tokenVersionKey(long campusId, long userId) {
+        return TOKEN_VERSION_PREFIX + campusId + ":" + userId;
     }
 
     // ==================== 登录限流 ====================

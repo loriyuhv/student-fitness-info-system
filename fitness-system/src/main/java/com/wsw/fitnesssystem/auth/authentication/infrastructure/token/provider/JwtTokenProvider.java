@@ -23,6 +23,7 @@ import java.util.Date;
 @Component
 @RequiredArgsConstructor
 public class JwtTokenProvider {
+
     private final JwtConfig jwtConfig;
 
     /** Access Token 专用签名密钥 */
@@ -79,6 +80,7 @@ public class JwtTokenProvider {
             .claim("userId", tokenPrincipal.getUserId())
             .claim("campusId", tokenPrincipal.getCampusId())
             .claim("deviceId", tokenPrincipal.getDeviceId())
+            .claim("userType", tokenPrincipal.getUserType())
             .claim("type", TokenType.REFRESH.name())
             .claim("tokenVersion", tokenPrincipal.getTokenVersion())
             // ===== 签名 =====

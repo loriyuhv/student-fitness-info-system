@@ -8,6 +8,7 @@ import com.wsw.fitnesssystem.auth.authentication.application.vo.UserInfoVO;
 import com.wsw.fitnesssystem.auth.authentication.infrastructure.security.model.JwtUserPrincipal;
 import com.wsw.fitnesssystem.auth.authentication.interfaces.web.dto.RefreshRequest;
 import com.wsw.fitnesssystem.auth.shared.utils.WebUtils;
+import com.wsw.fitnesssystem.shared.context.RequestContextHolder;
 import com.wsw.fitnesssystem.shared.domain.valueobject.Operator;
 import com.wsw.fitnesssystem.shared.response.ApiResult;
 import com.wsw.fitnesssystem.auth.authentication.interfaces.web.dto.LoginRequest;
@@ -57,18 +58,19 @@ public class AuthController {
     @PostMapping("/logout")
     public ApiResult<Void> logout() {
         try {
+
             Authentication auth = SecurityContextHolder.getContext().getAuthentication();
             JwtUserPrincipal principal = (JwtUserPrincipal) auth.getPrincipal();
             String accessTokenId = principal.accessTokenId();
-            Long campusId = principal.campusId();
-            Long userId = principal.userId();
 
-            Operator operator = new Operator(campusId, userId, null, null);
+            Operator operator = RequestContextHolder.getRequiredOperator();
+
             // 1. 调用 Application Service 协调登出
             authApplicationService.logout(operator, accessTokenId);
 
             // 3. 返回成功
             return ApiResult.success(ResultCode.LOGOUT_SUCCESS);
+
         } catch (Exception e) {
             log.error(ResultCode.LOGOUT_FAILED.getMessage(), e);
             return ApiResult.error(ResultCode.LOGOUT_FAILED);
@@ -87,7 +89,8 @@ public class AuthController {
 
     @GetMapping("/user-info")
     public ApiResult<UserInfoVO> userInfo() {
-        return ApiResult.success(authApplicationService.getUserInfo());
+        Operator operator = RequestContextHolder.getRequiredOperator();
+        return ApiResult.success(authApplicationService.getUserInfo(operator));
     }
 
 }

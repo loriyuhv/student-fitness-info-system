@@ -1,7 +1,6 @@
 package com.wsw.fitnesssystem.auth.authentication.domain.port;
 
 import com.wsw.fitnesssystem.auth.authentication.domain.model.AuthUser;
-import com.wsw.fitnesssystem.shared.domain.valueobject.Operator;
 
 import java.util.Optional;
 
@@ -19,13 +18,14 @@ import java.util.Optional;
  * @since 1.0
  */
 public interface AuthUserRepository {
+
     Optional<AuthUser> findByUsername(String username);
 
     /**
      * 判断用户是否存在
      *
-     * @param operator 操作对象
      * @return true 表示存在，false 表示不存在
      */
-    boolean exists(Operator operator);
+    boolean exists(long campusId, long userId);
+
 }

@@ -1,7 +1,5 @@
 package com.wsw.fitnesssystem.auth.session.domain.port;
 
-import com.wsw.fitnesssystem.shared.domain.valueobject.Operator;
-
 import java.util.Optional;
 import java.util.Set;
 
@@ -46,11 +44,10 @@ public interface SessionRepository {
      * field=accessTokenId，value=refreshTokenId，用于失效 RefreshToken</li>
      * <li>设置 TTL：会话声明周期，不依赖 AccessToken 本身生命周期</li>
      *
-     * @param operator 操作对象
      * @param accessTokenId 当前登录的 AccessToken 唯一标识（jti）
      * @param refreshTokenId 当前登录的 RefreshToken 唯一标识（jti）
      */
-    void saveSession(Operator operator, String accessTokenId, String refreshTokenId);
+    void saveSession(long campusId, long userId, String accessTokenId, String refreshTokenId);
 
     /**
      * 删除单个用户会话（单端注销或踢人）
@@ -62,10 +59,9 @@ public interface SessionRepository {
      *     <li>加入黑名单，防止 JWT 继续使用</li>
      * </ul>
      *
-     * @param operator 操作对象
      * @param accessTokenId 要删除的 AccessToken ID
      */
-    void removeSession(Operator operator, String accessTokenId);
+    void removeSession(long campusId, long userId, String accessTokenId);
 
     /**
      * 删除该用户全部会话（踢掉所有设备）
@@ -79,17 +75,15 @@ public interface SessionRepository {
      *     <strong>已泄露、且版本号匹配、尚未过期的AccessToken</strong>；
      *     缩短AccessToken有效期可缩小风险窗口，发现泄露可手动将单条tokenId加入黑名单处置</li>
      * </ul>
-     * @param operator 操作对象
      */
-    Set<String> removeAllSessions(Operator operator);
+    Set<String> removeAllSessions(long campusId, long userId);
 
     /**
      * 获取用户所有在线 AccessToken ID
      *
-     * @param operator 操作对象
      * @return 当前用户在线的所有 AccessToken ID
      */
-    Set<String> getAllSessions(Operator operator);
+    Set<String> getAllSessions(long campusId, long userId);
 
     /**
      * 判断指定 token 是否在线
@@ -98,11 +92,10 @@ public interface SessionRepository {
      *     <li>检查用户是否仍然登录</li>
      *     <li>实现单点登录和多端登录限制逻辑</li>
      * </ul>
-     * @param operator 操作对象
      * @param accessTokenId AccessToken ID
      * @return true 表示 token 仍在线，false 表示已下线或被踢
      */
-    boolean isOnline(Operator operator, String accessTokenId);
+    boolean isOnline(long campusId, long userId, String accessTokenId);
 
     /**
      * 将指定 AccessToken 加入黑名单
@@ -130,10 +123,9 @@ public interface SessionRepository {
      *     <li>用于多端登录限制</li>
      *     <li>实现踢掉最早会话等策略</li>
      * </ul>
-     * @param operator 操作对象
      * @return 当前在线的 AccessToken 数量
      */
-    Long countSessions(Operator operator);
+    Long countSessions(long campusId, long userId);
 
     /**
      * 获取最早登录的 AccessToken
@@ -141,50 +133,42 @@ public interface SessionRepository {
      * <ul>
      *     <li>实现多端登录策略时，踢掉最早登录的设备</li>
      * </ul>
-     * @param operator 操作对象
      * @return 最早登录的 AccessToken ID，若无返回 Optional.empty()
      */
-    Optional<String> getOldestSession(Operator operator);
+    Optional<String> getOldestSession(long campusId, long userId);
 
     /**
      * 获取用户当前版本号（如果不存在则初始化为 1）
-     * @param operator 操作对象
      * @return token版本号
      */
-    long getTokenVersion(Operator operator);
+    long getTokenVersion(long campusId, long userId);
 
     /**
      * 校验refreshToken是否存在
-     * @param operator 操作对象
      * @param refreshTokenId Refresh Token ID
      * @return 是否存在值
      */
-    boolean existsRefreshToken(Operator operator, String refreshTokenId);
+    boolean existsRefreshToken(long campusId, long userId, String refreshTokenId);
 
     /**
      * Refresh Token轮换
      * 删除旧refresh
      * 保存新refresh
-     * @param operator 操作对象
      * @param oldRefreshTokenId 旧Refresh Token ID
      * @param oldAccessTokenId 旧Access Token ID
      * @param newRefreshTokenId 新Refresh Token ID
      * @param newAccessTokenId 新Access Token ID
      */
     void rotateRefreshToken(
-            Operator operator,
-            String oldRefreshTokenId,
-            String oldAccessTokenId,
-            String newRefreshTokenId,
-            String newAccessTokenId
+        long campusId, long userId, String oldRefreshTokenId,
+        String oldAccessTokenId, String newRefreshTokenId, String newAccessTokenId
     );
 
     /**
      * 通过RefreshToken ID获取 AccessToken ID
-     * @param operator 操作对象
      * @param refreshTokenId Refresh Token ID
      * @return Access Token ID
      */
-    String getAccessTokenIdByRefreshTokenId(Operator operator, String refreshTokenId);
+    String getAccessTokenIdByRefreshTokenId(long campusId, long userId, String refreshTokenId);
 
 }

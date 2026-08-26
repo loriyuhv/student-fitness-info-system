@@ -2,7 +2,6 @@ package com.wsw.fitnesssystem.auth.authentication.interfaces.web;
 
 import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 import com.wsw.fitnesssystem.auth.authentication.application.AuthApplicationService;
-import com.wsw.fitnesssystem.shared.domain.valueobject.Operator;
 import com.wsw.fitnesssystem.shared.response.ApiResult;
 import com.wsw.fitnesssystem.shared.response.ResultCode;
 import lombok.RequiredArgsConstructor;
@@ -37,15 +36,16 @@ public class AdminUserController {
     public ApiResult<String> kickUser(
         @PathVariable Long campusId, @PathVariable Long userId) {
 
-        Operator operator = new Operator(campusId, userId, null, null);
-        Set<String> onlineSessions = authApplicationService.kick(operator);
+        Set<String> onlineSessions = authApplicationService.kick(campusId, userId);
 
         String msg;
         if (CollectionUtils.isEmpty(onlineSessions)) {
-            return ApiResult.success(ResultCode.SUCCESS, "，该用户当前无在线会话");
+            msg = ResultCode.SUCCESS.getMessage() + "，该用户当前无在线会话";
+            return ApiResult.success(ResultCode.SUCCESS, msg);
         }
 
-        return ApiResult.success(ResultCode.KICKOUT_SUCCESS, "，已踢出" + onlineSessions.size() + "个会话");
+        msg = ResultCode.KICKOUT_SUCCESS.getMessage() + "，已踢出" + onlineSessions.size() + "个会话";
+        return ApiResult.success(ResultCode.KICKOUT_SUCCESS, msg);
     }
 
 }

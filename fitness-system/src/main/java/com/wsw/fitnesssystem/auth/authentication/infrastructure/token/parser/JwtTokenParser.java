@@ -76,12 +76,13 @@ public class JwtTokenParser {
             }
 
             return AccessTokenClaims.builder()
-                    .jti(claims.getId())
-                    .userId(claims.get("userId", Long.class))
-                    .campusId(claims.get("campusId", Long.class))
-                    .username(claims.get("username", String.class))
-                    .tokenVersion(claims.get("tokenVersion", Long.class))
-                    .build();
+                .jti(claims.getId())
+                .campusId(claims.get("campusId", Long.class))
+                .userId(claims.get("userId", Long.class))
+                .username(claims.get("username", String.class))
+                .userType(claims.get("userType", Integer.class))
+                .tokenVersion(claims.get("tokenVersion", Long.class))
+                .build();
         } catch (IncorrectClaimException e) {
             log.warn("AccessToken 必要声明缺失或类型错误", e);
             throw new BadCredentialsException("无效访问凭证", e);
@@ -123,12 +124,14 @@ public class JwtTokenParser {
             }
 
             return RefreshTokenClaims.builder()
-                    .jti(claims.getId())
-                    .userId(claims.get("userId", Long.class))
-                    .campusId(claims.get("campusId", Long.class))
-                    .deviceId(claims.get("deviceId", String.class))
-                    .tokenVersion(claims.get("tokenVersion", Long.class))
-                    .build();
+                .jti(claims.getId())
+                .campusId(claims.get("campusId", Long.class))
+                .userId(claims.get("userId", Long.class))
+                .username(claims.get("username", String.class))
+                .userType(claims.get("userType", Integer.class))
+                .deviceId(claims.get("deviceId", String.class))
+                .tokenVersion(claims.get("tokenVersion", Long.class))
+                .build();
         } catch (IncorrectClaimException e) {
             log.warn("RefreshToken 必要声明缺失或类型错误", e);
             throw new BadCredentialsException("无效刷新凭证", e);
