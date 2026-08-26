@@ -3,7 +3,7 @@ package com.wsw.fitnesssystem.auth.session.infrastructure.repository;
 import com.wsw.fitnesssystem.auth.session.domain.port.SessionRepository;
 import com.wsw.fitnesssystem.auth.authentication.infrastructure.config.JwtConfig;
 import com.wsw.fitnesssystem.auth.session.infrastructure.config.SessionProperties;
-import com.wsw.fitnesssystem.auth.authorization.infrastructure.persistence.redis.model.AuthRedisKeys;
+import com.wsw.fitnesssystem.auth.shared.infrastructure.redis.AuthRedisKeys;
 import com.wsw.fitnesssystem.shared.exception.BizException;
 import com.wsw.fitnesssystem.shared.response.ResultCode;
 import jakarta.annotation.PostConstruct;

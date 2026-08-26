@@ -1,4 +1,4 @@
-package com.wsw.fitnesssystem.auth.authorization.infrastructure.persistence.redis.model;
+package com.wsw.fitnesssystem.auth.shared.infrastructure.redis;
 
 /**
  * 认证授权Redis Key规范

@@ -2,7 +2,7 @@ package com.wsw.fitnesssystem.auth.authorization.infrastructure.persistence.redi
 
 import com.wsw.fitnesssystem.auth.authorization.application.dto.result.UserAuthorization;
 import com.wsw.fitnesssystem.auth.authorization.application.port.AuthorizationCacheService;
-import com.wsw.fitnesssystem.auth.authorization.infrastructure.persistence.redis.model.AuthRedisKeys;
+import com.wsw.fitnesssystem.auth.shared.infrastructure.redis.AuthRedisKeys;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.redis.core.RedisTemplate;
