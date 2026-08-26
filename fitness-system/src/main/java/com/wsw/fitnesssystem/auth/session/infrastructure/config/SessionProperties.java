@@ -2,7 +2,7 @@ package com.wsw.fitnesssystem.auth.session.infrastructure.config;
 
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.context.annotation.Configuration;
+import org.springframework.stereotype.Component;
 
 /**
  * @author loriyuhv
@@ -10,7 +10,7 @@ import org.springframework.context.annotation.Configuration;
  * @since 1.0
  */
 @Data
-@Configuration
+@Component
 @ConfigurationProperties(prefix = "auth.session")
 public class SessionProperties {
 
@@ -18,7 +18,12 @@ public class SessionProperties {
      * 会话过期时间（单位：秒）
      * 适用：ZSet、Hash
      */
-    private long expire;
+    private long sessionExpire;
+
+    /**
+     * 黑名单过期时间（单位：秒）
+     */
+    private long blacklistExpire;
 
     /**
      * 单账号最大在线会话数
@@ -27,10 +32,18 @@ public class SessionProperties {
 
     /**
      * 获取会话过期时间，转换为毫秒
-     * @return 过期时间（毫秒）
+     * @return 会话过期时间（毫秒）
      */
-    public long getExpire() {
-        return expire * 1000L;
+    public long getSessionExpireMillis() {
+        return sessionExpire * 1000L;
+    }
+
+    /**
+     * 获取黑名单过期时间，转换为毫秒
+     * @return 黑名单过期时间（毫秒）
+     */
+    public long getBlacklistExpireMillis() {
+        return blacklistExpire * 1000L;
     }
 
 }

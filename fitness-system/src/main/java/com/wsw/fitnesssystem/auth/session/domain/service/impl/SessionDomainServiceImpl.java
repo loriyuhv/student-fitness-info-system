@@ -35,7 +35,7 @@ public class SessionDomainServiceImpl implements SessionDomainService {
         boolean exists = sessionRepository.existsRefreshToken(campusId, userId, refreshTokenId);
 
         if(!exists){
-            throw new BizException(ResultCode.TOKEN_INVALID);
+            throw new BizException(ResultCode.REFRESH_TOKEN_INVALID);
         }
     }
 

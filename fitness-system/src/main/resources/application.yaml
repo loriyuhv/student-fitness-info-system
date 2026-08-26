@@ -36,8 +36,9 @@ auth:
       - /auth/refresh
     bcrypt-strength: 6
   session:
-    expire: 604800
+    session-expire: 604800
     max-online-sessions: 3
+    blacklist-expire: 900
   risk:
     max-fail-count: 5
     lock-duration-minutes: 30

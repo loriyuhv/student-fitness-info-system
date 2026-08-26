@@ -1,7 +1,6 @@
 package com.wsw.fitnesssystem.auth.session.infrastructure.repository;
 
 import com.wsw.fitnesssystem.auth.session.domain.port.SessionRepository;
-import com.wsw.fitnesssystem.auth.authentication.infrastructure.config.JwtConfig;
 import com.wsw.fitnesssystem.auth.session.infrastructure.config.SessionProperties;
 import com.wsw.fitnesssystem.auth.shared.infrastructure.redis.AuthRedisKeys;
 import com.wsw.fitnesssystem.shared.exception.BizException;
@@ -33,7 +32,6 @@ public class RedisSessionRepository implements SessionRepository {
 
     private final RedisTemplate<String, String> redisTemplate;
     private final SessionProperties sessionProperties;
-    private final JwtConfig jwtConfig;
 
     // ==================== Lua 脚本定义 ====================
 
@@ -158,7 +156,7 @@ public class RedisSessionRepository implements SessionRepository {
     @Override
     public void saveSession(long campusId, long userId, String accessTokenId, String refreshTokenId) {
         long now = System.currentTimeMillis();
-        long ttl = sessionProperties.getExpire();
+        long ttl = sessionProperties.getSessionExpireMillis();
 
         redisTemplate.execute(
             saveSessionScript,
@@ -186,7 +184,7 @@ public class RedisSessionRepository implements SessionRepository {
                 AuthRedisKeys.blacklistKey(accessTokenId)
             ),
             accessTokenId,
-            String.valueOf(jwtConfig.getExpire())
+            String.valueOf(sessionProperties.getBlacklistExpireMillis())
         );
 
         // refreshTokenId 为 "" 表示原本就不存在，已经失效
@@ -240,7 +238,7 @@ public class RedisSessionRepository implements SessionRepository {
     @Override
     public void addToBlacklist(String accessTokenId) {
         String blacklistKey = AuthRedisKeys.blacklistKey(accessTokenId);
-        long ttl = jwtConfig.getExpire();
+        long ttl = sessionProperties.getBlacklistExpireMillis();
         redisTemplate.opsForValue().set(blacklistKey, "1", ttl, TimeUnit.MILLISECONDS);
     }
 
@@ -290,7 +288,7 @@ public class RedisSessionRepository implements SessionRepository {
         String oldAccessTokenId, String newRefreshTokenId, String newAccessTokenId) {
 
         long now = System.currentTimeMillis();
-        long sessionTtl = sessionProperties.getExpire();
+        long sessionTtl = sessionProperties.getSessionExpireMillis();
 
         redisTemplate.execute(
             rotateRefreshTokenScript,
@@ -304,7 +302,7 @@ public class RedisSessionRepository implements SessionRepository {
             newRefreshTokenId, newAccessTokenId,
             String.valueOf(now),
             String.valueOf(sessionTtl),
-            String.valueOf(sessionProperties.getExpire())
+            String.valueOf(sessionProperties.getBlacklistExpireMillis())
         );
     }
 
