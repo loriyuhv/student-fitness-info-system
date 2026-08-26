@@ -1,8 +1,8 @@
 package com.wsw.fitnesssystem.auth.session.domain.service.impl;
 
+import com.wsw.fitnesssystem.auth.session.domain.policy.SessionLimitPolicy;
 import com.wsw.fitnesssystem.auth.session.domain.port.SessionRepository;
 import com.wsw.fitnesssystem.auth.session.domain.service.SessionDomainService;
-import com.wsw.fitnesssystem.auth.session.infrastructure.config.SessionProperties;
 import com.wsw.fitnesssystem.shared.exception.BizException;
 import com.wsw.fitnesssystem.shared.response.ResultCode;
 import lombok.RequiredArgsConstructor;
@@ -18,12 +18,12 @@ import org.springframework.stereotype.Service;
 public class SessionDomainServiceImpl implements SessionDomainService {
 
     private final SessionRepository sessionRepository;
-    private final SessionProperties sessionProperties;
+    private final SessionLimitPolicy sessionLimitPolicy;
 
     @Override
     public void limitSessions(long campusId, long userId) {
         Long size = sessionRepository.countSessions(campusId, userId);
-        int maxSessions = sessionProperties.getMaxOnlineSessions();
+        int maxSessions = sessionLimitPolicy.getMaxSessions();
         if (size == null || size < maxSessions) return;
 
         sessionRepository.getOldestSession(campusId, userId)
