@@ -1,7 +1,6 @@
 package com.wsw.fitnesssystem.auth.authentication.application.port;
 
 import com.wsw.fitnesssystem.auth.authentication.application.dto.port.AuthAuthorization;
-import com.wsw.fitnesssystem.auth.authorization.application.dto.query.AuthorizationQuery;
 
 /**
  * 授权端口（Authentication 模块定义）
