@@ -6,7 +6,7 @@ import com.wsw.fitnesssystem.auth.authorization.application.service.Authorizatio
 import com.wsw.fitnesssystem.auth.authorization.application.dto.AuthorizationQuery;
 import com.wsw.fitnesssystem.auth.authentication.application.service.LoginSuccessProcessor;
 import com.wsw.fitnesssystem.auth.risk.application.RiskControlService;
-import com.wsw.fitnesssystem.auth.authentication.application.dto.TokenPair;
+import com.wsw.fitnesssystem.auth.authentication.application.dto.port.TokenPair;
 import com.wsw.fitnesssystem.auth.session.domain.port.SessionRepository;
 import com.wsw.fitnesssystem.auth.session.domain.service.SessionDomainService;
 import com.wsw.fitnesssystem.shared.domain.valueobject.Operator;

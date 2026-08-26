@@ -1,12 +1,10 @@
-package com.wsw.fitnesssystem.auth.authentication.application.dto;
+package com.wsw.fitnesssystem.auth.authentication.application.dto.port;
 
 import com.wsw.fitnesssystem.auth.authentication.application.port.TokenPort;
 import lombok.Builder;
 import lombok.Data;
 
 /**
- * RefreshTokenClaims
- *
  * <p>RefreshToken 解析后的 Claims 封装对象，用于刷新 Token 或多端会话管理。
  * 只包含刷新所需字段，不包含业务逻辑。
  *
@@ -32,20 +30,20 @@ public class RefreshTokenClaims {
     /** JWT唯一标识（jti），用于单设备下线或 Token 撤销 */
     private String jti;
 
-    /** 用户ID，唯一标识用户身份 */
-    private Long userId;
-
-    /** 校区ID，多校区场景下区分用户归属 */
+    /** 校区ID，多租户场景下区分用户归属 */
     private Long campusId;
 
-    /** 设备ID，用于多端登录控制和 RefreshToken 绑定 */
-    private String deviceId;
+    /** 用户ID，唯一标识用户身份 */
+    private Long userId;
 
     /** 用户账号 */
     private String username;
 
     /** 用户类型 */
     private Integer userType;
+
+    /** 设备ID，用于多端登录控制和 RefreshToken 绑定 */
+    private String deviceId;
 
     /** Token 版本号，用于全局或单用户 Token 失效控制 */
     private Long tokenVersion;

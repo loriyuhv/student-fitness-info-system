@@ -1,8 +1,8 @@
 package com.wsw.fitnesssystem.auth.authentication.application.port;
 
-import com.wsw.fitnesssystem.auth.authentication.application.dto.AccessTokenClaims;
-import com.wsw.fitnesssystem.auth.authentication.application.dto.TokenPair;
-import com.wsw.fitnesssystem.auth.authentication.application.dto.RefreshTokenClaims;
+import com.wsw.fitnesssystem.auth.authentication.application.dto.port.AccessTokenClaims;
+import com.wsw.fitnesssystem.auth.authentication.application.dto.port.TokenPair;
+import com.wsw.fitnesssystem.auth.authentication.application.dto.port.RefreshTokenClaims;
 
 /**
  * Token 管理端口（出站端口）

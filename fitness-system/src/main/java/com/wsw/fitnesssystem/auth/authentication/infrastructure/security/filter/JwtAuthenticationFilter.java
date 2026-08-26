@@ -6,7 +6,7 @@ import com.wsw.fitnesssystem.auth.authorization.application.dto.AuthorizationQue
 import com.wsw.fitnesssystem.auth.authorization.application.dto.UserAuthorization;
 import com.wsw.fitnesssystem.auth.session.domain.port.SessionRepository;
 import com.wsw.fitnesssystem.auth.authentication.infrastructure.config.SecurityProperties;
-import com.wsw.fitnesssystem.auth.authentication.application.dto.AccessTokenClaims;
+import com.wsw.fitnesssystem.auth.authentication.application.dto.port.AccessTokenClaims;
 import com.wsw.fitnesssystem.auth.authentication.infrastructure.security.handler.JwtAuthenticationEntryPoint;
 import com.wsw.fitnesssystem.auth.authentication.infrastructure.security.model.JwtUserPrincipal;
 import com.wsw.fitnesssystem.shared.context.RequestContext;

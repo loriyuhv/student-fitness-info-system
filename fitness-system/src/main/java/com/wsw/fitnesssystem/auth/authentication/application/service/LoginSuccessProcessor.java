@@ -1,7 +1,7 @@
 package com.wsw.fitnesssystem.auth.authentication.application.service;
 
 import com.wsw.fitnesssystem.auth.authentication.application.dto.command.LoginCommand;
-import com.wsw.fitnesssystem.auth.authentication.application.dto.TokenPair;
+import com.wsw.fitnesssystem.auth.authentication.application.dto.port.TokenPair;
 import com.wsw.fitnesssystem.shared.domain.valueobject.Operator;
 
 /**

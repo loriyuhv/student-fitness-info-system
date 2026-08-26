@@ -15,14 +15,14 @@ import com.wsw.fitnesssystem.auth.risk.application.RiskControlService;
 import com.wsw.fitnesssystem.auth.authentication.application.port.TokenPort;
 import com.wsw.fitnesssystem.auth.audit.domain.valueobject.LogoutReason;
 import com.wsw.fitnesssystem.auth.authentication.domain.model.AuthUser;
-import com.wsw.fitnesssystem.auth.authentication.application.dto.TokenPair;
+import com.wsw.fitnesssystem.auth.authentication.application.dto.port.TokenPair;
 import com.wsw.fitnesssystem.auth.authentication.domain.model.UserInfo;
 import com.wsw.fitnesssystem.auth.session.domain.port.SessionRepository;
 import com.wsw.fitnesssystem.auth.authentication.domain.port.UserInfoRepository;
 import com.wsw.fitnesssystem.auth.risk.domain.valueobject.RiskFailResult;
 import com.wsw.fitnesssystem.auth.authentication.domain.service.AuthDomainService;
 import com.wsw.fitnesssystem.auth.session.domain.service.SessionDomainService;
-import com.wsw.fitnesssystem.auth.authentication.application.dto.RefreshTokenClaims;
+import com.wsw.fitnesssystem.auth.authentication.application.dto.port.RefreshTokenClaims;
 import com.wsw.fitnesssystem.shared.domain.valueobject.Operator;
 import com.wsw.fitnesssystem.shared.exception.BizException;
 import com.wsw.fitnesssystem.shared.response.ResultCode;
@@ -68,7 +68,7 @@ public class AuthApplicationService {
      *     <li>用户认证：调用领域服务验证用户名和密码 {@link #authenticate(LoginCommand)}</li>
      *     <li>生成 Token：生成 Access Token 与 Refresh Token {@link TokenPort}</li>
      *     <li>登录成功后处理：多端限制、会话持久化、授权缓存、审计 {@link LoginSuccessProcessor}</li>
-     *     <li>构建返回结果：封装登录响应 {@link #buildResponse(TokenPair)}</li>
+     *     <li>构建返回结果：封装登录响应 {@link #buildLoginResult(TokenPair)}</li>
      * </ol>
      *
      * <p>方法特点：
@@ -110,7 +110,7 @@ public class AuthApplicationService {
         loginSuccessProcessor.process(operator, cmd, tokenPair);
 
         // 5. 返回
-        return buildResponse(tokenPair);
+        return buildLoginResult(tokenPair);
     }
 
     /***
@@ -280,7 +280,7 @@ public class AuthApplicationService {
      * @param tokenPair 登录成功生成的 Token 对象 {@link TokenPair}
      * @return {@link LoginResult} 返回给客户端的登录响应
      */
-    private LoginResult buildResponse(TokenPair tokenPair) {
+    private LoginResult buildLoginResult(TokenPair tokenPair) {
         return LoginResult.builder()
             .accessToken(tokenPair.getAccessToken())
             .refreshToken(tokenPair.getRefreshToken())
