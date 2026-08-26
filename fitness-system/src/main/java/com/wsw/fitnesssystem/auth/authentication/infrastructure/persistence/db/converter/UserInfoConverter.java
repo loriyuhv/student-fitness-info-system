@@ -1,7 +1,7 @@
 package com.wsw.fitnesssystem.auth.authentication.infrastructure.persistence.db.converter;
 
 import com.wsw.fitnesssystem.auth.authentication.domain.model.UserInfo;
-import com.wsw.fitnesssystem.auth.authorization.infrastructure.persistence.db.entity.SysUser;
+import com.wsw.fitnesssystem.user.infrastructure.persistence.entity.UserPo;
 
 /**
  * @author loriyuhv
@@ -9,21 +9,21 @@ import com.wsw.fitnesssystem.auth.authorization.infrastructure.persistence.db.en
  * @since 1.0
  */
 public class UserInfoConverter {
-    public static UserInfo toDomain(SysUser sysUser) {
-        if (sysUser == null) {
+    public static UserInfo toDomain(UserPo userPO) {
+        if (userPO == null) {
             return null;
         }
 
         return UserInfo.builder()
-                .userId(sysUser.getUserId())
-                .campusId(sysUser.getCampusId())
-                .username(sysUser.getUsername())
-                .nickname(sysUser.getNickname())
-                .phoneNumber(sysUser.getPhoneNumber())
-                .email(sysUser.getEmail())
-                .remark(sysUser.getRemark())
-                .source(sysUser.getSource())
-                .userType(sysUser.getUserType())
+                .userId(userPO.getUserId())
+                .campusId(userPO.getCampusId())
+                .username(userPO.getUsername())
+                .nickname(userPO.getNickname())
+                .phoneNumber(userPO.getPhoneNumber())
+                .email(userPO.getEmail())
+                .remark(userPO.getRemark())
+                .source(userPO.getSource())
+                .userType(userPO.getUserType())
                 .build();
     }
 }

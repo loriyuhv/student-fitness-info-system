@@ -1,7 +1,7 @@
 package com.wsw.fitnesssystem.auth.authentication.infrastructure.persistence.db.converter;
 
 import com.wsw.fitnesssystem.auth.authentication.domain.model.AuthUser;
-import com.wsw.fitnesssystem.auth.authorization.infrastructure.persistence.db.entity.SysUser;
+import com.wsw.fitnesssystem.user.infrastructure.persistence.entity.UserPo;
 
 /**
  * @author loriyuhv
@@ -9,19 +9,19 @@ import com.wsw.fitnesssystem.auth.authorization.infrastructure.persistence.db.en
  * @since 1.0
  */
 public class AuthUserConverter {
-    public static AuthUser toDomain(SysUser sysUser) {
+    public static AuthUser toDomain(UserPo userPO) {
 
-        if (sysUser == null) {
+        if (userPO == null) {
             return null;
         }
 
         return AuthUser.builder()
-                .userId(sysUser.getUserId())
-                .campusId(sysUser.getCampusId())
-                .username(sysUser.getUsername())
-                .password(sysUser.getPassword())
-                .userType(sysUser.getUserType())
-                .status(sysUser.getStatus())
+                .userId(userPO.getUserId())
+                .campusId(userPO.getCampusId())
+                .username(userPO.getUsername())
+                .password(userPO.getPassword())
+                .userType(userPO.getUserType())
+                .status(userPO.getStatus())
                 .build();
     }
 }

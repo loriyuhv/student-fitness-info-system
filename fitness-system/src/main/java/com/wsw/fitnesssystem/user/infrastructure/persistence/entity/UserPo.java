@@ -1,4 +1,4 @@
-package com.wsw.fitnesssystem.auth.authorization.infrastructure.persistence.db.entity;
+package com.wsw.fitnesssystem.user.infrastructure.persistence.entity;
 
 import com.baomidou.mybatisplus.annotation.*;
 import lombok.Data;
@@ -21,7 +21,8 @@ import java.time.LocalDateTime;
  */
 @Data
 @TableName("sys_user") // 启用 MP 代理
-public class SysUser implements Serializable {
+public class UserPo implements Serializable {
+
     @Serial
     private static final long serialVersionUID = 1L;
 
@@ -43,6 +44,7 @@ public class SysUser implements Serializable {
     private String nickname;
 
     /** 手机号 */
+    @TableField("phone_number")
     private String phoneNumber;
 
     /** 邮箱 */
@@ -52,6 +54,7 @@ public class SysUser implements Serializable {
     private String remark;
 
     /** 用户类型：0-管理员 1-教师 2-学生 */
+    @TableField("user_type")
     private Integer userType;
 
     /** 来源 */
@@ -79,4 +82,5 @@ public class SysUser implements Serializable {
     /** 更新时间：插入和更新时都填充 */
     @TableField(fill = FieldFill.INSERT_UPDATE)
     private LocalDateTime updateTime;
+
 }

@@ -3,8 +3,8 @@ package com.wsw.fitnesssystem.auth.authorization.infrastructure.db;
 import com.wsw.fitnesssystem.auth.authentication.domain.model.UserInfo;
 import com.wsw.fitnesssystem.auth.authentication.domain.port.UserInfoRepository;
 import com.wsw.fitnesssystem.auth.authentication.infrastructure.persistence.db.converter.UserInfoConverter;
-import com.wsw.fitnesssystem.auth.authorization.infrastructure.persistence.db.entity.SysUser;
-import com.wsw.fitnesssystem.auth.authorization.infrastructure.persistence.db.mapper.SysUserMapper;
+import com.wsw.fitnesssystem.user.infrastructure.persistence.entity.UserPo;
+import com.wsw.fitnesssystem.user.infrastructure.persistence.mapper.SysUserMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
@@ -20,7 +20,7 @@ public class UserInfoRepositoryImpl implements UserInfoRepository {
 
     @Override
     public UserInfo findById(Long userId, Long campusId) {
-        SysUser sysUser = sysUserMapper.selectByUserIdAndCampusId(userId, campusId);
-        return UserInfoConverter.toDomain(sysUser);
+        UserPo userPO = sysUserMapper.selectByUserIdAndCampusId(userId, campusId);
+        return UserInfoConverter.toDomain(userPO);
     }
 }
