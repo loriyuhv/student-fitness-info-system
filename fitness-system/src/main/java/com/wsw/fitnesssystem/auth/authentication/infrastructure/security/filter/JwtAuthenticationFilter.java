@@ -1,9 +1,8 @@
 package com.wsw.fitnesssystem.auth.authentication.infrastructure.security.filter;
 
+import com.wsw.fitnesssystem.auth.authentication.application.dto.port.AuthAuthorization;
+import com.wsw.fitnesssystem.auth.authentication.application.port.AuthorizationPort;
 import com.wsw.fitnesssystem.auth.authentication.application.port.TokenPort;
-import com.wsw.fitnesssystem.auth.authorization.application.service.AuthorizationQueryService;
-import com.wsw.fitnesssystem.auth.authorization.application.dto.AuthorizationQuery;
-import com.wsw.fitnesssystem.auth.authorization.application.dto.UserAuthorization;
 import com.wsw.fitnesssystem.auth.session.domain.port.SessionRepository;
 import com.wsw.fitnesssystem.auth.authentication.infrastructure.config.SecurityProperties;
 import com.wsw.fitnesssystem.auth.authentication.application.dto.port.AccessTokenClaims;
@@ -73,10 +72,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private static final String AUTH_HEADER = "Authorization";
 
     private final TokenPort tokenPort;
+    private final AuthorizationPort authorizationPort;
     private final SessionRepository sessionRepository;
     private final SecurityProperties securityProperties;
     private final JwtAuthenticationEntryPoint authenticationEntryPoint;
-    private final AuthorizationQueryService authorizationQueryService;
 
     /**
      * 过滤器核心处理逻辑
@@ -158,9 +157,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             }
 
             // 4. 加载用户权限：权限信任Redis缓存，不直接使用Token内携带权限
-            UserAuthorization authorization =
-                    authorizationQueryService.authorize(operator,
-                            AuthorizationQuery.builder().userId(userId).campusId(campusId).build());
+            AuthAuthorization authorization = authorizationPort.getAuthorization(userId, campusId);
 
             // 组装SpringSecurity权限集合：角色自动添加ROLE_前缀，权限标识原样保留
             Set<GrantedAuthority> authorities = Stream.concat(

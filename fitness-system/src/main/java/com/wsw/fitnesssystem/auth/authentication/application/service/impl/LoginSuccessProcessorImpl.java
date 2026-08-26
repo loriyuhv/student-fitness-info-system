@@ -2,7 +2,6 @@ package com.wsw.fitnesssystem.auth.authentication.application.service.impl;
 
 import com.wsw.fitnesssystem.auth.audit.application.AuditAppService;
 import com.wsw.fitnesssystem.auth.authentication.application.dto.command.LoginCommand;
-import com.wsw.fitnesssystem.auth.authorization.application.service.AuthorizationQueryService;
 import com.wsw.fitnesssystem.auth.authentication.application.service.LoginSuccessProcessor;
 import com.wsw.fitnesssystem.auth.risk.application.RiskControlService;
 import com.wsw.fitnesssystem.auth.authentication.application.dto.port.TokenPair;
@@ -34,7 +33,6 @@ import java.time.LocalDateTime;
  *     <li>{@link RiskControlService} - 风控逻辑处理</li>
  *     <li>{@link SessionDomainService} - 多端登录限制策略</li>
  *     <li>{@link SessionRepository} - 会话持久化</li>
- *     <li>{@link AuthorizationQueryService} - 授权服务</li>
  *     <li>{@link AuditAppService} - 登录审计</li>
  * </ul>
  * @author loriyuhv

@@ -1,11 +1,10 @@
 package com.wsw.fitnesssystem.auth.authorization.application.service.impl;
 
 import com.wsw.fitnesssystem.auth.authorization.application.service.AuthorizationQueryService;
-import com.wsw.fitnesssystem.auth.authorization.application.dto.AuthorizationQuery;
-import com.wsw.fitnesssystem.auth.authorization.application.dto.UserAuthorization;
+import com.wsw.fitnesssystem.auth.authorization.application.dto.query.AuthorizationQuery;
+import com.wsw.fitnesssystem.auth.authorization.application.dto.result.UserAuthorization;
 import com.wsw.fitnesssystem.auth.authorization.application.port.AuthorizationCacheService;
 import com.wsw.fitnesssystem.auth.authorization.domain.port.AuthorizationRepository;
-import com.wsw.fitnesssystem.shared.domain.valueobject.Operator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -32,35 +31,37 @@ public class AuthorizationQueryServiceImpl implements AuthorizationQueryService 
     private final AuthorizationCacheService cacheService;
 
     @Override
-    public UserAuthorization authorize(Operator operator, AuthorizationQuery authorizationQuery) {
+    public UserAuthorization authorize(AuthorizationQuery authorizationQuery) {
 
-        long campusId = operator.campusId();
-        long userId = operator.userId();
+        Long campusId = authorizationQuery.getCampusId();
+        Long userId = authorizationQuery.getUserId();
 
         // 1. 先查缓存
-        UserAuthorization cached = cacheService.get(campusId, userId);
+        UserAuthorization cached = cacheService.get(userId, campusId);
         if (cached != null) {
-            log.info("权限缓存命中：{}:{}", campusId, userId);
+            log.info("权限缓存命中：{}:{}", userId, campusId);
             return cached;
         }
 
         // 2. 查DB
         // 一次性查询角色
-        Set<String> roles = authorizationRepository.findRolesByUserId(userId);
+        Set<String> roles = authorizationRepository.findRolesByUserIdAndCampusId(userId, campusId);
 
         // 一次性查询权限
-        Set<String> permissions = authorizationRepository.findPermissionsByUserId(userId);
-        UserAuthorization fresh = new UserAuthorization(campusId, userId, roles, permissions);
+        Set<String> permissions = authorizationRepository.findPermissionsByUserIdAndCampusId(userId, campusId);
+        UserAuthorization fresh = UserAuthorization.builder().userId(userId).campusId(campusId).roles(roles)
+            .permissions(permissions).build();
 
         // 3. 写缓存
-        cacheService.cache(campusId, userId, fresh);
-        log.info("权限缓存写入: {}:{}",campusId, userId);
+        cacheService.cache(userId, campusId, fresh);
+        log.info("权限缓存写入: {}:{}", userId, campusId);
 
         return fresh;
     }
 
     @Override
-    public void removeAuthorization(long campusId, long userId) {
-        cacheService.evict(campusId, userId);
+    public void removeAuthorization(long userId, long campusId) {
+        cacheService.evict(userId, campusId);
     }
+
 }

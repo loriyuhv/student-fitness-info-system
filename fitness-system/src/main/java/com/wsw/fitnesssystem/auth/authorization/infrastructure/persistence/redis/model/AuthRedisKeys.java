@@ -138,7 +138,7 @@ public class AuthRedisKeys {
     /**
      * 用户权限缓存Key（全局，不区分token）
      */
-    public static String permUserKey(long campusId, long userId) {
+    public static String permUserKey(long userId, long campusId) {
         return PERM_USER_PREFIX + campusId + ":" + userId;
     }
 

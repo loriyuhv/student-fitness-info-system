@@ -8,8 +8,8 @@ import com.wsw.fitnesssystem.auth.authentication.application.dto.port.AuthUserCr
 import com.wsw.fitnesssystem.auth.authentication.application.dto.result.LoginResult;
 import com.wsw.fitnesssystem.auth.authentication.application.dto.result.RefreshResult;
 import com.wsw.fitnesssystem.auth.authentication.application.port.AuthUserDataProvider;
+import com.wsw.fitnesssystem.auth.authentication.application.port.AuthorizationPort;
 import com.wsw.fitnesssystem.auth.authentication.domain.port.PasswordEncryptor;
-import com.wsw.fitnesssystem.auth.authorization.application.service.AuthorizationQueryService;
 import com.wsw.fitnesssystem.auth.authentication.application.service.LoginSuccessProcessor;
 import com.wsw.fitnesssystem.auth.risk.application.RiskControlService;
 import com.wsw.fitnesssystem.auth.authentication.application.port.TokenPort;
@@ -48,13 +48,13 @@ public class AuthApplicationService {
 
     private final TokenPort tokenPort;
     private final AuditAppService auditAppService;
+    private final AuthorizationPort authorizationPort;
     private final SessionRepository sessionRepository;
     private final PasswordEncryptor passwordEncryptor;
     private final RiskControlService riskControlService;
     private final SessionDomainService sessionDomainService;
     private final AuthUserDataProvider authUserDataProvider;
     private final LoginSuccessProcessor loginSuccessProcessor;
-    private final AuthorizationQueryService authorizationQueryService;
 
     /**
      * 用户登录流程（应用服务入口）
@@ -139,7 +139,7 @@ public class AuthApplicationService {
         }
 
         // 2. 移除用户权限
-        authorizationQueryService.removeAuthorization(campusId, userId);
+        authorizationPort.removeAuthorization(userId, campusId);
 
         //2. 移除所有在线会话
         Set<String> onlineSessions = sessionRepository.removeAllSessions(campusId, userId);

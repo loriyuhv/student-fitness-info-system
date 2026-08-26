@@ -8,7 +8,9 @@ import java.util.Set;
  * @since 1.0
  */
 public interface AuthorizationRepository {
-    Set<String> findRolesByUserId(Long userId);
 
-    Set<String> findPermissionsByUserId(Long userId);
+    Set<String> findRolesByUserIdAndCampusId(Long userId, Long campusId);
+
+    Set<String> findPermissionsByUserIdAndCampusId(Long userId, Long campusId);
+
 }

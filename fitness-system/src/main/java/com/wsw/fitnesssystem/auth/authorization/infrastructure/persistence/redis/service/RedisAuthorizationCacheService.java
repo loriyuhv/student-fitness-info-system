@@ -1,6 +1,6 @@
 package com.wsw.fitnesssystem.auth.authorization.infrastructure.persistence.redis.service;
 
-import com.wsw.fitnesssystem.auth.authorization.application.dto.UserAuthorization;
+import com.wsw.fitnesssystem.auth.authorization.application.dto.result.UserAuthorization;
 import com.wsw.fitnesssystem.auth.authorization.application.port.AuthorizationCacheService;
 import com.wsw.fitnesssystem.auth.authorization.infrastructure.persistence.redis.model.AuthRedisKeys;
 import lombok.extern.slf4j.Slf4j;
@@ -21,7 +21,7 @@ import java.time.Duration;
 @Service
 public class RedisAuthorizationCacheService implements AuthorizationCacheService {
 
-    private static final Duration TTL = Duration.ofMinutes(30);
+    private static final Duration TTL = Duration.ofHours(24);
 
     private final RedisTemplate<String, UserAuthorization> userAuthRedisTemplate;
 
@@ -32,26 +32,26 @@ public class RedisAuthorizationCacheService implements AuthorizationCacheService
     }
 
     @Override
-    public void cache(long campusId, long userId, UserAuthorization authorization) {
-        String key = buildKey(campusId, userId);
+    public void cache(long userId, long campusId, UserAuthorization authorization) {
+        String key = buildKey(userId, campusId);
         userAuthRedisTemplate.opsForValue().set(
             key, authorization, TTL
         );
     }
 
     @Override
-    public UserAuthorization get(long campusId, long userId) {
-        String key = buildKey(campusId, userId);
+    public UserAuthorization get(long userId, long campusId) {
+        String key = buildKey(userId, campusId);
         return userAuthRedisTemplate.opsForValue().get(key);
     }
 
     @Override
-    public void evict(long campusId, long userId) {
-        userAuthRedisTemplate.delete(buildKey(campusId, userId));
+    public void evict(long userId, long campusId) {
+        userAuthRedisTemplate.delete(buildKey(userId, campusId));
     }
 
-    private String buildKey(long campusId, long userId) {
-        return AuthRedisKeys.permUserKey(campusId, userId);
+    private String buildKey(long userId, long campusId) {
+        return AuthRedisKeys.permUserKey(userId, campusId);
     }
 
 }

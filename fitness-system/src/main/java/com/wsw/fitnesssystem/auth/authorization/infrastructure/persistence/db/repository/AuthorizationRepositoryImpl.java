@@ -1,4 +1,4 @@
-package com.wsw.fitnesssystem.auth.authorization.infrastructure.db;
+package com.wsw.fitnesssystem.auth.authorization.infrastructure.persistence.db.repository;
 
 import com.wsw.fitnesssystem.auth.authorization.domain.port.AuthorizationRepository;
 import com.wsw.fitnesssystem.auth.authorization.infrastructure.persistence.db.mapper.SysPermissionMapper;
@@ -16,16 +16,18 @@ import java.util.Set;
 @Repository
 @RequiredArgsConstructor
 public class AuthorizationRepositoryImpl implements AuthorizationRepository {
+
     private final SysRoleMapper roleMapper;
     private final SysPermissionMapper permissionMapper;
 
     @Override
-    public Set<String> findRolesByUserId(Long userId) {
-        return roleMapper.selectRoleCodesByUserId(userId);
+    public Set<String> findRolesByUserIdAndCampusId(Long userId, Long campusId) {
+        return roleMapper.selectRoleCodesByUserIdAndCampusId(userId, campusId);
     }
 
     @Override
-    public Set<String> findPermissionsByUserId(Long userId) {
-        return permissionMapper.selectPermCodesByUserId(userId);
+    public Set<String> findPermissionsByUserIdAndCampusId(Long userId, Long campusId) {
+        return permissionMapper.selectPermCodesByUserIdAndCampusId(userId, campusId);
     }
+
 }

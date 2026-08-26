@@ -15,32 +15,22 @@ import java.util.Set;
  */
 @Mapper
 public interface SysRoleMapper extends BaseMapper<SysRole> {
-    /**
-     * 根据用户ID查询角色列表
-     */
-    @Select("""
-        SELECT DISTINCT r.* FROM sys_user_role ur
-        INNER JOIN sys_role r ON ur.role_id = r.role_id
-        WHERE ur.user_id = #{userId}
-          AND ur.status = 1
-          AND ur.deleted = 0
-          AND r.status = 1
-          AND r.deleted = 0
-        ORDER BY r.create_time DESC
-    """)
-    Set<SysRole> selectRolesByUserId(@Param("userId") Long userId);
 
     /**
-     * 根据用户ID查询角色编码列表
+     * 根据用户ID和校区ID查询角色编码集合
      */
     @Select("""
         SELECT DISTINCT r.role_code FROM sys_user_role ur
         INNER JOIN sys_role r ON ur.role_id = r.role_id
         WHERE ur.user_id = #{userId}
+          AND r.campus_id = #{campusId}
           AND ur.status = 1
           AND ur.deleted = 0
           AND r.status = 1
           AND r.deleted = 0
     """)
-    Set<String> selectRoleCodesByUserId(@Param("userId") Long userId);
+    Set<String> selectRoleCodesByUserIdAndCampusId(
+        @Param("userId") Long userId, @Param("campusId") Long campusId
+    );
+
 }

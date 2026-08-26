@@ -1,8 +1,7 @@
 package com.wsw.fitnesssystem.auth.authorization.application.service;
 
-import com.wsw.fitnesssystem.auth.authorization.application.dto.AuthorizationQuery;
-import com.wsw.fitnesssystem.auth.authorization.application.dto.UserAuthorization;
-import com.wsw.fitnesssystem.shared.domain.valueobject.Operator;
+import com.wsw.fitnesssystem.auth.authorization.application.dto.query.AuthorizationQuery;
+import com.wsw.fitnesssystem.auth.authorization.application.dto.result.UserAuthorization;
 
 /**
  * 用户授权查询服务
@@ -20,16 +19,17 @@ import com.wsw.fitnesssystem.shared.domain.valueobject.Operator;
  * @since 1.0
  */
 public interface AuthorizationQueryService {
+
     /**
      * 对用户进行授权，返回权限快照
      * @param authorizationQuery 查询参数
      * @return 用户权限快照
      */
-    UserAuthorization authorize(Operator operator, AuthorizationQuery authorizationQuery);
+    UserAuthorization authorize(AuthorizationQuery authorizationQuery);
 
     /**
      * 移除用户所有角色和权限
      */
-    void removeAuthorization(long campusId, long userId);
+    void removeAuthorization(long userId, long campusId);
 
 }

@@ -1,4 +1,4 @@
-package com.wsw.fitnesssystem.auth.authorization.application.dto;
+package com.wsw.fitnesssystem.auth.authorization.application.dto.query;
 
 import lombok.Builder;
 import lombok.Data;
@@ -11,7 +11,9 @@ import lombok.Data;
 @Data
 @Builder
 public class AuthorizationQuery {
+
     private Long userId;
 
     private Long campusId;
+
 }
