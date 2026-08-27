@@ -1,4 +1,4 @@
-package com.wsw.fitnesssystem.auth.authorization.infrastructure.adapter;
+package com.wsw.fitnesssystem.auth.authentication.infrastructure.adapter;
 
 import com.wsw.fitnesssystem.auth.authentication.application.dto.port.AuthAuthorization;
 import com.wsw.fitnesssystem.auth.authentication.application.port.AuthorizationPort;
@@ -23,7 +23,7 @@ public class LocalAuthorizationAdapter implements AuthorizationPort {
 
     @Override
     public AuthAuthorization getAuthorization(long userId, long campusId) {
-        log.debug("🔐 [LocalAuth] Fetching authorization for user: {}", userId);
+        log.debug("Fetching authorization for user: {} campusId: {}", userId, campusId);
 
         AuthorizationQuery query = AuthorizationQuery.builder()
             .userId(userId)
@@ -42,7 +42,8 @@ public class LocalAuthorizationAdapter implements AuthorizationPort {
 
     @Override
     public void removeAuthorization(long userId, long campusId) {
-        log.debug("🔐 [LocalAuth] Removing authorization for user: {}, campus: {}", userId, campusId);
+        log.debug("Removing authorization for user: {}, campus: {}", userId, campusId);
         authorizationQueryService.removeAuthorization(userId, campusId);
     }
+
 }
