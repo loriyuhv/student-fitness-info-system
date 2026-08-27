@@ -46,9 +46,9 @@ import java.util.concurrent.atomic.AtomicInteger;
  *
  * <p><b>异常处理策略：</b></p>
  * <ol>
- *     <li>解析异常：任务终止，status=FAILED</li>
- *     <li>单批异常：故障隔离，继续下一批，status=PARTIAL</li>
- *     <li>全局异常：任务终止，status=FAILED</li>
+ *     <li>解析异常：任务终止，locked=FAILED</li>
+ *     <li>单批异常：故障隔离，继续下一批，locked=PARTIAL</li>
+ *     <li>全局异常：任务终止，locked=FAILED</li>
  *     <li>临时文件：finally 强制清理</li>
  * </ol>
  *
@@ -123,7 +123,7 @@ public class ExcelImportTemplate {
      * <ol>
      *   <li>一次性解析完整 Excel 到 List</li>
      *   <li>空文件校验：直接标记 FAILED 并返回</li>
-     *   <li>Redis 初始化进度（status = PROCESSING）</li>
+     *   <li>Redis 初始化进度（locked = PROCESSING）</li>
      *   <li>按 batchSize 分片为若干批次</li>
      *   <li>逐批调用 {@link #processBatch} 处理</li>
      *   <li>每批结束后更新 Redis 进度</li>

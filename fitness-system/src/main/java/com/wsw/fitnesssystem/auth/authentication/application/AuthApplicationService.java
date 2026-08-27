@@ -236,13 +236,15 @@ public class AuthApplicationService {
 
             // 登录失败处理（统一收口）
             RiskCheckResult result = riskPort.onFail(cmd.getUsername());
+            log.debug("Risk result {}", result);
 
-            log.debug("result {}", result);
+            if (result.locked()) {
+                throw new BizException(ResultCode.ACCOUNT_LOCKED);
+            }
 
             throw new BizException(ResultCode.USER_LOGIN_ERROR);
         }
     }
-
 
     /**
      * 构建登录响应对象

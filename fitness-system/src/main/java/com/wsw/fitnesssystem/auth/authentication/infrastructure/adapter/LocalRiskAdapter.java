@@ -28,9 +28,9 @@ public class LocalRiskAdapter implements RiskPort {
         RiskFailResult result = riskControlService.onFail(username);
 
         return RiskCheckResult.builder()
-            .failCount(result.getFailCount())
-            .locked(result.isLocked())
-            .remainingAttempts(result.getRemainingAttempts())
+            .failCount(result.failCount())
+            .locked(result.locked())
+            .remainingAttempts(result.remainingAttempts())
             .build();
     }
 

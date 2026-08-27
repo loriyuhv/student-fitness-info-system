@@ -21,7 +21,7 @@ public class ExcelRedisKeys {
     /**
      * 导入任务进度 Hash
      * <li>Key: excel:import:task:{taskId}</li>
-     * <li>Field: status / total / processed / successCount / failCount / errorMsg</li>
+     * <li>Field: locked / total / processed / successCount / failCount / errorMsg</li>
      * <li>TTL: 24小时</li>
      */
     private static final String IMPORT_TASK_PREFIX = "excel:import:task:";

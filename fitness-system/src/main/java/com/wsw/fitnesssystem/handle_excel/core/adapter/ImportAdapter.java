@@ -15,6 +15,7 @@ import java.util.List;
  * @since 1.0
  */
 public interface ImportAdapter<T, E> {
+
     /**
      * 业务类型标识，全局唯一
      * 示例："USER_IMPORT", "FITNESS_RECORD_IMPORT"
@@ -53,7 +54,7 @@ public interface ImportAdapter<T, E> {
      * 数据转换：DTO → Entity
      * <p>建议实现：</p>
      * <li>1. 字段映射</li>
-     * <li>2. 默认值填充（如 campusId、status）</li>
+     * <li>2. 默认值填充（如 campusId、locked）</li>
      * <li>3. 敏感字段处理（如密码加密）</li>
      * @param dtoList 校验通过的 DTO 列表
      * @return 待持久化的 Entity 列表
@@ -77,4 +78,5 @@ public interface ImportAdapter<T, E> {
     default String getTemplateFileName() {
         return getBizType().toLowerCase() + "_template.xlsx";
     }
+
 }

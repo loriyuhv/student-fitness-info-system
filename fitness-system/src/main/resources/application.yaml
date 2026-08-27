@@ -41,5 +41,5 @@ auth:
     blacklist-expire: 900
   risk:
     max-fail-count: 3
-    lock-duration-minutes: 30
-    count-window-minutes: 30
+    lock-duration-seconds: 900
+    count-window-seconds: 900

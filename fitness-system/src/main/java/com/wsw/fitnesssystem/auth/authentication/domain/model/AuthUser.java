@@ -56,12 +56,12 @@ public class AuthUser {
      * @return 布尔值
      */
     public boolean isEnabled() {
-        return !Integer.valueOf(1).equals(status);
+        return Integer.valueOf(1).equals(status);
     }
 
     public void verifyPassword(String rawPassword, PasswordEncryptor passwordEncryptor) {
         // 1. 检查账号状态
-        if (isEnabled()) {
+        if (!isEnabled()) {
             throw new BizException(ResultCode.ACCOUNT_DISABLED);
         }
 

@@ -1,7 +1,6 @@
 package com.wsw.fitnesssystem.user.domain.valueobject;
 
 import lombok.Getter;
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * 用户状态（业务可见性）
@@ -28,7 +27,7 @@ public enum UserStatus {
         for (UserStatus status : values()) {
             if (status.code == code) return status;
         }
-        throw new IllegalArgumentException("Unknown user status: " + code);
+        throw new IllegalArgumentException("Unknown user locked: " + code);
     }
 
 }
