@@ -15,12 +15,6 @@ package com.wsw.fitnesssystem.auth.session.domain.service;
  *     <li>配合 SessionRepository 完成会话管理</li>
  * </ul>
  *
- * <p>面试亮点：</p>
- * <ul>
- *     <li>Domain Service 只处理业务规则，Infrastructure 层负责具体实现（如 Redis 操作）</li>
- *     <li>符合 DDD 原则，业务逻辑与技术实现解耦</li>
- *     <li>支持多端登录限制、单点登录、踢掉最早登录设备等功能</li>
- * </ul>
  * @author loriyuhv
  * @version 1.0 2026/3/21 10:05
  * @since 1.0
@@ -45,11 +39,5 @@ public interface SessionDomainService {
      *
      */
     void limitSessions(long campusId, long userId);
-
-    void verifyRefreshToken(long campusId, long userId, String refreshTokenId);
-
-    void rotateRefreshToken(long campusId, long userId, String oldRefreshTokenId,
-        String oldAccessTokenId, String newRefreshTokenId, String newAccessTokenId
-    );
 
 }

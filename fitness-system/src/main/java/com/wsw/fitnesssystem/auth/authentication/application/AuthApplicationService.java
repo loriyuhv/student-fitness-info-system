@@ -9,6 +9,7 @@ import com.wsw.fitnesssystem.auth.authentication.application.dto.result.LoginRes
 import com.wsw.fitnesssystem.auth.authentication.application.dto.result.RefreshResult;
 import com.wsw.fitnesssystem.auth.authentication.application.port.AuthUserDataProvider;
 import com.wsw.fitnesssystem.auth.authentication.application.port.AuthorizationPort;
+import com.wsw.fitnesssystem.auth.authentication.application.port.SessionPort;
 import com.wsw.fitnesssystem.auth.authentication.domain.port.PasswordEncryptor;
 import com.wsw.fitnesssystem.auth.authentication.application.service.LoginSuccessProcessor;
 import com.wsw.fitnesssystem.auth.risk.application.RiskControlService;
@@ -16,9 +17,7 @@ import com.wsw.fitnesssystem.auth.authentication.application.port.TokenPort;
 import com.wsw.fitnesssystem.auth.audit.domain.valueobject.LogoutReason;
 import com.wsw.fitnesssystem.auth.authentication.domain.model.AuthUser;
 import com.wsw.fitnesssystem.auth.authentication.application.dto.port.TokenPair;
-import com.wsw.fitnesssystem.auth.session.domain.port.SessionRepository;
 import com.wsw.fitnesssystem.auth.risk.domain.valueobject.RiskFailResult;
-import com.wsw.fitnesssystem.auth.session.domain.service.SessionDomainService;
 import com.wsw.fitnesssystem.auth.authentication.application.dto.port.RefreshTokenClaims;
 import com.wsw.fitnesssystem.shared.domain.valueobject.Operator;
 import com.wsw.fitnesssystem.shared.exception.BizException;
@@ -47,12 +46,11 @@ import java.util.UUID;
 public class AuthApplicationService {
 
     private final TokenPort tokenPort;
+    private final SessionPort sessionPort;
     private final AuditAppService auditAppService;
     private final AuthorizationPort authorizationPort;
-    private final SessionRepository sessionRepository;
     private final PasswordEncryptor passwordEncryptor;
     private final RiskControlService riskControlService;
-    private final SessionDomainService sessionDomainService;
     private final AuthUserDataProvider authUserDataProvider;
     private final LoginSuccessProcessor loginSuccessProcessor;
 
@@ -97,7 +95,7 @@ public class AuthApplicationService {
         String username = user.getUsername();
         int userType = user.getUserType();
 
-        long tokenVersion = sessionRepository.getTokenVersion(campusId, userId);
+        long tokenVersion = sessionPort.getTokenVersion(campusId, userId);
         TokenPair tokenPair = tokenPort.generate(
             campusId, userId, username, userType, cmd.getDeviceId(),
             tokenVersion, accessTokenId, refreshTokenId
@@ -115,10 +113,10 @@ public class AuthApplicationService {
      */
     public void logout(Operator operator, String accessTokenId) {
         // 1. 将当前 accessToken 加入黑名单
-        sessionRepository.addToBlacklist(accessTokenId);
+        sessionPort.addToBlacklist(accessTokenId);
 
         // 2. 从 ZSET 中删除（会话下线）
-        sessionRepository.removeSession(operator.campusId(), operator.userId(), accessTokenId);
+        sessionPort.removeSession(operator.campusId(), operator.userId(), accessTokenId);
 
         // 3. 记录登出审计
         auditAppService.terminateSession(accessTokenId, LogoutReason.LOGOUT);
@@ -142,7 +140,7 @@ public class AuthApplicationService {
         authorizationPort.removeAuthorization(userId, campusId);
 
         //2. 移除所有在线会话
-        Set<String> onlineSessions = sessionRepository.removeAllSessions(campusId, userId);
+        Set<String> onlineSessions = sessionPort.removeAllSessions(campusId, userId);
 
         if (!CollectionUtils.isEmpty(onlineSessions)) {
             for (String tokenId : onlineSessions) {
@@ -167,23 +165,26 @@ public class AuthApplicationService {
         String username = claims.getUsername();
         int userType = claims.getUserType();
         String oldRefreshTokenId = claims.getJti();
-        String oldAccessTokenId = sessionRepository
+        String oldAccessTokenId = sessionPort
             .getAccessTokenIdByRefreshTokenId(campusId, userId, oldRefreshTokenId);
 
         // 2. 校验refresh session
-        sessionDomainService.verifyRefreshToken(campusId, userId, oldRefreshTokenId);
+        boolean result = sessionPort.existsRefreshToken(campusId, userId, oldRefreshTokenId);
+        if (!result) {
+            throw new BizException(ResultCode.REFRESH_TOKEN_INVALID);
+        }
 
         // 3.生成新的token
         String newAccessTokenId = UUID.randomUUID().toString();
         String newRefreshTokenId = UUID.randomUUID().toString();
-        long tokenVersion = sessionRepository.getTokenVersion(campusId, userId);
+        long tokenVersion = sessionPort.getTokenVersion(campusId, userId);
         TokenPair tokenPair = tokenPort.generate(
             campusId, userId, username, userType, claims.getDeviceId(),
             tokenVersion, newAccessTokenId, newRefreshTokenId
         );
 
         // 4.Refresh Token Rotation
-        sessionDomainService.rotateRefreshToken(
+        sessionPort.rotateRefreshToken(
             campusId, userId, oldRefreshTokenId, oldAccessTokenId,
             newRefreshTokenId, newAccessTokenId
         );

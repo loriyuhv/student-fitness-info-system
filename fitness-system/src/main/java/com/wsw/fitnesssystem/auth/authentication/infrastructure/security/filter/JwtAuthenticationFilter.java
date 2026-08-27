@@ -2,8 +2,8 @@ package com.wsw.fitnesssystem.auth.authentication.infrastructure.security.filter
 
 import com.wsw.fitnesssystem.auth.authentication.application.dto.port.AuthAuthorization;
 import com.wsw.fitnesssystem.auth.authentication.application.port.AuthorizationPort;
+import com.wsw.fitnesssystem.auth.authentication.application.port.SessionPort;
 import com.wsw.fitnesssystem.auth.authentication.application.port.TokenPort;
-import com.wsw.fitnesssystem.auth.session.domain.port.SessionRepository;
 import com.wsw.fitnesssystem.auth.authentication.infrastructure.config.SecurityProperties;
 import com.wsw.fitnesssystem.auth.authentication.application.dto.port.AccessTokenClaims;
 import com.wsw.fitnesssystem.auth.authentication.infrastructure.security.handler.JwtAuthenticationEntryPoint;
@@ -72,8 +72,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private static final String AUTH_HEADER = "Authorization";
 
     private final TokenPort tokenPort;
+    private final SessionPort sessionPort;
     private final AuthorizationPort authorizationPort;
-    private final SessionRepository sessionRepository;
     private final SecurityProperties securityProperties;
     private final JwtAuthenticationEntryPoint authenticationEntryPoint;
 
@@ -133,7 +133,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
             // 3.1 Token版本校验：版本不匹配代表密码修改、强制下线，Token失效
             // 获取 Redis 中的当前版本号
-            long currentVersion = sessionRepository.getTokenVersion(campusId, userId);
+            long currentVersion = sessionPort.getTokenVersion(campusId, userId);
             // 版本号不一致 → 失效（密码已改）
             if (tokenVersion != currentVersion) {
                 log.warn("[安全审计] Token版本失效: uri={}, userId={}, tokenId={}, " +
@@ -142,7 +142,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             }
 
             // 3.2 黑名单校验：注销/主动踢人后的Token加入黑名单
-            boolean blacklisted = sessionRepository.isBlacklisted(tokenId);
+            boolean blacklisted = sessionPort.isBlacklisted(tokenId);
             if (blacklisted) {
                 log.warn("[安全审计] Token黑名单拒绝: uri={}, userId={}, tokenId={}, " +
                     "reason=BLACKLISTED", uri, userId, tokenId);
@@ -150,7 +150,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             }
 
             // 3.3 会话在线校验：实现单点登录、会话下线控制
-            if (!sessionRepository.isOnline(campusId, userId, tokenId)) {
+            if (!sessionPort.isOnline(campusId, userId, tokenId)) {
                 log.warn("[安全审计] Token不在线: uri={}, userId={}, tokenId={}," +
                     " reason=SESSION_OFFLINE", uri, userId, tokenId);
                 throw new BadCredentialsException("会话已下线");

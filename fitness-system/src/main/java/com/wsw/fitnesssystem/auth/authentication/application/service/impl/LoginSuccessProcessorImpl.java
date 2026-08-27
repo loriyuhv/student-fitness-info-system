@@ -2,11 +2,10 @@ package com.wsw.fitnesssystem.auth.authentication.application.service.impl;
 
 import com.wsw.fitnesssystem.auth.audit.application.AuditAppService;
 import com.wsw.fitnesssystem.auth.authentication.application.dto.command.LoginCommand;
+import com.wsw.fitnesssystem.auth.authentication.application.port.SessionPort;
 import com.wsw.fitnesssystem.auth.authentication.application.service.LoginSuccessProcessor;
 import com.wsw.fitnesssystem.auth.risk.application.RiskControlService;
 import com.wsw.fitnesssystem.auth.authentication.application.dto.port.TokenPair;
-import com.wsw.fitnesssystem.auth.session.domain.port.SessionRepository;
-import com.wsw.fitnesssystem.auth.session.domain.service.SessionDomainService;
 import com.wsw.fitnesssystem.shared.domain.valueobject.Operator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -31,8 +30,7 @@ import java.time.LocalDateTime;
  * <p>依赖：
  * <ul>
  *     <li>{@link RiskControlService} - 风控逻辑处理</li>
- *     <li>{@link SessionDomainService} - 多端登录限制策略</li>
- *     <li>{@link SessionRepository} - 会话持久化</li>
+ *     <li>{@link SessionPort} - 多端登录限制策略；会话持久化</li>
  *     <li>{@link AuditAppService} - 登录审计</li>
  * </ul>
  * @author loriyuhv
@@ -46,11 +44,8 @@ public class LoginSuccessProcessorImpl implements LoginSuccessProcessor {
     /** 风控服务，用于处理登录成功后的失败次数重置和解锁 */
     private final RiskControlService riskControlService;
 
-    /** 会话领域服务，用于多端登录限制 */
-    private final SessionDomainService sessionDomainService;
-
-    /** 会话持久化接口，用于保存 AccessToken 与 RefreshToken */
-    private final SessionRepository sessionRepository;
+    /** 会话领域端口，用于多端登录限制； 用于保存 AccessToken 与 RefreshToken */
+    private final SessionPort sessionPort;
 
     /** 登录审计服务，用于记录登录成功事件 */
     private final AuditAppService auditAppService;
@@ -76,10 +71,10 @@ public class LoginSuccessProcessorImpl implements LoginSuccessProcessor {
         riskControlService.onSuccess(operator.username());
 
         // 2. 限制多端登录
-        sessionDomainService.limitSessions(operator.campusId(), operator.userId());
+        sessionPort.limitSessions(operator.campusId(), operator.userId());
 
         // 3. 保存会话
-        sessionRepository.saveSession(
+        sessionPort.saveSession(
             operator.campusId(), operator.userId(),
             tokenPair.getAccessTokenId(), tokenPair.getRefreshTokenId()
         );
