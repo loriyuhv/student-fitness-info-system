@@ -1,5 +1,6 @@
 package com.wsw.fitnesssystem.auth.risk.application;
 
+import com.wsw.fitnesssystem.auth.risk.application.impl.RiskControlAppService;
 import com.wsw.fitnesssystem.auth.risk.domain.valueobject.RiskFailResult;
 
 /**

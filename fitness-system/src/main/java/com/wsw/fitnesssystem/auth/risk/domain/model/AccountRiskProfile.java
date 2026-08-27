@@ -29,22 +29,38 @@ import lombok.Getter;
  */
 @Getter
 public class AccountRiskProfile {
+
     private final AccountIdentifier identifier;
     private int consecutiveFailCount;
     private AccountLock lock;
 
-    /** 新建账号风控画像 */
-    public AccountRiskProfile(AccountIdentifier identifier) {
+    /** 私有构造函数 */
+    private AccountRiskProfile(AccountIdentifier identifier, int failCount, AccountLock lock) {
         this.identifier = identifier;
-        this.consecutiveFailCount = 0;
-        this.lock = AccountLock.unlocked();
+        this.consecutiveFailCount = Math.max(0, failCount);
+        this.lock = lock;
+    }
+
+    /** 新建账号风控画像 （初始状态） */
+    public static AccountRiskProfile newProfile(AccountIdentifier identifier) {
+        return new AccountRiskProfile(identifier, 0, AccountLock.unlocked());
     }
 
     /** 从仓储恢复 */
-    public AccountRiskProfile(AccountIdentifier identifier, int failCount, AccountLock lock) {
-        this.identifier = identifier;
-        this.consecutiveFailCount = failCount;
-        this.lock = lock;
+    public static AccountRiskProfile restore(
+        AccountIdentifier identifier, int failCount, AccountLock lock
+    ) {
+        // 防御：失败次数不能为负数
+        if (failCount < 0) {
+            failCount = 0;
+        }
+
+        // 防御：已锁定但失败次数为0（不太可能，但防止脏数据）
+        if (lock.isLocked() && failCount == 0) {
+            failCount = 1;
+        }
+
+        return new AccountRiskProfile(identifier, failCount, lock);
     }
 
     /**

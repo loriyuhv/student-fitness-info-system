@@ -14,9 +14,11 @@ import java.util.Optional;
  * @since 1.0
  */
 public interface AccountRiskRepository {
+
     Optional<AccountRiskProfile> findByIdentifier(AccountIdentifier identifier);
 
     void save(AccountRiskProfile profile);
 
     void delete(AccountIdentifier identifier);
+
 }

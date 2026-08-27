@@ -2,9 +2,9 @@ package com.wsw.fitnesssystem.auth.authentication.application.service.impl;
 
 import com.wsw.fitnesssystem.auth.audit.application.AuditAppService;
 import com.wsw.fitnesssystem.auth.authentication.application.dto.command.LoginCommand;
+import com.wsw.fitnesssystem.auth.authentication.application.port.RiskPort;
 import com.wsw.fitnesssystem.auth.authentication.application.port.SessionPort;
 import com.wsw.fitnesssystem.auth.authentication.application.service.LoginSuccessProcessor;
-import com.wsw.fitnesssystem.auth.risk.application.RiskControlService;
 import com.wsw.fitnesssystem.auth.authentication.application.dto.port.TokenPair;
 import com.wsw.fitnesssystem.shared.domain.valueobject.Operator;
 import lombok.RequiredArgsConstructor;
@@ -29,7 +29,7 @@ import java.time.LocalDateTime;
  *
  * <p>依赖：
  * <ul>
- *     <li>{@link RiskControlService} - 风控逻辑处理</li>
+ *     <li>{@link RiskPort} - 风控逻辑处理</li>
  *     <li>{@link SessionPort} - 多端登录限制策略；会话持久化</li>
  *     <li>{@link AuditAppService} - 登录审计</li>
  * </ul>
@@ -41,8 +41,8 @@ import java.time.LocalDateTime;
 @RequiredArgsConstructor
 public class LoginSuccessProcessorImpl implements LoginSuccessProcessor {
 
-    /** 风控服务，用于处理登录成功后的失败次数重置和解锁 */
-    private final RiskControlService riskControlService;
+    /** 风控端口，用于处理登录成功后的失败次数重置和解锁 */
+    private final RiskPort riskPort;
 
     /** 会话领域端口，用于多端登录限制； 用于保存 AccessToken 与 RefreshToken */
     private final SessionPort sessionPort;
@@ -68,7 +68,7 @@ public class LoginSuccessProcessorImpl implements LoginSuccessProcessor {
     @Override
     public void process(Operator operator, LoginCommand cmd, TokenPair tokenPair) {
         // 1. 风控成功处理
-        riskControlService.onSuccess(operator.username());
+        riskPort.onSuccess(operator.username());
 
         // 2. 限制多端登录
         sessionPort.limitSessions(operator.campusId(), operator.userId());

@@ -1,7 +1,5 @@
 package com.wsw.fitnesssystem.auth.risk.domain.valueobject;
 
-import com.wsw.fitnesssystem.auth.risk.infrastructure.config.RiskPolicyProperties;
-
 /**
  * 风控策略 - 值对象
  *
@@ -12,10 +10,8 @@ import com.wsw.fitnesssystem.auth.risk.infrastructure.config.RiskPolicyPropertie
  * @since 1.0
  */
 public record RiskPolicy(
-        int maxFailCount,
-        int lockDurationMinutes,
-        int countWindowMinutes
-) {
+        int maxFailCount, int lockDurationMinutes, int countWindowMinutes) {
+
     public RiskPolicy {
         if (maxFailCount <= 0) {
             throw new IllegalArgumentException("maxFailCount must > 0, got: " + maxFailCount);
@@ -26,15 +22,6 @@ public record RiskPolicy(
         if (countWindowMinutes <= 0) {
             throw new IllegalArgumentException("countWindowMinutes must > 0, got: " + countWindowMinutes);
         }
-    }
-
-    /** 静态工厂：从配置属性构建 */
-    public static RiskPolicy fromProperties(RiskPolicyProperties props) {
-        return new RiskPolicy(
-                props.getMaxFailCount(),
-                props.getLockDurationMinutes(),
-                props.getCountWindowMinutes()
-        );
     }
 
 }

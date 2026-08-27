@@ -5,19 +5,16 @@ import com.wsw.fitnesssystem.auth.audit.application.AuditAppService;
 import com.wsw.fitnesssystem.auth.authentication.application.dto.command.LoginCommand;
 import com.wsw.fitnesssystem.auth.authentication.application.dto.command.RefreshCommand;
 import com.wsw.fitnesssystem.auth.authentication.application.dto.port.AuthUserCredential;
+import com.wsw.fitnesssystem.auth.authentication.application.dto.port.RiskCheckResult;
 import com.wsw.fitnesssystem.auth.authentication.application.dto.result.LoginResult;
 import com.wsw.fitnesssystem.auth.authentication.application.dto.result.RefreshResult;
-import com.wsw.fitnesssystem.auth.authentication.application.port.AuthUserDataProvider;
-import com.wsw.fitnesssystem.auth.authentication.application.port.AuthorizationPort;
-import com.wsw.fitnesssystem.auth.authentication.application.port.SessionPort;
+import com.wsw.fitnesssystem.auth.authentication.application.port.*;
 import com.wsw.fitnesssystem.auth.authentication.domain.port.PasswordEncryptor;
 import com.wsw.fitnesssystem.auth.authentication.application.service.LoginSuccessProcessor;
 import com.wsw.fitnesssystem.auth.risk.application.RiskControlService;
-import com.wsw.fitnesssystem.auth.authentication.application.port.TokenPort;
 import com.wsw.fitnesssystem.auth.audit.domain.valueobject.LogoutReason;
 import com.wsw.fitnesssystem.auth.authentication.domain.model.AuthUser;
 import com.wsw.fitnesssystem.auth.authentication.application.dto.port.TokenPair;
-import com.wsw.fitnesssystem.auth.risk.domain.valueobject.RiskFailResult;
 import com.wsw.fitnesssystem.auth.authentication.application.dto.port.RefreshTokenClaims;
 import com.wsw.fitnesssystem.shared.domain.valueobject.Operator;
 import com.wsw.fitnesssystem.shared.exception.BizException;
@@ -45,12 +42,12 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class AuthApplicationService {
 
+    private final RiskPort riskPort;
     private final TokenPort tokenPort;
     private final SessionPort sessionPort;
     private final AuditAppService auditAppService;
     private final AuthorizationPort authorizationPort;
     private final PasswordEncryptor passwordEncryptor;
-    private final RiskControlService riskControlService;
     private final AuthUserDataProvider authUserDataProvider;
     private final LoginSuccessProcessor loginSuccessProcessor;
 
@@ -59,7 +56,7 @@ public class AuthApplicationService {
      *
      * <p>该方法负责用户登录的完整应用层流程，遵循分阶段编排：
      * <ol>
-     *     <li>风控前置检查：校验账号是否被锁定及失败次数限制 {@link RiskControlService#preCheck(String)}</li>
+     *     <li>风控前置检查：校验账号是否被锁定及失败次数限制 {@link RiskPort#preCheck(String)}</li>
      *     <li>用户认证：调用领域服务验证用户名和密码 {@link #authenticate(LoginCommand)}</li>
      *     <li>生成 Token：生成 Access Token 与 Refresh Token {@link TokenPort}</li>
      *     <li>登录成功后处理：多端限制、会话持久化、审计 {@link LoginSuccessProcessor}</li>
@@ -79,7 +76,7 @@ public class AuthApplicationService {
      */
     public LoginResult login(LoginCommand cmd) {
         /* 1. 风控前置检查 */
-        riskControlService.preCheck(cmd.getUsername());
+        riskPort.preCheck(cmd.getUsername());
 
         /* 2. 认证 */
         AuthUser user = authenticate(cmd);
@@ -168,7 +165,7 @@ public class AuthApplicationService {
         String oldAccessTokenId = sessionPort
             .getAccessTokenIdByRefreshTokenId(campusId, userId, oldRefreshTokenId);
 
-        // 2. 校验refresh session
+        // 2. 预检refresh session
         boolean result = sessionPort.existsRefreshToken(campusId, userId, oldRefreshTokenId);
         if (!result) {
             throw new BizException(ResultCode.REFRESH_TOKEN_INVALID);
@@ -230,16 +227,18 @@ public class AuthApplicationService {
 
             return user;
         } catch (BizException ex) {
-            // 登录失败处理（统一收口）
-            RiskFailResult result = riskControlService.onFail(cmd.getUsername());
-
-            log.debug("result {}", result);
-
-            // 登录失败审计
+            // 注意：先记录审计、再处理风控。（即使风控失败也不影响认证异常返回）
+            // 1. 登录失败审计
             auditAppService.recordLoginFailure(
                 cmd.getUsername(), cmd.getIp(), cmd.getDeviceType(),
                 cmd.getUserAgent(), ex.getMessage()
             );
+
+            // 登录失败处理（统一收口）
+            RiskCheckResult result = riskPort.onFail(cmd.getUsername());
+
+            log.debug("result {}", result);
+
             throw new BizException(ResultCode.USER_LOGIN_ERROR);
         }
     }

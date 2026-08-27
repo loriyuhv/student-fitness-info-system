@@ -1,11 +1,12 @@
-package com.wsw.fitnesssystem.auth.risk.application;
+package com.wsw.fitnesssystem.auth.risk.application.impl;
 
+import com.wsw.fitnesssystem.auth.risk.application.RiskControlService;
 import com.wsw.fitnesssystem.auth.risk.domain.model.AccountRiskProfile;
+import com.wsw.fitnesssystem.auth.risk.domain.policy.RiskLockPolicy;
 import com.wsw.fitnesssystem.auth.risk.domain.port.AccountRiskRepository;
 import com.wsw.fitnesssystem.auth.risk.domain.valueobject.AccountIdentifier;
 import com.wsw.fitnesssystem.auth.risk.domain.valueobject.RiskFailResult;
 import com.wsw.fitnesssystem.auth.risk.domain.valueobject.RiskPolicy;
-import com.wsw.fitnesssystem.auth.risk.infrastructure.config.RiskPolicyProperties;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -28,12 +29,17 @@ import org.springframework.stereotype.Service;
 @Service
 @RequiredArgsConstructor
 public class RiskControlAppService implements RiskControlService {
+
     private final AccountRiskRepository riskRepository;
-    private final RiskPolicyProperties policyProperties;
+    private final RiskLockPolicy riskLockPolicy;
 
     /** 根据当前配置构建策略值对象 */
     private RiskPolicy currentPolicy() {
-        return RiskPolicy.fromProperties(policyProperties);
+        return new RiskPolicy(
+            riskLockPolicy.getMaxFailCount(),
+            riskLockPolicy.getLockDurationMinutes(),
+            riskLockPolicy.getCountWindowMinutes()
+        );
     }
 
     @Override
@@ -43,7 +49,7 @@ public class RiskControlAppService implements RiskControlService {
 
         AccountRiskProfile profile = riskRepository
                 .findByIdentifier(identifier)
-                .orElse(new AccountRiskProfile(identifier));
+                .orElse(AccountRiskProfile.newProfile(identifier));
 
         // 领域行为：检查是否被锁定
         profile.checkBeforeLogin();
@@ -56,7 +62,7 @@ public class RiskControlAppService implements RiskControlService {
 
         AccountRiskProfile profile = riskRepository
                 .findByIdentifier(identifier)
-                .orElse(new AccountRiskProfile(identifier));
+                .orElse(AccountRiskProfile.newProfile(identifier));
 
         // 领域行为：记录失败
         int failCount = profile.recordFailure(policy);
@@ -88,4 +94,5 @@ public class RiskControlAppService implements RiskControlService {
         // 保存
         riskRepository.save(profile);
     }
+
 }

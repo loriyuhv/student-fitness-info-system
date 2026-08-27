@@ -49,41 +49,52 @@ public class RedisAccountRiskRepository implements AccountRiskRepository {
             return Optional.empty();
         }
 
-        return Optional.of(new AccountRiskProfile(identifier, failCount, lock));
+        return Optional.of(AccountRiskProfile.restore(identifier, failCount, lock));
     }
 
     @Override
     public void save(AccountRiskProfile profile) {
         String username = profile.getIdentifier().username();
-        String failKey = AuthRedisKeys.riskUserFailKey(username);
-        String lockKey = AuthRedisKeys.riskUserLockKey(username);
-
-        Duration failTtl = Duration.ofMinutes(policyProperties.getCountWindowMinutes());
-        Duration lockTtl = Duration.ofMinutes(policyProperties.getLockDurationMinutes());
 
         // 保存失败次数（每次保存都刷新 TTL）
         if (profile.getConsecutiveFailCount() > 0) {
-            redisTemplate.opsForValue().set(
-                    failKey,
-                    String.valueOf(profile.getConsecutiveFailCount()),
-                    failTtl
-            );
+            saveFailCount(username, profile.getConsecutiveFailCount());
         } else {
-            redisTemplate.delete(failKey);
+            clearFailCount(username);
         }
 
         // 保存锁定状态
         if (profile.getLock().isLocked()) {
-            redisTemplate.opsForValue().set(lockKey, "1", lockTtl);
+            lockAccount(username);
         } else {
-            redisTemplate.delete(lockKey);
+            unlockAccount(username);
         }
     }
 
     @Override
     public void delete(AccountIdentifier identifier) {
         String username = identifier.username();
+        clearFailCount(username);
+        unlockAccount(username);
+    }
+
+    private void saveFailCount(String username, int count) {
+        String key = AuthRedisKeys.riskUserFailKey(username);
+        Duration ttl = Duration.ofMinutes(policyProperties.getCountWindowMinutes());
+        redisTemplate.opsForValue().set(key, String.valueOf(count), ttl);
+    }
+
+    private void clearFailCount(String username) {
         redisTemplate.delete(AuthRedisKeys.riskUserFailKey(username));
+    }
+
+    private void lockAccount(String username) {
+        String key = AuthRedisKeys.riskUserLockKey(username);
+        Duration ttl = Duration.ofMinutes(policyProperties.getLockDurationMinutes());
+        redisTemplate.opsForValue().set(key, "1", ttl);
+    }
+
+    private void unlockAccount(String username) {
         redisTemplate.delete(AuthRedisKeys.riskUserLockKey(username));
     }
 

@@ -2,7 +2,7 @@ package com.wsw.fitnesssystem.auth.risk.infrastructure.config;
 
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.context.annotation.Configuration;
+import org.springframework.stereotype.Component;
 
 /**
  * 风控策略配置属性
@@ -11,11 +11,11 @@ import org.springframework.context.annotation.Configuration;
  * @since 1.0
  */
 @Data
-@Configuration
+@Component
 @ConfigurationProperties(prefix = "auth.risk")
 public class RiskPolicyProperties {
     /** 最大失败次数阈值 */
-    private int maxFailCount = 5;
+    private int maxFailCount = 3;
 
     /** 锁定持续时间（分钟） */
     private int lockDurationMinutes = 30;
