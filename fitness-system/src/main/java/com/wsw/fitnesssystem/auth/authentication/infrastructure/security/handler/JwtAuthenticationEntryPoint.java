@@ -25,7 +25,7 @@ import java.io.IOException;
  * - 只负责将认证异常转换为统一的接口响应格式
  * 返回结果：
  * - HTTP Status：401
- * - 业务状态码：{@link ResultCode#USER_NOT_LOGIN}
+ * - 业务状态码：{@link ResultCode#AUTH_USER_NOT_LOGIN}
  *
  * @author loriyuhv
  * @version 1.0 2026/1/14 23:53
@@ -47,7 +47,7 @@ public class JwtAuthenticationEntryPoint implements AuthenticationEntryPoint {
 
         ResultCode resultCode = authException instanceof CredentialsExpiredException
                 ? ResultCode.TOKEN_EXPIRED
-                : ResultCode.USER_NOT_LOGIN;
+                : ResultCode.AUTH_CREDENTIAL_INVALID;
 
         // 记录安全日志（WARN级别）
         log.warn("认证失败，访问未授权资源: {}，Exception：{}",

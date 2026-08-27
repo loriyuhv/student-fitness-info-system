@@ -130,7 +130,7 @@ public class AuthApplicationService {
         // 1. 校验用户是否存在（通过适配器查）
         AuthUserCredential credential = authUserDataProvider.getAuthDataByCampusIdAndUserId(campusId, userId);
         if (credential == null) {
-            throw new BizException(ResultCode.KICKOUT_FAILED, ResultCode.USER_NOT_EXIST.getMessage());
+            throw new BizException(ResultCode.KICKOUT_FAILED, ResultCode.USER_NOT_FOUND.getMessage());
         }
 
         // 2. 移除用户权限
@@ -216,7 +216,7 @@ public class AuthApplicationService {
             AuthUserCredential credential = authUserDataProvider.getAuthDataByUsername(cmd.getUsername());
 
             if (credential == null) {
-                throw new BizException(ResultCode.USER_NOT_EXIST);
+                throw new BizException(ResultCode.AUTH_ACCOUNT_NOT_EXIST);
             }
 
             // 2. 加载领域模型
@@ -226,12 +226,12 @@ public class AuthApplicationService {
             user.verifyPassword(cmd.getPassword(), passwordEncryptor);
 
             return user;
-        } catch (BizException ex) {
+        } catch (BizException e) {
             // 注意：先记录审计、再处理风控。（即使风控失败也不影响认证异常返回）
             // 1. 登录失败审计
             auditAppService.recordLoginFailure(
                 cmd.getUsername(), cmd.getIp(), cmd.getDeviceType(),
-                cmd.getUserAgent(), ex.getMessage()
+                cmd.getUserAgent(), e.getMessage()
             );
 
             // 登录失败处理（统一收口）
@@ -239,10 +239,10 @@ public class AuthApplicationService {
             log.debug("Risk result {}", result);
 
             if (result.locked()) {
-                throw new BizException(ResultCode.ACCOUNT_LOCKED);
+                throw new BizException(ResultCode.AUTH_ACCOUNT_LOCKED);
             }
 
-            throw new BizException(ResultCode.USER_LOGIN_ERROR);
+            throw new BizException(ResultCode.AUTH_USER_LOGIN_ERROR, e);
         }
     }
 

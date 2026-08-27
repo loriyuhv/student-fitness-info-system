@@ -69,7 +69,7 @@ public class AccountRiskProfile {
      */
     public void checkBeforeLogin() {
         if (lock.status()) {
-            throw new BizException(ResultCode.ACCOUNT_LOCKED);
+            throw new BizException(ResultCode.AUTH_ACCOUNT_LOCKED);
         }
     }
 

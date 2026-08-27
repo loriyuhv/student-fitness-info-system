@@ -27,7 +27,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
     /**
-     * 业务异常 → 400
+     * 业务异常 → 40*
      * 拼接规则：ResultCode默认消息 + "：" + 自定义消息
      */
     @ExceptionHandler(BizException.class)
@@ -37,7 +37,7 @@ public class GlobalExceptionHandler {
         String customMsg = e.getMessage();
         String finalMsg = buildCombineMessage(defaultMsg, customMsg);
 
-        log.warn("业务异常: {}", finalMsg);
+        log.warn("业务异常: {}", finalMsg, e);
         return ApiResult.error(rc, finalMsg);
     }
 
@@ -100,11 +100,11 @@ public class GlobalExceptionHandler {
      */
     @ExceptionHandler(AuthenticationException.class)
     public ApiResult<Object> handleAuthenticationException(AuthenticationException e) {
-        String defaultMsg = ResultCode.CREDENTIAL_INVALID.getMessage();
+        String defaultMsg = ResultCode.AUTH_CREDENTIAL_INVALID.getMessage();
         String customMsg = e.getMessage();
         String finalMsg = buildCombineMessage(defaultMsg, customMsg);
         log.warn("认证失败: {}", finalMsg);
-        return ApiResult.error(ResultCode.CREDENTIAL_INVALID, finalMsg);
+        return ApiResult.error(ResultCode.AUTH_CREDENTIAL_INVALID, finalMsg);
     }
 
     /**

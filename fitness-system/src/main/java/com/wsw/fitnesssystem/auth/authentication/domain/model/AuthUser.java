@@ -62,13 +62,13 @@ public class AuthUser {
     public void verifyPassword(String rawPassword, PasswordEncryptor passwordEncryptor) {
         // 1. 检查账号状态
         if (!isEnabled()) {
-            throw new BizException(ResultCode.ACCOUNT_DISABLED);
+            throw new BizException(ResultCode.AUTH_ACCOUNT_DISABLED);
         }
 
         // 2. 密码比对
         boolean matches = passwordEncryptor.matches(rawPassword, this.passwordHash);
         if (!matches) {
-            throw new BizException(ResultCode.PASSWORD_ERROR);
+            throw new BizException(ResultCode.AUTH_PASSWORD_ERROR);
         }
     }
 

@@ -99,10 +99,10 @@ public class LoginAudit {
      */
     public void terminate(LogoutReason reason) {
         if (this.status == OnlineStatus.OFFLINE) {
-            throw new BizException(ResultCode.LOGOUT_SUCCESS, "会话已下线，不能重复终止");
+            throw new BizException(ResultCode.LOGOUT_FAILED, "会话已下线，不能重复终止");
         }
         if (this.status == OnlineStatus.NEVER_ONLINE) {
-            throw new BizException(ResultCode.USER_NOT_LOGIN, "登录失败记录不存在会话终止");
+            throw new BizException(ResultCode.AUTH_USER_NOT_LOGIN, "登录失败记录不存在会话终止");
         }
         this.logoutTime = LocalDateTime.now();
         this.logoutReason = reason;

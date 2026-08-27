@@ -43,7 +43,7 @@ public class UserInfoQueryService {
         Long campusId = operator.campusId();
 
         User user = userRepository.findByCampusIdAndUserId(campusId, userId)
-            .orElseThrow(() -> new BizException(ResultCode.USER_NOT_EXIST));
+            .orElseThrow(() -> new BizException(ResultCode.USER_NOT_FOUND));
 
         return UserInfoResult.builder()
             .userId(user.getUserId())
