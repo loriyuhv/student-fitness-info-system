@@ -22,6 +22,7 @@ import java.time.LocalDateTime;
 @Data
 @TableName("sys_user_login")
 public class SysUserLogin implements Serializable {
+
     @Serial
     private static final long serialVersionUID = 1L;
 
@@ -141,4 +142,5 @@ public class SysUserLogin implements Serializable {
      */
     @TableLogic(value = "0", delval = "1")
     private Integer deleted;
+
 }

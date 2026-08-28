@@ -95,4 +95,31 @@ public class AuditAppServiceImpl implements AuditAppService {
         }
     }
 
+    /**
+     * 更新审计记录中的 TokenId（刷新场景）
+     * @param oldTokenId 旧的 AccessTokenId
+     * @param newTokenId 新的 AccessTokenId
+     * @param newExpireTime 新的 AccessToken过期时间
+     */
+    @Override
+    public void updateTokenId(String oldTokenId, String newTokenId, LocalDateTime newExpireTime) {
+        try {
+            LoginAudit audit = auditRepository.findByTokenId(oldTokenId)
+                .orElseThrow(() -> new BizException(ResultCode.SESSION_NOT_FOUND,
+                    "审计记录不存在: " + oldTokenId));
+
+            // 1. 领域状态变更
+            audit.updateToken(newTokenId, newExpireTime);  // ← 领域对象状态更新
+
+            // 2. 统一通过 update 保存（领域对象整体持久化）
+            auditRepository.update(audit);
+
+            log.debug("审计记录 tokenId 已更新: {} -> {}", oldTokenId, newTokenId);
+        } catch (BizException e) {
+            log.warn("更新审计 tokenId 业务异常: oldTokenId={}, message={}", oldTokenId, e.getMessage());
+        } catch (Exception e) {
+            log.error("更新审计 tokenId 失败: oldTokenId={}", oldTokenId, e);
+        }
+    }
+
 }

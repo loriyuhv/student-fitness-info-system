@@ -9,7 +9,6 @@ import lombok.Getter;
  * <p><b>职责：</b>
  * <ul>
  *   <li>承载刷新令牌操作的业务输入数据</li>
- *   <li>极简设计，只包含 refreshToken 字符串</li>
  * </ul>
  *
  * @author loriyuhv
@@ -22,5 +21,11 @@ public class RefreshCommand {
 
     /** 刷新令牌字符串 */
     private String refreshToken;
+
+    private String deviceType;
+
+    private String userAgent;
+
+    private String ip;
 
 }

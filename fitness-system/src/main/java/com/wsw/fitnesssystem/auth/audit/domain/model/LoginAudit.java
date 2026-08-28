@@ -135,4 +135,22 @@ public class LoginAudit {
         return this.tokenSnapshot != null ? this.tokenSnapshot.tokenId() : null;
     }
 
+    /**
+     * 更新 Token（刷新时使用）
+     * @param newTokenId 新TokenID
+     * @param newExpireTime 新过期时间
+     */
+    public void updateToken(String newTokenId, LocalDateTime newExpireTime) {
+        if (this.tokenSnapshot == null) {
+            throw new BizException(ResultCode.TOKEN_INVALID, "原审计记录不存在 token");
+        }
+        if (newTokenId == null || newTokenId.isBlank()) {
+            throw new BizException(ResultCode.TOKEN_INVALID, "新 TokenId 不能为空");
+        }
+        if (newExpireTime == null) {
+            throw new BizException(ResultCode.TOKEN_INVALID, "新过期时间不能为空");
+        }
+        this.tokenSnapshot = new TokenSnapshot(newTokenId, newExpireTime);
+    }
+
 }

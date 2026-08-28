@@ -22,4 +22,6 @@ public interface AuditAppService {
 
     void terminateSession(String tokenId, LogoutReason reason);
 
+    void updateTokenId(String oldTokenId, String newTokenId, LocalDateTime newExpireTime);
+
 }

@@ -27,4 +27,8 @@ public class RefreshRequest {
     @NotBlank(message = "刷新令牌不能为空")
     private String refreshToken;
 
+
+    @NotBlank(message = "设备类型不能为空")
+    private String deviceType;
+
 }

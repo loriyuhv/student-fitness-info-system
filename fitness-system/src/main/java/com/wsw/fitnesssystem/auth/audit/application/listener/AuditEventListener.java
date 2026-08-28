@@ -3,12 +3,15 @@ package com.wsw.fitnesssystem.auth.audit.application.listener;
 import com.wsw.fitnesssystem.auth.audit.application.service.AuditAppService;
 import com.wsw.fitnesssystem.auth.authentication.application.event.LoginFailureEvent;
 import com.wsw.fitnesssystem.auth.authentication.application.event.LoginSuccessEvent;
+import com.wsw.fitnesssystem.auth.authentication.application.event.RefreshTokenEvent;
 import com.wsw.fitnesssystem.auth.authentication.application.event.SessionTerminatedEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
+
+import java.time.LocalDateTime;
 
 /**
  * 审计事件监听器
@@ -58,6 +61,22 @@ public class AuditEventListener {
     public void handleSessionTerminated(SessionTerminatedEvent event) {
         log.debug("收到会话终止事件: tokenId={}, reason={}", event.getTokenId(), event.getReason());
         auditAppService.terminateSession(event.getTokenId(), event.getReason());
+    }
+
+    @Async
+    @EventListener
+    public void handleRefreshToken(RefreshTokenEvent event) {
+        log.debug("收到刷新Token事件: userId={}, oldTokenId={}, newTokenId={}",
+            event.getUserId(), event.getOldAccessTokenId(), event.getNewAccessTokenId());
+
+        LocalDateTime newExpireTime = LocalDateTime.now().plusSeconds(event.getExpiresIn());
+
+        // 调用审计服务更新 tokenId
+        auditAppService.updateTokenId(
+            event.getOldAccessTokenId(),
+            event.getNewAccessTokenId(),
+            newExpireTime
+        );
     }
 
 }

@@ -89,10 +89,14 @@ public class AuthController {
      *  刷新Token
      *  */
     @PostMapping("/refresh")
-    public ApiResult<RefreshResponse> refresh(@RequestBody @Valid RefreshRequest request) {
+    public ApiResult<RefreshResponse> refresh(
+        @RequestBody @Valid RefreshRequest request,  HttpServletRequest httpRequest) {
 
         RefreshCommand command = RefreshCommand.builder()
             .refreshToken(request.getRefreshToken())
+            .deviceType(request.getDeviceType())
+            .userAgent(httpRequest.getHeader("User-Agent"))
+            .ip(WebUtils.getClientIp(httpRequest))
             .build();
 
         RefreshResult result = authAppService.refreshAccessToken(command);

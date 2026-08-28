@@ -9,6 +9,7 @@ import com.wsw.fitnesssystem.auth.authentication.application.dto.result.LoginRes
 import com.wsw.fitnesssystem.auth.authentication.application.dto.result.RefreshResult;
 import com.wsw.fitnesssystem.auth.authentication.application.event.LoginFailureEvent;
 import com.wsw.fitnesssystem.auth.authentication.application.event.LoginSuccessEvent;
+import com.wsw.fitnesssystem.auth.authentication.application.event.RefreshTokenEvent;
 import com.wsw.fitnesssystem.auth.authentication.application.event.SessionTerminatedEvent;
 import com.wsw.fitnesssystem.auth.authentication.application.port.*;
 import com.wsw.fitnesssystem.auth.authentication.domain.port.PasswordEncryptor;
@@ -178,23 +179,34 @@ public class AuthAppService {
         long campusId = claims.getCampusId();
         long userId = claims.getUserId();
         String oldRefreshTokenId = claims.getJti();
+
+        // 2. 获取旧的 accessTokenId（在轮换前记录）
         String oldAccessTokenId = sessionPort
             .getAccessTokenIdByRefreshTokenId(campusId, userId, oldRefreshTokenId);
 
-        // 2.生成新的token
+        // 3. 生成新的token
         String newAccessTokenId = UUID.randomUUID().toString();
         String newRefreshTokenId = UUID.randomUUID().toString();
         long tokenVersion = sessionPort.getTokenVersion(campusId, userId);
+
         TokenPair tokenPair = tokenPort.generate(
             campusId, userId, claims.getUsername(), claims.getUserType(),
             claims.getDeviceId(), tokenVersion, newAccessTokenId, newRefreshTokenId
         );
 
-        // 3.Refresh Token Rotation
+        // 4. 原子轮换（内部会校验旧 Token 是否存在）
         sessionPort.rotateRefreshToken(
-            campusId, userId, oldRefreshTokenId, oldAccessTokenId,
+            campusId, userId,
+            oldRefreshTokenId, oldAccessTokenId,
             newRefreshTokenId, newAccessTokenId
         );
+
+        // 5. 发布刷新事件（异步审计更新）
+        eventPublisher.publishEvent(new RefreshTokenEvent(
+            this, userId, campusId, oldAccessTokenId, newAccessTokenId,
+            newRefreshTokenId, tokenPair.getAccessTokenExpiresIn(),
+            command.getDeviceType(), command.getUserAgent(), command.getIp()
+        ));
 
         return RefreshResult.builder()
                 .accessToken(tokenPair.getAccessToken())
