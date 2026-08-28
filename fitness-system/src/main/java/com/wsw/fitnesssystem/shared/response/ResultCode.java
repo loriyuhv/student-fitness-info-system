@@ -43,6 +43,7 @@ public enum ResultCode {
     AUTH_USER_NOT_LOGIN(401003, HttpStatus.UNAUTHORIZED, "认证用户未登录"),
     AUTH_CREDENTIAL_INVALID(401004, HttpStatus.UNAUTHORIZED, "认证用户登录凭证无效"),
     AUTH_CREDENTIAL_EXPIRED(401004, HttpStatus.UNAUTHORIZED, "认证用户登录凭证过期"),
+    AUTH_USER_NOT_FOUND(401005, HttpStatus.UNAUTHORIZED, "认证用户不存在"),
 
     /* ============================== 权限 / 访问控制 403xxx  ============================= */
 

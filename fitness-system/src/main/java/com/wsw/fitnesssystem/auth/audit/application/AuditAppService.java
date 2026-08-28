@@ -37,25 +37,20 @@ public class AuditAppService {
     /** 记录登录成功（异步） */
     @Async
     public void recordLoginSuccess(
-        Long userId,
-        String username,
-        String tokenId,
-        LocalDateTime expireTime,
-        String deviceType,
-        String userAgent,
-        String ip
+        Long userId, String username, String tokenId,
+        LocalDateTime expireTime, String deviceType, String userAgent, String ip
     ) {
         try {
             LoginAudit audit = LoginAudit.recordSuccess(
-                userId,
-                username,
-                tokenId,
-                expireTime,
-                new DeviceInfo(deviceType, userAgent),
-                new IpAddress(ip)
+                userId, username, tokenId, expireTime,
+                new DeviceInfo(deviceType, userAgent), new IpAddress(ip)
             );
+
             auditRepository.save(audit);
+
             log.debug("登录成功审计已记录: userId={}, tokenId={}", userId, tokenId);
+        } catch (BizException e) {
+            log.error("记录登录成功审计业务异常: userId={}，message={}", userId, e.getMessage());
         } catch (Exception e) {
             log.error("记录登录成功审计失败: userId={}", userId, e);
         }
@@ -64,21 +59,16 @@ public class AuditAppService {
     /** 记录登录失败（异步）*/
     @Async
     public void recordLoginFailure(
-        String username,
-        String ip,
-        String deviceType,
-        String userAgent,
-        String failReason
+        String username, String ip, String deviceType, String userAgent, String failReason
     ) {
         try {
             LoginAudit audit = LoginAudit.recordFailure(
-                username,
-                new IpAddress(ip),
-                new DeviceInfo(deviceType, userAgent),
-                failReason
+                username, new IpAddress(ip), new DeviceInfo(deviceType, userAgent), failReason
             );
             auditRepository.save(audit);
             log.debug("登录失败审计已记录: username={}, reason={}", username, failReason);
+        } catch (BizException e) {
+            log.warn("记录登录失败审计业务异常: username={}, message={}", username, e.getMessage());
         } catch (Exception e) {
             log.error("记录登录失败审计失败: username={}", username, e);
         }
@@ -93,11 +83,16 @@ public class AuditAppService {
     @Async
     public void terminateSession(String tokenId, LogoutReason reason) {
         try {
-            LoginAudit audit = auditRepository.findByTokenId(tokenId)
-                .orElseThrow(() -> new BizException(ResultCode.TOKEN_INVALID, "Token not found: " + tokenId));
+            LoginAudit audit = auditRepository.findByTokenId(tokenId).orElseThrow(
+                () -> new BizException(ResultCode.SESSION_NOT_FOUND, "Token not found: " + tokenId)
+            );
             audit.terminate(reason);
             auditRepository.update(audit);
             log.debug("会话终止已记录: tokenId={}, reason={}", tokenId, reason);
+        } catch (BizException e) {
+            // 业务异常单独记录 WARN，不吞掉
+            log.warn("标记会话终止业务异常: tokenId={}, reason={}, message={}",
+                tokenId, reason, e.getMessage());
         } catch (Exception e) {
             log.error("标记会话终止失败: tokenId={}, reason={}", tokenId, reason, e);
         }

@@ -48,13 +48,13 @@ public class LoginAudit {
     // ========== 工厂方法：记录成功登录 ==========
 
     public static LoginAudit recordSuccess(
-        Long userId,
-        String username,
-        String tokenId,
-        LocalDateTime expireTime,
-        DeviceInfo device,
-        IpAddress ip
+        Long userId, String username, String tokenId,
+        LocalDateTime expireTime, DeviceInfo device, IpAddress ip
     ) {
+        if (userId == null) {
+            throw new BizException(ResultCode.AUTH_USER_NOT_FOUND, "登录成功时 userId 不能为空");
+        }
+
         if (tokenId == null || tokenId.isBlank()) {
             throw new BizException(ResultCode.TOKEN_INVALID, "登录成功时 tokenId 不能为空");
         }
@@ -74,10 +74,7 @@ public class LoginAudit {
     // ========== 工厂方法：记录失败登录 ==========
 
     public static LoginAudit recordFailure(
-        String username,
-        IpAddress ip,
-        DeviceInfo device,
-        String failReason
+        String username, IpAddress ip, DeviceInfo device, String failReason
     ) {
         LoginAudit audit = new LoginAudit();
         audit.username = username;
@@ -95,18 +92,31 @@ public class LoginAudit {
     /**
      * 标记会话终止
      *
-     * @throws BizException 已下线时抛出
+     * @throws BizException 已下线或从未登录时抛出
      */
     public void terminate(LogoutReason reason) {
         if (this.status == OnlineStatus.OFFLINE) {
-            throw new BizException(ResultCode.LOGOUT_FAILED, "会话已下线，不能重复终止");
+            throw new BizException(ResultCode.SESSION_ALREADY_OFFLINE, "不能重复终止");
         }
+
         if (this.status == OnlineStatus.NEVER_ONLINE) {
             throw new BizException(ResultCode.AUTH_USER_NOT_LOGIN, "登录失败记录不存在会话终止");
         }
+
         this.logoutTime = LocalDateTime.now();
         this.logoutReason = reason;
         this.status = OnlineStatus.OFFLINE;
+    }
+
+    /**
+     * 强制标记为下线（用于从数据库恢复时，绕过业务校验）
+     * @param reason 原因
+     * @param logoutTime 时间
+     */
+    public void markOffline(LogoutReason reason, LocalDateTime logoutTime) {
+        this.status = OnlineStatus.OFFLINE;
+        this.logoutReason = reason;
+        this.logoutTime = logoutTime;
     }
 
     public boolean isOnline() {
