@@ -1,8 +1,5 @@
 package com.wsw.fitnesssystem.auth.authentication.application.event;
 
-import com.wsw.fitnesssystem.auth.authentication.application.dto.command.LoginCommand;
-import com.wsw.fitnesssystem.auth.authentication.application.dto.port.TokenPair;
-import com.wsw.fitnesssystem.shared.domain.valueobject.Operator;
 import lombok.Getter;
 import org.springframework.context.ApplicationEvent;
 
