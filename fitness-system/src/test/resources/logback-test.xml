@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration scan="true" scanPeriod="60 seconds" debug="false">
+    <!-- 自定义变量 -->
+    <property name="LOG_PATTERN" value="%blue(%d{HH:mm:ss.SSS}) %cyan([%thread]) [%-5level] %boldGreen(%logger{30}) : %msg %n"/>
+
+    <!-- 控制台输出 -->
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>${LOG_PATTERN}</pattern>
+        </encoder>
+    </appender>
+
+    <!-- 测试环境下，业务包和 Mapper 都开 DEBUG，便于排查问题 -->
+    <logger name="com.wsw.fitnesssystem" level="DEBUG"/>
+
+    <!-- MyBatis Mapper SQL 打印（测试时很有用） -->
+    <logger name="com.wsw.fitnesssystem.auth.audit.infrastructure.persistence.db.mapper" level="DEBUG"/>
+
+    <!-- Testcontainers 日志调低 -->
+    <logger name="org.testcontainers" level="WARN"/>
+    <logger name="com.github.dockerjava" level="WARN"/>
+
+    <!-- HikariCP 连接池日志调低 -->
+    <logger name="com.zaxxer.hikari" level="WARN"/>
+
+    <!-- root 级别 -->
+    <root level="INFO">
+        <appender-ref ref="CONSOLE"/>
+    </root>
+</configuration>

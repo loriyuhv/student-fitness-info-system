@@ -1,0 +1,29 @@
+spring:
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    # 连接池会在 Testcontainers 启动后动态设置 URL
+    hikari:
+      maximum-pool-size: 5
+      minimum-idle: 2
+      connection-timeout: 30000
+  sql:
+    init:
+      mode: always
+      schema-locations: classpath:db/migration/V1__create_audit_table.sql
+
+mybatis-plus:
+  type-aliases-package: com.wsw.fitnesssystem.auth.audit.infrastructure.persistence.db.entity
+  configuration:
+    map-underscore-to-camel-case: true
+  global-config:
+    db-config:
+      id-type: auto
+      logic-delete-field: deleted
+      logic-delete-value: 1
+      logic-not-delete-value: 0
+logging:
+  level:
+    com.wsw.fitnesssystem: DEBUG
+    org.testcontainers: WARN
+    com.github.dockerjava: WARN
+    org.springframework.jdbc: INFO
