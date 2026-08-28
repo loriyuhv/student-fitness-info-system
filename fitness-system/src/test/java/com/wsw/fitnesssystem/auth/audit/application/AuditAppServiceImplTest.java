@@ -1,5 +1,6 @@
 package com.wsw.fitnesssystem.auth.audit.application;
 
+import com.wsw.fitnesssystem.auth.audit.application.service.impl.AuditAppServiceImpl;
 import com.wsw.fitnesssystem.auth.audit.domain.model.LoginAudit;
 import com.wsw.fitnesssystem.auth.audit.domain.port.LoginAuditRepository;
 import com.wsw.fitnesssystem.auth.audit.domain.valueobject.DeviceInfo;
@@ -26,13 +27,13 @@ import static org.mockito.Mockito.*;
  * @since 1.0
  */
 @ExtendWith(MockitoExtension.class)
-class AuditAppServiceTest {
+class AuditAppServiceImplTest {
 
     @Mock
     private LoginAuditRepository auditRepository;
 
     @InjectMocks
-    private AuditAppService auditAppService;
+    private AuditAppServiceImpl auditAppServiceImpl;
 
     private static final Long USER_ID = 1L;
     private static final String USERNAME = "testUser";
@@ -50,7 +51,7 @@ class AuditAppServiceTest {
         LocalDateTime expireTime = LocalDateTime.now().plusHours(2);
 
         // When
-        auditAppService.recordLoginSuccess(
+        auditAppServiceImpl.recordLoginSuccess(
             USER_ID, USERNAME, TOKEN_ID, expireTime, DEVICE_TYPE, USER_AGENT, IP);
 
         // Then
@@ -69,7 +70,7 @@ class AuditAppServiceTest {
         LocalDateTime expireTime = LocalDateTime.now().plusHours(2);
 
         // When
-        auditAppService.recordLoginSuccess(
+        auditAppServiceImpl.recordLoginSuccess(
             null, USERNAME, TOKEN_ID, expireTime, DEVICE_TYPE, USER_AGENT, IP);
 
         // Then：Repository 不应该被调用
@@ -84,7 +85,7 @@ class AuditAppServiceTest {
         doThrow(new PersistenceException("DB error")).when(auditRepository).save(any(LoginAudit.class));
 
         // When
-        auditAppService.recordLoginSuccess(
+        auditAppServiceImpl.recordLoginSuccess(
             USER_ID, USERNAME, TOKEN_ID, LocalDateTime.now(), DEVICE_TYPE, USER_AGENT, IP);
 
         // Then：方法不向上抛异常（异步吞掉），但日志会打印 ERROR
@@ -96,7 +97,7 @@ class AuditAppServiceTest {
     @Test
     void recordLoginFailure_shouldSaveAudit() {
         // When
-        auditAppService.recordLoginFailure(USERNAME, IP, DEVICE_TYPE, USER_AGENT, FAIL_REASON);
+        auditAppServiceImpl.recordLoginFailure(USERNAME, IP, DEVICE_TYPE, USER_AGENT, FAIL_REASON);
 
         // Then
         ArgumentCaptor<LoginAudit> captor = ArgumentCaptor.forClass(LoginAudit.class);
@@ -116,7 +117,7 @@ class AuditAppServiceTest {
         when(auditRepository.findByTokenId(TOKEN_ID)).thenReturn(Optional.of(audit));
 
         // When
-        auditAppService.terminateSession(TOKEN_ID, LogoutReason.LOGOUT);
+        auditAppServiceImpl.terminateSession(TOKEN_ID, LogoutReason.LOGOUT);
 
         // Then
         verify(auditRepository, times(1)).update(audit);
@@ -130,7 +131,7 @@ class AuditAppServiceTest {
         when(auditRepository.findByTokenId(TOKEN_ID)).thenReturn(Optional.empty());
 
         // When
-        auditAppService.terminateSession(TOKEN_ID, LogoutReason.LOGOUT);
+        auditAppServiceImpl.terminateSession(TOKEN_ID, LogoutReason.LOGOUT);
 
         // Then：不调用 update，只记录 WARN
         verify(auditRepository, never()).update(any());
@@ -145,7 +146,7 @@ class AuditAppServiceTest {
         when(auditRepository.findByTokenId(TOKEN_ID)).thenReturn(Optional.of(audit));
 
         // When：再次调用 terminateSession
-        auditAppService.terminateSession(TOKEN_ID, LogoutReason.KICK);
+        auditAppServiceImpl.terminateSession(TOKEN_ID, LogoutReason.KICK);
 
         // Then：不会再次更新（因为业务异常被捕获，但日志 WARN）
         verify(auditRepository, never()).update(any());
@@ -159,7 +160,7 @@ class AuditAppServiceTest {
         doThrow(new PersistenceException("DB error")).when(auditRepository).update(audit);
 
         // When
-        auditAppService.terminateSession(TOKEN_ID, LogoutReason.LOGOUT);
+        auditAppServiceImpl.terminateSession(TOKEN_ID, LogoutReason.LOGOUT);
 
         // Then：不向上抛异常，但打印 ERROR
         verify(auditRepository, times(1)).update(audit);

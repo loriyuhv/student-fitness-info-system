@@ -1,13 +1,14 @@
 package com.wsw.fitnesssystem.auth.authentication.application.service.impl;
 
-import com.wsw.fitnesssystem.auth.audit.application.AuditAppService;
 import com.wsw.fitnesssystem.auth.authentication.application.dto.command.LoginCommand;
+import com.wsw.fitnesssystem.auth.authentication.application.event.LoginSuccessEvent;
 import com.wsw.fitnesssystem.auth.authentication.application.port.RiskPort;
 import com.wsw.fitnesssystem.auth.authentication.application.port.SessionPort;
 import com.wsw.fitnesssystem.auth.authentication.application.service.LoginSuccessProcessor;
 import com.wsw.fitnesssystem.auth.authentication.application.dto.port.TokenPair;
 import com.wsw.fitnesssystem.shared.domain.valueobject.Operator;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -31,7 +32,7 @@ import java.time.LocalDateTime;
  * <ul>
  *     <li>{@link RiskPort} - 风控逻辑处理</li>
  *     <li>{@link SessionPort} - 多端登录限制策略；会话持久化</li>
- *     <li>{@link AuditAppService} - 登录审计</li>
+ *     <li>{@link ApplicationEventPublisher} - 登录审计</li>
  * </ul>
  * @author loriyuhv
  * @version 1.0 2026/3/21 14:06
@@ -48,7 +49,7 @@ public class LoginSuccessProcessorImpl implements LoginSuccessProcessor {
     private final SessionPort sessionPort;
 
     /** 登录审计服务，用于记录登录成功事件 */
-    private final AuditAppService auditAppService;
+    private final ApplicationEventPublisher eventPublisher;
 
     /**
      * 处理登录成功后的业务操作
@@ -82,15 +83,11 @@ public class LoginSuccessProcessorImpl implements LoginSuccessProcessor {
         // 4. 审计日志 （应用层编排，异步执行）
         LocalDateTime tokenExpiresIn = LocalDateTime.now()
             .plusSeconds(tokenPair.getAccessTokenExpiresIn());
-        auditAppService.recordLoginSuccess(
-            operator.userId(),
-            operator.username(),
-            tokenPair.getAccessTokenId(),
-            tokenExpiresIn,
-            cmd.getDeviceType(),
-            cmd.getUserAgent(),
-            cmd.getIp()
-        );
+        eventPublisher.publishEvent(
+            new LoginSuccessEvent(
+                this, operator.userId(), operator.username(), tokenPair.getAccessTokenId(),
+                tokenExpiresIn, cmd.getDeviceType(), cmd.getUserAgent(), cmd.getIp()
+            ));
     }
 
 }

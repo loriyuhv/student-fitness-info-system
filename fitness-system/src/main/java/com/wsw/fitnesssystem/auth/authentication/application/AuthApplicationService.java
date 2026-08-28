@@ -1,13 +1,14 @@
 package com.wsw.fitnesssystem.auth.authentication.application;
 
 import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
-import com.wsw.fitnesssystem.auth.audit.application.AuditAppService;
 import com.wsw.fitnesssystem.auth.authentication.application.dto.command.LoginCommand;
 import com.wsw.fitnesssystem.auth.authentication.application.dto.command.RefreshCommand;
 import com.wsw.fitnesssystem.auth.authentication.application.dto.port.AuthUserCredential;
 import com.wsw.fitnesssystem.auth.authentication.application.dto.port.RiskCheckResult;
 import com.wsw.fitnesssystem.auth.authentication.application.dto.result.LoginResult;
 import com.wsw.fitnesssystem.auth.authentication.application.dto.result.RefreshResult;
+import com.wsw.fitnesssystem.auth.authentication.application.event.LoginFailureEvent;
+import com.wsw.fitnesssystem.auth.authentication.application.event.SessionTerminatedEvent;
 import com.wsw.fitnesssystem.auth.authentication.application.port.*;
 import com.wsw.fitnesssystem.auth.authentication.domain.port.PasswordEncryptor;
 import com.wsw.fitnesssystem.auth.authentication.application.service.LoginSuccessProcessor;
@@ -21,6 +22,7 @@ import com.wsw.fitnesssystem.shared.exception.BizException;
 import com.wsw.fitnesssystem.shared.response.ResultCode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
 import java.util.Set;
@@ -45,11 +47,11 @@ public class AuthApplicationService {
     private final RiskPort riskPort;
     private final TokenPort tokenPort;
     private final SessionPort sessionPort;
-    private final AuditAppService auditAppService;
     private final AuthorizationPort authorizationPort;
     private final PasswordEncryptor passwordEncryptor;
     private final AuthUserDataProvider authUserDataProvider;
     private final LoginSuccessProcessor loginSuccessProcessor;
+    private final ApplicationEventPublisher eventPublisher;
 
     /**
      * 用户登录流程（应用服务入口）
@@ -116,7 +118,8 @@ public class AuthApplicationService {
         sessionPort.removeSession(operator.campusId(), operator.userId(), accessTokenId);
 
         // 3. 记录登出审计
-        auditAppService.terminateSession(accessTokenId, LogoutReason.LOGOUT);
+        eventPublisher.publishEvent(
+            new SessionTerminatedEvent(this, accessTokenId, LogoutReason.LOGOUT));
     }
 
     /**
@@ -142,7 +145,8 @@ public class AuthApplicationService {
         if (!CollectionUtils.isEmpty(onlineSessions)) {
             for (String tokenId : onlineSessions) {
                 // 3. 记录审计
-                auditAppService.terminateSession(tokenId, LogoutReason.KICK);
+                eventPublisher.publishEvent(
+                    new SessionTerminatedEvent(this, tokenId, LogoutReason.KICK));
             }
             log.info("Kicked {} sessions for user {} campus {}",
                     onlineSessions.size(), userId, campusId);
@@ -229,9 +233,11 @@ public class AuthApplicationService {
         } catch (BizException e) {
             // 注意：先记录审计、再处理风控。（即使风控失败也不影响认证异常返回）
             // 1. 登录失败审计
-            auditAppService.recordLoginFailure(
-                cmd.getUsername(), cmd.getIp(), cmd.getDeviceType(),
-                cmd.getUserAgent(), e.getMessage()
+            eventPublisher.publishEvent(
+                new LoginFailureEvent(
+                    this, cmd.getUsername(), cmd.getIp(), cmd.getDeviceType(),
+                    cmd.getUserAgent(), e.getMessage()
+                )
             );
 
             // 登录失败处理（统一收口）

@@ -1,5 +1,6 @@
-package com.wsw.fitnesssystem.auth.audit.application;
+package com.wsw.fitnesssystem.auth.audit.application.service.impl;
 
+import com.wsw.fitnesssystem.auth.audit.application.service.AuditAppService;
 import com.wsw.fitnesssystem.auth.audit.domain.model.LoginAudit;
 import com.wsw.fitnesssystem.auth.audit.domain.port.LoginAuditRepository;
 import com.wsw.fitnesssystem.auth.audit.domain.valueobject.DeviceInfo;
@@ -9,7 +10,6 @@ import com.wsw.fitnesssystem.shared.exception.BizException;
 import com.wsw.fitnesssystem.shared.response.ResultCode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -30,12 +30,11 @@ import java.time.LocalDateTime;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class AuditAppService {
+public class AuditAppServiceImpl implements AuditAppService {
 
     private final LoginAuditRepository auditRepository;
 
     /** 记录登录成功（异步） */
-    @Async
     public void recordLoginSuccess(
         Long userId, String username, String tokenId,
         LocalDateTime expireTime, String deviceType, String userAgent, String ip
@@ -57,7 +56,6 @@ public class AuditAppService {
     }
 
     /** 记录登录失败（异步）*/
-    @Async
     public void recordLoginFailure(
         String username, String ip, String deviceType, String userAgent, String failReason
     ) {
@@ -80,7 +78,6 @@ public class AuditAppService {
      * @param tokenId TokenID
      * @param reason 登出原因
      */
-    @Async
     public void terminateSession(String tokenId, LogoutReason reason) {
         try {
             LoginAudit audit = auditRepository.findByTokenId(tokenId).orElseThrow(
