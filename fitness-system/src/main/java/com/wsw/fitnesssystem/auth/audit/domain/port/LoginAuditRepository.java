@@ -2,7 +2,6 @@ package com.wsw.fitnesssystem.auth.audit.domain.port;
 
 import com.wsw.fitnesssystem.auth.audit.domain.model.LoginAudit;
 
-import java.time.LocalDateTime;
 import java.util.Optional;
 
 /**
