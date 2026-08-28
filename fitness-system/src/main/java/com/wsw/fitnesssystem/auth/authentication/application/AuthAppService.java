@@ -181,13 +181,7 @@ public class AuthAppService {
         String oldAccessTokenId = sessionPort
             .getAccessTokenIdByRefreshTokenId(campusId, userId, oldRefreshTokenId);
 
-        // 2. 预检refresh session
-        boolean result = sessionPort.existsRefreshToken(campusId, userId, oldRefreshTokenId);
-        if (!result) {
-            throw new BizException(ResultCode.REFRESH_TOKEN_INVALID);
-        }
-
-        // 3.生成新的token
+        // 2.生成新的token
         String newAccessTokenId = UUID.randomUUID().toString();
         String newRefreshTokenId = UUID.randomUUID().toString();
         long tokenVersion = sessionPort.getTokenVersion(campusId, userId);
@@ -196,7 +190,7 @@ public class AuthAppService {
             claims.getDeviceId(), tokenVersion, newAccessTokenId, newRefreshTokenId
         );
 
-        // 4.Refresh Token Rotation
+        // 3.Refresh Token Rotation
         sessionPort.rotateRefreshToken(
             campusId, userId, oldRefreshTokenId, oldAccessTokenId,
             newRefreshTokenId, newAccessTokenId

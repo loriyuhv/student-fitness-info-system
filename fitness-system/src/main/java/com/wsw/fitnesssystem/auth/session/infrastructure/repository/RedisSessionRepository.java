@@ -106,32 +106,44 @@ public class RedisSessionRepository implements SessionRepository {
 
         // 4. 轮换 RefreshToken
         String rotateRefreshTokenLua = """
-            local onlineKey = KEYS[1]
+            -- 返回：
+            -- 1: 成功
+            -- 0: 旧 RefreshToken 不存在
+            -- -1: 旧 RefreshToken 与传入的 AccessToken 不匹配
+            
             local refreshToAccessKey = KEYS[2]
-            local accessToRefreshKey = KEYS[3]
-            local blacklistKey = KEYS[4]
-            local oldRefreshTokenId = ARGV[1]
-            local oldAccessTokenId = ARGV[2]
-            local newRefreshTokenId = ARGV[3]
-            local newAccessTokenId = ARGV[4]
-            local now = ARGV[5]
-            local sessionTtl = ARGV[6]
-            local blacklistExpire = ARGV[7]
-
-            redis.call('HDEL', refreshToAccessKey, oldRefreshTokenId)
-            redis.call('HSET', refreshToAccessKey, newRefreshTokenId, newAccessTokenId)
-
-            redis.call('HDEL', accessToRefreshKey, oldAccessTokenId)
-            redis.call('HSET', accessToRefreshKey, newAccessTokenId, newRefreshTokenId)
-
-            redis.call('ZREM', onlineKey, oldAccessTokenId)
-            redis.call('ZADD', onlineKey, now, newAccessTokenId)
-
-            redis.call('PEXPIRE', refreshToAccessKey, sessionTtl)
-            redis.call('PEXPIRE', accessToRefreshKey, sessionTtl)
-            redis.call('PEXPIRE', onlineKey, sessionTtl)
-
-            redis.call('SET', blacklistKey, "1", 'PX', blacklistExpire)
+            
+            -- 1. 校验旧 RefreshToken 是否存在
+            local oldAccessToken = redis.call('HGET', refreshToAccessKey, ARGV[1])
+            if not oldAccessToken then
+                -- 返回错误标记
+                return 0
+            end
+            
+            -- 2. 校验旧 RefreshToken 关联的 AccessToken 是否匹配
+            if oldAccessToken ~= ARGV[2] then
+                return -1
+            end
+            
+            -- 3. 执行轮换
+            redis.call('HDEL', refreshToAccessKey, ARGV[1])
+            redis.call('HDEL', KEYS[3], ARGV[2])
+            
+            redis.call('HSET', refreshToAccessKey, ARGV[3], ARGV[4])
+            redis.call('HSET', KEYS[3], ARGV[4], ARGV[3])
+            
+            -- 更新在线 ZSET
+            redis.call('ZREM', KEYS[1], ARGV[2])
+            redis.call('ZADD', KEYS[1], tonumber(ARGV[5]), ARGV[4])
+            
+            -- 设置 TTL
+            redis.call('PEXPIRE', KEYS[1], tonumber(ARGV[6]))
+            redis.call('PEXPIRE', refreshToAccessKey, tonumber(ARGV[6]))
+            redis.call('PEXPIRE', KEYS[3], tonumber(ARGV[6]))
+            
+            -- 旧 AccessToken 加入黑名单
+            redis.call('SET', KEYS[4], "1", 'PX', tonumber(ARGV[7]))
+            
             return 1
             """;
         rotateRefreshTokenScript = new DefaultRedisScript<>(rotateRefreshTokenLua, Long.class);
@@ -290,7 +302,7 @@ public class RedisSessionRepository implements SessionRepository {
         long now = System.currentTimeMillis();
         long sessionTtl = sessionProperties.getSessionExpireMillis();
 
-        redisTemplate.execute(
+        long result = redisTemplate.execute(
             rotateRefreshTokenScript,
             List.of(
                 AuthRedisKeys.onlineKey(campusId, userId),
@@ -304,6 +316,10 @@ public class RedisSessionRepository implements SessionRepository {
             String.valueOf(sessionTtl),
             String.valueOf(sessionProperties.getBlacklistExpireMillis())
         );
+
+        if (result == 0 || result == -1) {
+            throw new BizException(ResultCode.REFRESH_TOKEN_INVALID);
+        }
     }
 
     @Override

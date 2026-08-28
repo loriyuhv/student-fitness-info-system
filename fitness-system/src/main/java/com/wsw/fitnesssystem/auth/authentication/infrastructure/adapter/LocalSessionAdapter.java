@@ -76,8 +76,8 @@ public class LocalSessionAdapter implements SessionPort {
         String oldAccessTokenId, String newRefreshTokenId, String newAccessTokenId
     ) {
         sessionRepository.rotateRefreshToken(
-            campusId, userId, oldAccessTokenId,
-            oldRefreshTokenId, newAccessTokenId, newAccessTokenId
+            campusId, userId, oldRefreshTokenId,
+            oldAccessTokenId, newRefreshTokenId, newAccessTokenId
         );
     }
 
