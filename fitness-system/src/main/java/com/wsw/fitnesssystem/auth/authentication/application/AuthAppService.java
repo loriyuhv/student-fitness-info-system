@@ -8,11 +8,10 @@ import com.wsw.fitnesssystem.auth.authentication.application.dto.port.RiskCheckR
 import com.wsw.fitnesssystem.auth.authentication.application.dto.result.LoginResult;
 import com.wsw.fitnesssystem.auth.authentication.application.dto.result.RefreshResult;
 import com.wsw.fitnesssystem.auth.authentication.application.event.LoginFailureEvent;
+import com.wsw.fitnesssystem.auth.authentication.application.event.LoginSuccessEvent;
 import com.wsw.fitnesssystem.auth.authentication.application.event.SessionTerminatedEvent;
 import com.wsw.fitnesssystem.auth.authentication.application.port.*;
 import com.wsw.fitnesssystem.auth.authentication.domain.port.PasswordEncryptor;
-import com.wsw.fitnesssystem.auth.authentication.application.service.LoginSuccessProcessor;
-import com.wsw.fitnesssystem.auth.risk.application.RiskControlService;
 import com.wsw.fitnesssystem.auth.audit.domain.valueobject.LogoutReason;
 import com.wsw.fitnesssystem.auth.authentication.domain.model.AuthUser;
 import com.wsw.fitnesssystem.auth.authentication.application.dto.port.TokenPair;
@@ -25,15 +24,15 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.Set;
 import java.util.UUID;
 
 /**
- * 用户认证用例
- * 职责边界（非常重要）：
- * 1. 只负责【登录 / 登出 / 踢人】
- * 2. 只操作 Redis 登录态
- * 3. 不感知 Filter / SecurityContext
+ * 用户认证应用服务
+ *
+ * <p>职责：编排登录、登出、踢人、刷新 Token 的完整流程。
+ * <p>依赖：通过端口（Port）解耦外部模块，通过事件发布审计。
  *
  * @author loriyuhv
  * @version 1.0 2026/1/14 12:16
@@ -42,66 +41,65 @@ import java.util.UUID;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class AuthApplicationService {
+public class AuthAppService {
 
+    // ==================== 端口依赖 ====================
+
+    /** 风控端口 */
     private final RiskPort riskPort;
+
+    /** Token 生成/解析端口 */
     private final TokenPort tokenPort;
+
+    /** 会话管理端口 */
     private final SessionPort sessionPort;
+
+    /** 授权管理端口 */
     private final AuthorizationPort authorizationPort;
+
+    /** 密码加密器（领域端口） */
     private final PasswordEncryptor passwordEncryptor;
+
+    /** 用户认证数据提供者端口 */
     private final AuthUserDataProvider authUserDataProvider;
-    private final LoginSuccessProcessor loginSuccessProcessor;
+
+    /** 事件发布器（用于异步审计） */
     private final ApplicationEventPublisher eventPublisher;
 
+    // ==================== 登录 ====================
+
     /**
-     * 用户登录流程（应用服务入口）
+     * 用户登录
      *
-     * <p>该方法负责用户登录的完整应用层流程，遵循分阶段编排：
-     * <ol>
-     *     <li>风控前置检查：校验账号是否被锁定及失败次数限制 {@link RiskPort#preCheck(String)}</li>
-     *     <li>用户认证：调用领域服务验证用户名和密码 {@link #authenticate(LoginCommand)}</li>
-     *     <li>生成 Token：生成 Access Token 与 Refresh Token {@link TokenPort}</li>
-     *     <li>登录成功后处理：多端限制、会话持久化、审计 {@link LoginSuccessProcessor}</li>
-     *     <li>构建返回结果：封装登录响应 {@link #buildLoginResult(TokenPair)}</li>
-     * </ol>
+     * <p>流程：风控检查 → 认证 → 生成 Token → 后置处理（风控/会话/审计）→ 返回结果
      *
-     * <p>方法特点：
-     * <ul>
-     *     <li>应用服务只负责流程编排，具体逻辑委托给各子服务</li>
-     *     <li>保证流程清晰、职责单一、易扩展</li>
-     *     <li>异常处理由子服务统一处理，例如认证失败会触发风控策略</li>
-     * </ul>
-     *
-     * @param cmd 登录请求命令对象 {@link LoginCommand}，包含用户名和密码
-     * @return {@link LoginResult} 登录响应对象，包含 Access Token、Refresh Token、Token ID 及过期时间
-     * @throws BizException 当用户名或密码错误，或其他业务异常时抛出
+     * @param cmd 登录命令
+     * @return 登录结果（Token 对）
      */
     public LoginResult login(LoginCommand cmd) {
-        /* 1. 风控前置检查 */
+        // 1. 风控前置检查
         riskPort.preCheck(cmd.getUsername());
 
-        /* 2. 认证 */
+        // 2. 用户认证
         AuthUser user = authenticate(cmd);
 
         // 3. 生成 Token
         String accessTokenId = UUID.randomUUID().toString();
         String refreshTokenId = UUID.randomUUID().toString();
-        Operator operator = new Operator(
-            user.getCampusId(), user.getUserId(), user.getUsername(), user.getUserType()
-        );
-        long campusId = user.getCampusId();
         long userId = user.getUserId();
-        String username = user.getUsername();
-        int userType = user.getUserType();
-
+        long campusId = user.getCampusId();
         long tokenVersion = sessionPort.getTokenVersion(campusId, userId);
+
         TokenPair tokenPair = tokenPort.generate(
-            campusId, userId, username, userType, cmd.getDeviceId(),
-            tokenVersion, accessTokenId, refreshTokenId
+            campusId, userId, user.getUsername(), user.getUserType(),
+            cmd.getDeviceId(), tokenVersion, accessTokenId, refreshTokenId
         );
 
-        // 4. 登录成功后处理
-        loginSuccessProcessor.process(operator, cmd, tokenPair);
+        // 4. 登录成功 → 后置处理（风控 + 会话 + 审计）
+        handleLoginSuccess(
+            userId, campusId, user.getUsername(), accessTokenId, refreshTokenId,
+            tokenPair.getAccessTokenExpiresIn(), cmd.getDeviceType(), cmd.getUserAgent(), cmd.getIp()
+        );
 
         // 5. 返回
         return buildLoginResult(tokenPair);
@@ -109,6 +107,9 @@ public class AuthApplicationService {
 
     /***
      * 用户登出
+     *
+     * <p>将 Token 加入黑名单 → 从在线会话中移除 → 发布登出审计事件
+     *
      */
     public void logout(Operator operator, String accessTokenId) {
         // 1. 将当前 accessToken 加入黑名单
@@ -122,12 +123,16 @@ public class AuthApplicationService {
             new SessionTerminatedEvent(this, accessTokenId, LogoutReason.LOGOUT));
     }
 
+    // ==================== 踢人 ====================
+
     /**
-     * 踢人操作（管理员使用）
+     * 管理员强制踢人
+     *
+     * <p>校验用户存在 → 清除权限缓存 → 移除所有在线会话 → 发布踢人审计事件
      *
      * @param campusId 学校ID
      * @param userId 用户ID
-     * @return 用户TokenID集合
+     * @return 被踢出的所有 Token ID 集合
      */
     public Set<String> kick(long campusId, long userId) {
         // 1. 校验用户是否存在（通过适配器查）
@@ -139,32 +144,39 @@ public class AuthApplicationService {
         // 2. 移除用户权限
         authorizationPort.removeAuthorization(userId, campusId);
 
-        //2. 移除所有在线会话
-        Set<String> onlineSessions = sessionPort.removeAllSessions(campusId, userId);
+        // 3. 移除所有在线会话
+        Set<String> sessions = sessionPort.removeAllSessions(campusId, userId);
 
-        if (!CollectionUtils.isEmpty(onlineSessions)) {
-            for (String tokenId : onlineSessions) {
-                // 3. 记录审计
+        if (!CollectionUtils.isEmpty(sessions)) {
+            // 4. 记录审计
+            for (String tokenId : sessions) {
                 eventPublisher.publishEvent(
                     new SessionTerminatedEvent(this, tokenId, LogoutReason.KICK));
             }
             log.info("Kicked {} sessions for user {} campus {}",
-                    onlineSessions.size(), userId, campusId);
+                    sessions.size(), userId, campusId);
         } else {
             log.info("kick user {}, campus {}: no online sessions", userId, campusId);
         }
 
-        return onlineSessions;
+        return sessions;
     }
 
+    // ==================== 刷新 Token ====================
+
+    /**
+     * 刷新 Access Token 和 Refresh Token
+     * <p>解析 RefreshToken → 校验是否存在 → 生成新 Token 对 → 轮换会话
+     *
+     * @param command 刷新命令
+     * @return 新的Token对
+     */
     public RefreshResult refreshAccessToken(RefreshCommand command) {
         // 1.解析refresh token
         RefreshTokenClaims claims = tokenPort.parseRefreshToken(command.getRefreshToken());
 
         long campusId = claims.getCampusId();
         long userId = claims.getUserId();
-        String username = claims.getUsername();
-        int userType = claims.getUserType();
         String oldRefreshTokenId = claims.getJti();
         String oldAccessTokenId = sessionPort
             .getAccessTokenIdByRefreshTokenId(campusId, userId, oldRefreshTokenId);
@@ -180,8 +192,8 @@ public class AuthApplicationService {
         String newRefreshTokenId = UUID.randomUUID().toString();
         long tokenVersion = sessionPort.getTokenVersion(campusId, userId);
         TokenPair tokenPair = tokenPort.generate(
-            campusId, userId, username, userType, claims.getDeviceId(),
-            tokenVersion, newAccessTokenId, newRefreshTokenId
+            campusId, userId, claims.getUsername(), claims.getUserType(),
+            claims.getDeviceId(), tokenVersion, newAccessTokenId, newRefreshTokenId
         );
 
         // 4.Refresh Token Rotation
@@ -197,18 +209,13 @@ public class AuthApplicationService {
                 .build();
     }
 
+    // ==================== 私有辅助方法 ====================
+
     /**
      * 执行用户认证
      *
-     * <p>完成用户认证，认证成功返回 {@link AuthUser}；认证失败则通过
-     * {@link RiskControlService#onFail(String)} 统一处理失败计数和锁定策略，然后抛出异常。
-     *
-     * <p>职责说明：
-     * <ul>
-     *     <li>调用领域服务执行登录认证</li>
-     *     <li>捕获业务异常，统一处理登录失败策略</li>
-     *     <li>返回认证成功的用户信息供后续流程使用</li>
-     * </ul>
+     * <p>获取用户凭证 → 加载领域模型 → 验证密码
+     * <p>认证失败时：发布失败事件 → 记录风控 → 根据锁定状态决定抛出类型
      *
      * @param cmd 登录命令对象 {@link LoginCommand}，包含用户名和密码
      * @return {@link AuthUser} 登录成功的用户信息
@@ -250,6 +257,34 @@ public class AuthApplicationService {
 
             throw new BizException(ResultCode.AUTH_USER_LOGIN_ERROR, e);
         }
+    }
+
+    /**
+     * 登录后置处理
+     *
+     * <p>风控成功回调 → 多端登录限制 → 保存会话 → 发布成功审计事件
+     */
+    private void handleLoginSuccess(
+        long userId, long campusId, String username,
+        String accessTokenId, String refreshTokenId, long expiresIn,
+        String deviceType, String userAgent, String ip
+    ) {
+        // 1. 风控成功处理
+        riskPort.onSuccess(username);
+
+        // 2. 限制多端登录
+        sessionPort.limitSessions(campusId, userId);
+
+        // 3. 保存会话
+        sessionPort.saveSession(campusId, userId, accessTokenId, refreshTokenId);
+
+        // 4. 发布登录成功事件（异步审计）
+        LocalDateTime tokenExpiresIn = LocalDateTime.now()
+            .plusSeconds(expiresIn);
+        eventPublisher.publishEvent(
+            new LoginSuccessEvent(this, userId, username,
+                accessTokenId, tokenExpiresIn, deviceType, userAgent, ip)
+        );
     }
 
     /**

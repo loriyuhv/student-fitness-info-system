@@ -1,6 +1,6 @@
 package com.wsw.fitnesssystem.auth.authentication.interfaces.web.controller;
 
-import com.wsw.fitnesssystem.auth.authentication.application.AuthApplicationService;
+import com.wsw.fitnesssystem.auth.authentication.application.AuthAppService;
 import com.wsw.fitnesssystem.auth.authentication.application.dto.command.LoginCommand;
 import com.wsw.fitnesssystem.auth.authentication.application.dto.command.RefreshCommand;
 import com.wsw.fitnesssystem.auth.authentication.application.dto.result.LoginResult;
@@ -33,7 +33,7 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/auth")
 public class AuthController {
 
-    private final AuthApplicationService authApplicationService;
+    private final AuthAppService authAppService;
 
     @PostMapping("/login")
     public ApiResult<LoginResponse> login(
@@ -50,7 +50,7 @@ public class AuthController {
             .build();
 
         // 2. 调用Application层（核心业务逻辑），得到纯业务输出
-        LoginResult login = authApplicationService.login(command);
+        LoginResult login = authAppService.login(command);
 
         // 3. 防腐层转换：将业务输出（LoginResult）转换为协议输出（LoginResponse）
         LoginResponse response = LoginResponse.builder()
@@ -74,7 +74,7 @@ public class AuthController {
             String accessTokenId = RequestContextHolder.getTokenId();
 
             // 1. 调用 Application Service 协调登出
-            authApplicationService.logout(operator, accessTokenId);
+            authAppService.logout(operator, accessTokenId);
 
             // 3. 返回成功
             return ApiResult.success(ResultCode.LOGOUT_SUCCESS);
@@ -95,7 +95,7 @@ public class AuthController {
             .refreshToken(request.getRefreshToken())
             .build();
 
-        RefreshResult result = authApplicationService.refreshAccessToken(command);
+        RefreshResult result = authAppService.refreshAccessToken(command);
 
         RefreshResponse response = RefreshResponse.builder()
             .accessToken(result.getAccessToken())
