@@ -16,3 +16,23 @@ spring:
           max-idle: 8
           min-idle: 5
           max-wait: 2000ms
+thread-pool:
+  business:
+    thread-pool-name: "businessExecutor"
+    thread-name-prefix: "business-"
+    core-pool-size: 8
+    max-pool-size: 10
+    queue-capacity: 200
+  compute:
+    thread-pool-name: "computeExecutor"
+    thread-name-prefix: "compute-"
+    queue-capacity: 50
+    cpu-factor: 0.25
+    extra-cores: 2
+    await-termination-seconds: 120
+  system:
+    thread-pool-name: "systemExecutor"
+    thread-name-prefix: "system-"
+    core-pool-size: 2
+    max-pool-size: 4
+    queue-capacity: 500

@@ -1,5 +1,7 @@
 package com.wsw.fitnesssystem.shared.config;
 
+import com.wsw.fitnesssystem.shared.config.properties.ThreadPoolProperties;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jspecify.annotations.NonNull;
 import org.springframework.aop.interceptor.AsyncUncaughtExceptionHandler;
@@ -11,9 +13,37 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
 import java.lang.reflect.Method;
 import java.util.concurrent.Executor;
+import java.util.concurrent.RejectedExecutionHandler;
 import java.util.concurrent.ThreadPoolExecutor;
 
 /**
+ * 异步任务线程池配置类
+ *
+ * <p>作为 {@link AsyncConfigurer} 的实现，统一管理 Spring {@code @Async} 注解使用的线程池。
+ * 所有线程池参数均从 {@link ThreadPoolProperties} 配置类中读取，支持通过 YAML 文件动态调整，
+ * 无需修改代码。</p>
+ *
+ * <p><b>三个核心线程池及其用途：</b></p>
+ * <ul>
+ *     <li><b>businessExecutor</b>（业务线程池，Bean 名称：{@value #BUSINESS_EXECUTOR}）<br>
+ *         用于 IO 密集型任务，如 Excel 大文件导入、批量数据同步、文件上传/下载等。
+ *         采用 {@link ThreadPoolExecutor.CallerRunsPolicy CallerRunsPolicy} 拒绝策略，
+ *         当队列满时由调用线程执行，实现自然限流，保证任务不丢失。</li>
+ *     <li><b>computeExecutor</b>（计算线程池，Bean 名称：{@value #COMPUTE_EXECUTOR}）<br>
+ *         用于 CPU 密集型任务，如 BCrypt 密码加密、复杂规则计算、体测成绩评分等。
+ *         线程数根据 CPU 核心数动态计算（公式：{@code 核心数 * cpuFactor + extraCores}），
+ *         核心线程数 = 最大线程数，避免上下文切换开销。</li>
+ *     <li><b>systemExecutor</b>（系统线程池，同时也是默认异步执行器，Bean 名称：{@value #SYSTEM_EXECUTOR}）<br>
+ *         用于轻量级微任务，如审计日志、消息通知、埋点记录等。采用 {@link ThreadPoolExecutor.DiscardOldestPolicy DiscardOldestPolicy}
+ *         拒绝策略，优先保证最新任务的执行。当 {@code @Async} 未指定线程池名称时，默认使用此池。</li>
+ * </ul>
+ *
+ * <p><b>优雅关闭策略</b>：所有线程池在应用关闭时都会等待正在执行的任务完成，
+ * 并设置最大等待时间（可配置），避免强制中断导致数据不一致。</p>
+ *
+ * <p><b>全局异常处理</b>：通过 {@link GlobalAsyncExceptionHandler} 捕获所有无返回值的
+ * 异步方法的未处理异常，统一记录日志，防止异常被静默吞没。</p>
+ *
  * @author loriyuhv
  * @version 1.0 2026/8/25 06:22
  * @since 1.0
@@ -21,7 +51,10 @@ import java.util.concurrent.ThreadPoolExecutor;
 @Slf4j
 @EnableAsync
 @Configuration
+@RequiredArgsConstructor
 public class AsyncConfig implements AsyncConfigurer {
+
+    private final ThreadPoolProperties poolProperties;
 
     // ==================== 常量配置 ====================
 
@@ -76,8 +109,8 @@ public class AsyncConfig implements AsyncConfigurer {
      *
      * <p>配置 rationale：</p>
      * <ul>
-     *     <li>core=4：基础并发，匹配常见 4 核开发机</li>
-     *     <li>max=10：突发时扩容，但不超过 10 避免 DB 连接池耗尽</li>
+     *     <li>core=8：基础并发，匹配常见 8 核开发机</li>
+     *     <li>max=12：突发时扩容，但不超过 12 避免 DB 连接池耗尽</li>
      *     <li>queue=100：缓冲突发导入请求，超过 100 说明系统过载</li>
      *     <li>CallerRunsPolicy：队列满时主线程执行，自然限流，保证任务不丢</li>
      * </ul>
@@ -86,22 +119,15 @@ public class AsyncConfig implements AsyncConfigurer {
      */
     @Bean(BUSINESS_EXECUTOR)
     public Executor businessExecutor() {
-        ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
-        executor.setCorePoolSize(8);
-        executor.setMaxPoolSize(10);
-        executor.setQueueCapacity(100);
-        executor.setThreadNamePrefix("business-");
-        executor.setRejectedExecutionHandler(new ThreadPoolExecutor.CallerRunsPolicy());
-        executor.setWaitForTasksToCompleteOnShutdown(true);      // 优雅关闭：等任务完成
-        executor.setAwaitTerminationSeconds(60);                 // 最多等 60 秒
-        executor.initialize();
-
-        printExecutorInfo(
-            BUSINESS_EXECUTOR, executor.getCorePoolSize(),
-            executor.getMaxPoolSize(), executor.getQueueCapacity()
+        return createExecutor(
+            poolProperties.getBusiness().getThreadPoolName(),
+            poolProperties.getBusiness().getCorePoolSize(),
+            poolProperties.getBusiness().getMaxPoolSize(),
+            poolProperties.getBusiness().getQueueCapacity(),
+            poolProperties.getBusiness().getThreadNamePrefix(),
+            new ThreadPoolExecutor.CallerRunsPolicy(),
+            poolProperties.getBusiness().getAwaitTerminationSeconds()
         );
-
-        return executor;
     }
 
     /**
@@ -124,21 +150,20 @@ public class AsyncConfig implements AsyncConfigurer {
      */
     @Bean(COMPUTE_EXECUTOR)
     public Executor computeExecutor() {
-        int cpuCores = Runtime.getRuntime().availableProcessors() / 4 + 2;
+        double cpuFactor = poolProperties.getCompute().getCpuFactor();
+        int extraCores = poolProperties.getCompute().getExtraCores();
+        int currentCores = Runtime.getRuntime().availableProcessors() ;
+        int cpuCores = (int) (currentCores * cpuFactor + extraCores);
 
-        ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
-        executor.setCorePoolSize(cpuCores);
-        executor.setMaxPoolSize(cpuCores);  // CPU 密集型，线程数 = (核数 / 4) + 2，不扩容
-        executor.setQueueCapacity(50);       // 小队列，快速失败或限流
-        executor.setThreadNamePrefix("compute-");
-        executor.setRejectedExecutionHandler(new ThreadPoolExecutor.CallerRunsPolicy());
-        executor.setWaitForTasksToCompleteOnShutdown(true);
-        executor.setAwaitTerminationSeconds(120);  // 计算任务可能长，多给点时间
-        executor.initialize();
-
-        log.info("[{}] CPU线程池初始化: core={}, max={}, queue=50 (CPU核数)",
-            COMPUTE_EXECUTOR, cpuCores, cpuCores);
-        return executor;
+        return createExecutor(
+            poolProperties.getCompute().getThreadPoolName(),
+            cpuCores,
+            cpuCores,  // CPU 密集型，max = core
+            poolProperties.getCompute().getQueueCapacity(),
+            poolProperties.getCompute().getThreadNamePrefix(),
+            new ThreadPoolExecutor.CallerRunsPolicy(),
+            poolProperties.getCompute().getAwaitTerminationSeconds()
+        );
     }
 
     // ==================== 私有方法 ====================
@@ -147,36 +172,45 @@ public class AsyncConfig implements AsyncConfigurer {
      * 创建系统线程池（默认池）
      */
     private Executor createSystemExecutor() {
-        ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
-        executor.setCorePoolSize(2);
-        executor.setMaxPoolSize(4);
-        executor.setQueueCapacity(500);
-        executor.setThreadNamePrefix("system-");
-        // DiscardOldestPolicy：丢弃最老任务，保证新任务低延迟
-        // 审计日志旧记录可丢，新登录必须记录
-        executor.setRejectedExecutionHandler(new ThreadPoolExecutor.DiscardOldestPolicy());
-        executor.setWaitForTasksToCompleteOnShutdown(true);
-        executor.setAwaitTerminationSeconds(30);
-        executor.initialize();
-
-        printExecutorInfo(
-            SYSTEM_EXECUTOR, executor.getCorePoolSize(),
-            executor.getMaxPoolSize(), executor.getQueueCapacity()
+        return createExecutor(
+            poolProperties.getSystem().getThreadPoolName(),
+            poolProperties.getSystem().getCorePoolSize(),
+            poolProperties.getSystem().getMaxPoolSize(),
+            poolProperties.getSystem().getQueueCapacity(),
+            poolProperties.getSystem().getThreadPoolName(),
+            // DiscardOldestPolicy：丢弃最老任务，保证新任务低延迟
+            // 审计日志旧记录可丢，新登录必须记录
+            new ThreadPoolExecutor.DiscardOldestPolicy(),
+            poolProperties.getSystem().getAwaitTerminationSeconds()
         );
-
-        return executor;
     }
 
-    private void printExecutorInfo(
-        String executorName, int corePoolSize, int maxPoolSize, int queueSize) {
-        log.info("[{}] 初始化完成: core={}, max={}, queue={}",
-            executorName, corePoolSize, maxPoolSize, queueSize);
+    /**
+     * 通用线程池创建方法
+     */
+    private Executor createExecutor(
+        String poolName, int corePoolSize, int maxPoolSize, int queueCapacity,
+        String threadNamePrefix, RejectedExecutionHandler rejectedHandler, int awaitTerminationSeconds
+    ) {
+        ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
+        executor.setCorePoolSize(corePoolSize);
+        executor.setMaxPoolSize(maxPoolSize);
+        executor.setQueueCapacity(queueCapacity);
+        executor.setThreadNamePrefix(threadNamePrefix);
+        executor.setRejectedExecutionHandler(rejectedHandler);
+        executor.setWaitForTasksToCompleteOnShutdown(true); // 优雅关闭：等任务完成
+        executor.setAwaitTerminationSeconds(awaitTerminationSeconds); // 最多等n秒
+        executor.initialize();
+
+        log.info("[{}] Initialized: core={}, max={}, queue={}, await={}s",
+            poolName, corePoolSize, maxPoolSize, queueCapacity, awaitTerminationSeconds);
+
+        return executor;
     }
 
     // ==================== 内部类：全局异常处理器 ====================
 
     /**
-     *
      * 全局异步未捕获异常处理器
      */
     public static class GlobalAsyncExceptionHandler implements AsyncUncaughtExceptionHandler {
