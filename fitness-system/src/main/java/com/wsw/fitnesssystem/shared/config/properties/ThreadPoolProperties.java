@@ -20,7 +20,7 @@ public class ThreadPoolProperties {
 
     @Data
     public static class Business {
-        private String ThreadPoolName = "businessExecutor";
+        private String threadPoolName = "businessExecutor";
         private String threadNamePrefix = "business-";
         private int corePoolSize = 8;
         private int maxPoolSize = 12;
@@ -30,7 +30,7 @@ public class ThreadPoolProperties {
 
     @Data
     public static class Compute {
-        private String ThreadPoolName = "computeExecutor";
+        private String threadPoolName = "computeExecutor";
         private String threadNamePrefix = "compute-";
         private int corePoolSize;
         private int maxPoolSize;
@@ -43,7 +43,7 @@ public class ThreadPoolProperties {
 
     @Data
     public static class System {
-        private String ThreadPoolName = "systemExecutor";
+        private String threadPoolName = "systemExecutor";
         private String threadNamePrefix = "system-";
         private int corePoolSize = 2;
         private int maxPoolSize = 4;

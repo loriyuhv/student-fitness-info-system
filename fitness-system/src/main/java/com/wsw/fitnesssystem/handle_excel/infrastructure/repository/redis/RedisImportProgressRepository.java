@@ -86,6 +86,7 @@ public class RedisImportProgressRepository implements ImportProgressPort {
      */
     public void finish(String taskId, int successCount) {
         Map<String, String> map = new HashMap<>();
+        put(map, ImportTaskField.TOTAL, successCount);
         put(map, ImportTaskField.STATUS, ImportStatus.FINISHED.name());
         put(map, ImportTaskField.PROCESSED, successCount);
         put(map, ImportTaskField.SUCCESS_COUNT, successCount);
@@ -109,6 +110,7 @@ public class RedisImportProgressRepository implements ImportProgressPort {
      */
     public void partial(String taskId, int successCount, int failCount, List<String> errorMsgList) {
         Map<String, String> map = new HashMap<>();
+        put(map, ImportTaskField.TOTAL, successCount + failCount);
         put(map, ImportTaskField.STATUS, ImportStatus.PARTIAL.name());
         put(map, ImportTaskField.PROCESSED, successCount + failCount);
         put(map, ImportTaskField.SUCCESS_COUNT, successCount);

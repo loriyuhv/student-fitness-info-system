@@ -1,5 +1,6 @@
 package com.wsw.fitnesssystem.handle_excel.core.template;
 
+import com.google.common.collect.Lists;
 import com.wsw.fitnesssystem.handle_excel.core.adapter.ImportAdapter;
 import com.wsw.fitnesssystem.handle_excel.core.exception.ExcelException;
 import com.wsw.fitnesssystem.handle_excel.core.parser.ExcelParser;
@@ -157,7 +158,7 @@ public class ExcelImportTemplate {
 
         // 4. 分片：将全量 List 切分为固定大小的批次
         int batchSize = adapter.getBatchSize();
-        List<List<T>> batches = partition(list, batchSize);
+        List<List<T>> batches = Lists.partition(list, batchSize);
         log.info("[{}] 分片完成，共 {} 批，每批 {} 条", taskId, batches.size(), batchSize);
 
         // 5. 逐批处理：累加成功/失败计数
@@ -329,22 +330,6 @@ public class ExcelImportTemplate {
         if (errorMsgList.size() < ExcelConstants.ERROR_MSG_MAX_COUNT) {
             errorMsgList.add(msg);
         }
-    }
-
-    /**
-     * 分片工具：将列表按指定大小切分
-     * 使用 new ArrayList 复制子列表，避免 subList 视图特性导致并发问题
-     * @param list 列表
-     * @param size 大小
-     * @return 切片后的列表数据
-     * @param <T> Dto
-     */
-    private <T> List<List<T>> partition(List<T> list, int size) {
-        List<List<T>> result = new ArrayList<>();
-        for (int i = 0; i < list.size(); i += size) {
-            result.add(new ArrayList<>(list.subList(i, Math.min(i + size, list.size()))));
-        }
-        return result;
     }
 
     /**

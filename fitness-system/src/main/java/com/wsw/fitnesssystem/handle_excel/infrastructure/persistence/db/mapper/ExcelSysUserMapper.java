@@ -14,12 +14,11 @@ import java.util.List;
  */
 @Mapper
 public interface ExcelSysUserMapper extends BaseMapper<SysUser> {
+
     /** 批量插入（XML实现） */
     int batchInsert(@Param("list") List<SysUser> list);
 
     /** 查询已存在用户名 */
     List<String> selectExistingUsernames(@Param("usernames") List<String> usernames);
 
-    /** 查询已存在手机号 */
-    List<String> selectExistingPhones(@Param("phones") List<String> phones);
 }

@@ -177,7 +177,7 @@ public class AsyncConfig implements AsyncConfigurer {
             poolProperties.getSystem().getCorePoolSize(),
             poolProperties.getSystem().getMaxPoolSize(),
             poolProperties.getSystem().getQueueCapacity(),
-            poolProperties.getSystem().getThreadPoolName(),
+            poolProperties.getSystem().getThreadNamePrefix(),
             // DiscardOldestPolicy：丢弃最老任务，保证新任务低延迟
             // 审计日志旧记录可丢，新登录必须记录
             new ThreadPoolExecutor.DiscardOldestPolicy(),
