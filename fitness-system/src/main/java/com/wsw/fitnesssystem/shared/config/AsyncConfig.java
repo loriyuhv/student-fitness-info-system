@@ -87,7 +87,7 @@ public class AsyncConfig implements AsyncConfigurer {
     @Bean(BUSINESS_EXECUTOR)
     public Executor businessExecutor() {
         ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
-        executor.setCorePoolSize(4);
+        executor.setCorePoolSize(8);
         executor.setMaxPoolSize(10);
         executor.setQueueCapacity(100);
         executor.setThreadNamePrefix("business-");
@@ -96,8 +96,11 @@ public class AsyncConfig implements AsyncConfigurer {
         executor.setAwaitTerminationSeconds(60);                 // 最多等 60 秒
         executor.initialize();
 
-        log.info("[{}] 初始化完成: core={}, max={}, queue={}",
-            BUSINESS_EXECUTOR, 4, 10, 100);
+        printExecutorInfo(
+            BUSINESS_EXECUTOR, executor.getCorePoolSize(),
+            executor.getMaxPoolSize(), executor.getQueueCapacity()
+        );
+
         return executor;
     }
 
@@ -121,11 +124,11 @@ public class AsyncConfig implements AsyncConfigurer {
      */
     @Bean(COMPUTE_EXECUTOR)
     public Executor computeExecutor() {
-        int cpuCores = Runtime.getRuntime().availableProcessors() / 2;
+        int cpuCores = Runtime.getRuntime().availableProcessors() / 4 + 2;
 
         ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
         executor.setCorePoolSize(cpuCores);
-        executor.setMaxPoolSize(cpuCores);  // CPU 密集型，线程数 = 核数，不扩容
+        executor.setMaxPoolSize(cpuCores);  // CPU 密集型，线程数 = (核数 / 4) + 2，不扩容
         executor.setQueueCapacity(50);       // 小队列，快速失败或限流
         executor.setThreadNamePrefix("compute-");
         executor.setRejectedExecutionHandler(new ThreadPoolExecutor.CallerRunsPolicy());
@@ -156,9 +159,18 @@ public class AsyncConfig implements AsyncConfigurer {
         executor.setAwaitTerminationSeconds(30);
         executor.initialize();
 
-        log.info(" [{}] 初始化完成: core={}, max={}, queue={}",
-            SYSTEM_EXECUTOR, 2, 4, 500);
+        printExecutorInfo(
+            SYSTEM_EXECUTOR, executor.getCorePoolSize(),
+            executor.getMaxPoolSize(), executor.getQueueCapacity()
+        );
+
         return executor;
+    }
+
+    private void printExecutorInfo(
+        String executorName, int corePoolSize, int maxPoolSize, int queueSize) {
+        log.info("[{}] 初始化完成: core={}, max={}, queue={}",
+            executorName, corePoolSize, maxPoolSize, queueSize);
     }
 
     // ==================== 内部类：全局异常处理器 ====================
