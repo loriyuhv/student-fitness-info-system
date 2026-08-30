@@ -145,17 +145,15 @@ public class ExcelImportTemplate {
             String taskId, File file, ImportAdapter<T, E> adapter) {
 
         // 1. 全量解析：一次性读入内存，适合小文件
-        List<T> list = excelParser.parseFull(file, adapter.getDtoClass());
+        List<T> list = excelParser.parseFull(file, adapter.getDtoClass(), taskId);
         int total = list.size();
 
         // 2. 空文件防御：无可解析数据时直接失败，避免无意义轮询
         if (total == 0) {
-            log.warn("[{}] Excel 文件为空或无可解析数据", taskId);
-            importProgressPort.fail(taskId, "Excel 文件为空或无可解析数据");
+            log.warn("[{}] Excel file is empty or no data to parse", taskId);
+            importProgressPort.fail(taskId, "Excel file is empty or no data to parse");
             return;
         }
-
-        log.info("[{}] Excel 解析完成，共 {} 条数据", taskId, total);
 
         // 3. 初始化 Redis 进度：客户端可立即查询到 total 和 PROCESSING 状态
         importProgressPort.init(taskId, total);

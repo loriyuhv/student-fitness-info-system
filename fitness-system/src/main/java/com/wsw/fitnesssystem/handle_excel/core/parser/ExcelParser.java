@@ -40,20 +40,20 @@ public class ExcelParser {
      * @return 完整的 List&lt;T&gt;
      * @param <T> DTO类型
      */
-    public <T> List<T> parseFull(File file, Class<T> dtoClass) {
+    public <T> List<T> parseFull(File file, Class<T> dtoClass, String taskId) {
         List<T> list = new ArrayList<>();
 
         try {
             EasyExcel.read(file, dtoClass, new EasyExcelListener<>(list)).sheet().doRead();
         } catch (Exception e) {
-            log.error("Excel全量解析失败, dtoClass={}, file={}",
+            log.error("Excel full parse failed, dtoClass={}, file={}",
                 dtoClass.getSimpleName(), file.getAbsolutePath(), e);
             throw new ExcelException(
-                    ResultCode.PARAM_TYPE_ERROR, "Excel解析失败: " + e.getMessage(), e);
+                ResultCode.PARAM_TYPE_ERROR, "Excel parse failed: " + e.getMessage(), e);
         }
 
-        log.info("Excel 全量解析完成, dtoClass={}, 共 {} 条",
-                dtoClass.getSimpleName(), list.size());
+        log.info("[{}] Excel full parse completed, dtoClass={}, total={} rows",
+            taskId, dtoClass.getSimpleName(), list.size());
 
         return list;
     }

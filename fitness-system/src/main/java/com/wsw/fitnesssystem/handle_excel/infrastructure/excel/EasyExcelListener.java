@@ -17,6 +17,7 @@ import java.util.List;
  */
 @Slf4j
 public class EasyExcelListener<T> extends AnalysisEventListener<T> {
+
     private final List<T> list;
 
     public EasyExcelListener(List<T> list) {
@@ -37,7 +38,7 @@ public class EasyExcelListener<T> extends AnalysisEventListener<T> {
         } catch (NoSuchMethodException ignored) {
             // 当前DTO不需要注入行号，属于正常场景，静默跳过
         } catch (Exception e) {
-            log.error("为Excel DTO设置行号失败，row:{}", rowNum, e);
+            log.error("Failed to set row number for Excel DTO, row: {}", rowNum, e);
         }
 
         // 3. 添加解析后的数据
@@ -46,6 +47,6 @@ public class EasyExcelListener<T> extends AnalysisEventListener<T> {
 
     @Override
     public void doAfterAllAnalysed(AnalysisContext context) {
-        log.info("Excel 解析完成，共 {} 条数据", list.size());
     }
+
 }

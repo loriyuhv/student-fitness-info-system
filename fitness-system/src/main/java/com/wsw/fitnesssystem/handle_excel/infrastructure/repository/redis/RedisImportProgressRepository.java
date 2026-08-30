@@ -51,9 +51,9 @@ public class RedisImportProgressRepository implements ImportProgressPort {
         try {
             redis.opsForHash().putAll(key, map);
             redis.expire(key, Duration.ofHours(ExcelConstants.IMPORT_TASK_TTL_HOURS));
-            log.info("[{}] 进度初始化完成, total={}", taskId, total);
+            log.info("[{}] Progress initialized, total={}", taskId, total);
         } catch (Exception e) {
-            log.error("[{}] Redis 进度初始化失败", taskId, e);
+            log.error("[{}] Failed to initialize progress in Redis", taskId, e);
         }
     }
 
