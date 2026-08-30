@@ -60,4 +60,9 @@ public interface ImportProgressPort {
      */
     ImportProgressDTO getProgress(String taskId);
 
+    // 错误文件存储方法
+    void saveErrorFilePath(String taskId, String filePath);
+
+    String getErrorFilePath(String taskId);
+
 }

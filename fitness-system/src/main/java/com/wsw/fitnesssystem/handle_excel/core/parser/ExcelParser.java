@@ -44,11 +44,10 @@ public class ExcelParser {
         List<T> list = new ArrayList<>();
 
         try {
-            EasyExcel.read(file, dtoClass, new EasyExcelListener<>(list))
-                    .sheet().doRead();
+            EasyExcel.read(file, dtoClass, new EasyExcelListener<>(list)).sheet().doRead();
         } catch (Exception e) {
             log.error("Excel全量解析失败, dtoClass={}, file={}",
-                    dtoClass.getSimpleName(), file.getAbsolutePath(), e);
+                dtoClass.getSimpleName(), file.getAbsolutePath(), e);
             throw new ExcelException(
                     ResultCode.PARAM_TYPE_ERROR, "Excel解析失败: " + e.getMessage(), e);
         }

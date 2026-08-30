@@ -67,7 +67,7 @@ public class ExcelConstants {
     public static final int ERROR_MSG_MAX_LENGTH = 500;
 
     /** 错误信息保留条数 */
-    public static final int ERROR_MSG_MAX_COUNT = 3;
+    public static final int ERROR_MSG_MAX_COUNT = 100;
 
     /** 文件锁兜底 TTL：60 分钟（正常由任务完成后主动释放） */
     public static final long FILE_LOCK_TTL_MINUTES = 60L;

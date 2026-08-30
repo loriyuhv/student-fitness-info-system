@@ -2,17 +2,23 @@ package com.wsw.fitnesssystem.handle_excel.interfaces;
 
 import com.wsw.fitnesssystem.handle_excel.application.ExcelImportAppService;
 import com.wsw.fitnesssystem.handle_excel.application.ExcelImportProgressQueryAppService;
+import com.wsw.fitnesssystem.handle_excel.core.port.ImportProgressPort;
 import com.wsw.fitnesssystem.handle_excel.domain.enums.ExcelBizTypeEnum;
 import com.wsw.fitnesssystem.handle_excel.interfaces.dto.ImportProgressDTO;
 import com.wsw.fitnesssystem.shared.context.RequestContextHolder;
 import com.wsw.fitnesssystem.shared.domain.valueobject.Operator;
+import com.wsw.fitnesssystem.shared.exception.BizException;
 import com.wsw.fitnesssystem.shared.response.ApiResult;
+import com.wsw.fitnesssystem.shared.response.ResultCode;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.List;
 
 /**
@@ -29,6 +35,7 @@ import java.util.List;
 @RequestMapping("/excel")
 public class ExcelImportController {
 
+    private final ImportProgressPort importProgressPort;
     private final ExcelImportAppService importAppService;
     private final ExcelImportProgressQueryAppService importProgressQueryAppService;
 
@@ -72,6 +79,33 @@ public class ExcelImportController {
     @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER')")
     public ApiResult<List<String>> getImportTypes() {
         return ApiResult.success(importProgressQueryAppService.getAllBizTypes());
+    }
+
+    /**
+     * 错误文件下载接口
+     * @param taskId TokenID
+     * @param response 响应
+     */
+    @GetMapping("/import/errors/download")
+    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER')")
+    public void downloadErrorFile(@RequestParam String taskId, HttpServletResponse response) {
+        String filePath = importProgressPort.getErrorFilePath(taskId);
+        if (filePath == null) {
+            throw new BizException(ResultCode.FILE_NOT_FOUND, "暂无错误文件");
+        }
+        File file = new File(filePath);
+        if (!file.exists()) {
+            throw new BizException(ResultCode.FILE_NOT_FOUND, "错误文件已过期或被清理");
+        }
+        try {
+            response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+            response.setHeader("Content-Disposition", "attachment; filename=errors_" + taskId + ".xlsx");
+            java.nio.file.Files.copy(file.toPath(), response.getOutputStream());
+            response.flushBuffer();
+        } catch (IOException e) {
+            log.error("下载错误文件失败", e);
+            throw new BizException(ResultCode.SYSTEM_ERROR, "下载失败");
+        }
     }
 
 }

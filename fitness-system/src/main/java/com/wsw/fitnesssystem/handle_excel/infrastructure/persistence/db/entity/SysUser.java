@@ -22,8 +22,12 @@ import java.time.LocalDateTime;
 @Data
 @TableName("sys_user") // 启用 MP 代理
 public class SysUser implements Serializable {
+
     @Serial
     private static final long serialVersionUID = 1L;
+
+    @TableField(exist = false)
+    private Integer rowIndex;
 
     /** 用户ID */
     @TableId(type = IdType.AUTO)
@@ -79,4 +83,5 @@ public class SysUser implements Serializable {
     /** 更新时间：插入和更新时都填充 */
     @TableField(fill = FieldFill.INSERT_UPDATE)
     private LocalDateTime updateTime;
+
 }

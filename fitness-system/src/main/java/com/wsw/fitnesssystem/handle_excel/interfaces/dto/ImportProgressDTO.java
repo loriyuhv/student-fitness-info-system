@@ -13,30 +13,41 @@ import lombok.Data;
  */
 @Data
 public class ImportProgressDTO {
+
     /**
      * 总数据条数
      */
     private int total;
+
     /**
      * 已处理条数（成功 + 失败）
      */
     private int processed;
+
     /**
      * 成功条数
      */
     private int successCount;
+
     /**
      * 失败条数
      */
     private int failCount;
+
     /**
      * 状态：INIT / PROCESSING / FINISHED / PARTIAL / FAILED / NOT_FOUND
      */
     private ImportStatus status;
+
     /**
      * 错误信息摘要（最多前3条）
      */
     private String errorMsg;
+
+    /**
+     * 是否有错误文件可下载
+     */
+    private boolean errorFileExists;
 
     /**
      * 计算进度百分比
@@ -62,4 +73,5 @@ public class ImportProgressDTO {
     public boolean isFailed() {
         return status != null && status.isFailed();
     }
+
 }

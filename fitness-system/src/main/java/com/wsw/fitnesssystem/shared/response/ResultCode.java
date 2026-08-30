@@ -123,6 +123,7 @@ public enum ResultCode {
     ACCOUNT_NOT_EXIST(404002, HttpStatus.NOT_FOUND, "账号不存在"),
     FITNESS_DATA_NOT_FOUND(404101, HttpStatus.NOT_FOUND, "体测数据不存在"),
     FITNESS_DATA_ALREADY_EXIST(409101, HttpStatus.CONFLICT, "体测数据已存在"),
+    FILE_NOT_FOUND(404003, HttpStatus.NOT_FOUND, "文件不存在"),
 
     /* ================= 体测业务错误 422xxx ================= */
 

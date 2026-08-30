@@ -1,6 +1,8 @@
 package com.wsw.fitnesssystem.handle_excel.domain.service;
 
 import com.wsw.fitnesssystem.handle_excel.application.dto.UserExcelDTO;
+import com.wsw.fitnesssystem.handle_excel.core.collector.ErrorCollector;
+import com.wsw.fitnesssystem.handle_excel.core.collector.ErrorCollectorHolder;
 import com.wsw.fitnesssystem.handle_excel.domain.model.User;
 import com.wsw.fitnesssystem.handle_excel.infrastructure.persistence.db.UserBatchRepository;
 import com.wsw.fitnesssystem.shared.exception.BizException;
@@ -39,6 +41,9 @@ public class UserImportDomainService {
      * @return 校验通过并转换后的领域模型列表（已去重）
      */
     public List<User> validateAndConvert(List<UserExcelDTO> batch) {
+        ErrorCollector collector = ErrorCollectorHolder.get();
+        List<User> result = new ArrayList<>();
+
         // 1. 基础格式过滤
         List<UserExcelDTO> validDtoList = batch.stream()
                 .filter(dto ->
@@ -63,17 +68,26 @@ public class UserImportDomainService {
         Set<String> existingUsernames = userBatchRepository.findExistingUsernames(usernames);
 
         // 3. 领域转换（通过充血模型的工厂方法保证合法性）
-        List<User> result = new ArrayList<>();
         for (UserExcelDTO dto : validDtoList) {
             String username = dto.getUsername().trim();
             if (existingUsernames.contains(username)) {
+                collector.addError(
+                    dto.getRowIndex(),
+                    List.of(username, dto.getPassword(), dto.getNickname()),
+                    "用户名已存在: " + username
+                );
                 // log.warn("用户名已存在，跳过: {}", username);
                 continue; // 跳过空用户名或已存在的
             }
             try {
-                User user = User.create(username, dto.getPassword(), dto.getNickname());
+                User user = User.create(username, dto.getPassword(), dto.getNickname(), dto.getRowIndex());
                 result.add(user);
             } catch (BizException e) {
+                collector.addError(
+                    dto.getRowIndex(),
+                    List.of(username, dto.getPassword(), dto.getNickname()),
+                    e.getMessage()
+                );
                 log.warn("用户创建失败: {}", e.getMessage());
             }
         }

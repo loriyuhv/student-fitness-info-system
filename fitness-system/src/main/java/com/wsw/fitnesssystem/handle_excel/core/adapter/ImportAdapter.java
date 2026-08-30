@@ -3,6 +3,7 @@ package com.wsw.fitnesssystem.handle_excel.core.adapter;
 import com.wsw.fitnesssystem.handle_excel.infrastructure.config.ExcelConstants;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * 导入适配器契约 — 各业务模块必须实现此接口
@@ -77,6 +78,30 @@ public interface ImportAdapter<T, E> {
      */
     default String getTemplateFileName() {
         return getBizType().toLowerCase() + "_template.xlsx";
+    }
+
+    // ====== 通用元数据方法（用于错误文件生成） ======
+
+    /**
+     * Excel 列头（顺序需与 toRowData 一致）
+     */
+    default List<String> getHeaders() {
+        return List.of();
+    }
+
+    /**
+     * 将实体转换为原始行数据（用于生成错误文件）
+     */
+    default List<String> toRowData(E entity) {
+        return List.of();
+    }
+
+    /**
+     * 获取实体对应的 Excel 行号映射
+     * 由适配器在 convert 时构建，供 persist 阶段使用
+     */
+    default Map<E, Integer> getRowIndexMap(List<E> entities) {
+        return Map.of();
     }
 
 }

@@ -4,6 +4,7 @@ import com.alibaba.excel.context.AnalysisContext;
 import com.alibaba.excel.event.AnalysisEventListener;
 import lombok.extern.slf4j.Slf4j;
 
+import java.lang.reflect.Method;
 import java.util.List;
 
 /**
@@ -24,10 +25,23 @@ public class EasyExcelListener<T> extends AnalysisEventListener<T> {
 
     @Override
     public void invoke(T data, AnalysisContext context) {
-        // 过滤空行
-        if (data != null) {
-            list.add(data);
+        // 1. 空行直接返回
+        if (data == null) return;
+
+        // 2. 通过反射设置行号
+        Integer rowNum = context.readRowHolder().getRowIndex() + 1;
+
+        try {
+            Method setRowIndex = data.getClass().getMethod("setRowIndex", Integer.class);
+            setRowIndex.invoke(data,  rowNum);
+        } catch (NoSuchMethodException ignored) {
+            // 当前DTO不需要注入行号，属于正常场景，静默跳过
+        } catch (Exception e) {
+            log.error("为Excel DTO设置行号失败，row:{}", rowNum, e);
         }
+
+        // 3. 添加解析后的数据
+        list.add(data);
     }
 
     @Override

@@ -17,9 +17,11 @@ import com.wsw.fitnesssystem.handle_excel.infrastructure.config.ExcelConstants;
  */
 @Data
 public class User {
+
     private String username;
     private String password;
     private String nickname;
+    private transient Integer rowIndex; // 临时行号，不持久化
 
     /**
      * 工厂方法：强制走业务规则创建
@@ -34,7 +36,7 @@ public class User {
      * @return 合法的 User 领域对象
      * @throws BizException 当用户名非法时
      */
-    public static User create(String username, String rawPassword, String nickname) {
+    public static User create(String username, String rawPassword, String nickname, int rowIndex) {
         if (StringUtils.isBlank(username)) {
             throw new BizException(ResultCode.PARAM_INVALID, "用户名不能为空");
         }
@@ -51,6 +53,7 @@ public class User {
         user.setNickname(StringUtils.isBlank(nickname)
                 ? trimmedUsername
                 : nickname.trim());
+        user.setRowIndex(rowIndex);
         return user;
     }
 

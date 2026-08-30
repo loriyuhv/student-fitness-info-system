@@ -31,6 +31,7 @@ import java.util.Map;
 public class RedisImportProgressRepository implements ImportProgressPort {
 
     private final StringRedisTemplate redis;
+    private static final String ERROR_FILE_FIELD = "errorFilePath";
 
     /**
      * 初始化进度（解析完 Excel 后调用）
@@ -167,6 +168,22 @@ public class RedisImportProgressRepository implements ImportProgressPort {
         }
     }
 
+    @Override
+    public void saveErrorFilePath(String taskId, String filePath) {
+        String key = ExcelRedisKeys.importTaskKey(taskId);
+        redis.opsForHash().put(key, ERROR_FILE_FIELD, filePath);
+        // 延长 TTL 以确保错误文件可下载
+        redis.expire(key, Duration.ofHours(ExcelConstants.IMPORT_TASK_TTL_HOURS));
+        log.info("[{}] 错误文件路径已保存: {}", taskId, filePath);
+    }
+
+    @Override
+    public String getErrorFilePath(String taskId) {
+        String key = ExcelRedisKeys.importTaskKey(taskId);
+        Object val = redis.opsForHash().get(key, ERROR_FILE_FIELD);
+        return val == null ? null : val.toString();
+    }
+
     /**
      * 安全 put：支持 String / Integer / List 等多种类型自动序列化
      * @param map Hash
@@ -241,6 +258,8 @@ public class RedisImportProgressRepository implements ImportProgressPort {
         dto.setFailCount(parseInt(map.get(ImportTaskField.FAIL_COUNT.getKey())));
         dto.setStatus(parseStatus(map.get(ImportTaskField.STATUS.getKey())));
         dto.setErrorMsg(parseString(map.get(ImportTaskField.ERROR_MSG.getKey())));
+        // 检查是否有错误文件
+        dto.setErrorFileExists(map.containsKey("errorFilePath") && map.get("errorFilePath") != null);
         return dto;
     }
 

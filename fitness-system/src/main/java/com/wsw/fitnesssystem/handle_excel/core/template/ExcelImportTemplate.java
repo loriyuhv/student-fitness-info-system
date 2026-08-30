@@ -2,9 +2,13 @@ package com.wsw.fitnesssystem.handle_excel.core.template;
 
 import com.google.common.collect.Lists;
 import com.wsw.fitnesssystem.handle_excel.core.adapter.ImportAdapter;
+import com.wsw.fitnesssystem.handle_excel.core.collector.ErrorCollector;
+import com.wsw.fitnesssystem.handle_excel.core.collector.ErrorCollectorHolder;
 import com.wsw.fitnesssystem.handle_excel.core.exception.ExcelException;
+import com.wsw.fitnesssystem.handle_excel.core.model.ErrorRecord;
 import com.wsw.fitnesssystem.handle_excel.core.parser.ExcelParser;
 import com.wsw.fitnesssystem.handle_excel.core.port.ImportProgressPort;
+import com.wsw.fitnesssystem.handle_excel.core.service.ErrorFileService;
 import com.wsw.fitnesssystem.handle_excel.infrastructure.config.ExcelConstants;
 import com.wsw.fitnesssystem.shared.response.ResultCode;
 import lombok.RequiredArgsConstructor;
@@ -63,6 +67,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class ExcelImportTemplate {
 
     private final ExcelParser excelParser;
+    private final ErrorFileService errorFileService;
     private final ImportProgressPort importProgressPort;
 
     /**
@@ -156,12 +161,16 @@ public class ExcelImportTemplate {
         // 3. 初始化 Redis 进度：客户端可立即查询到 total 和 PROCESSING 状态
         importProgressPort.init(taskId, total);
 
-        // 4. 分片：将全量 List 切分为固定大小的批次
+        // 4. 初始化全局错误收集器（懒加载，自动创建）
+        ErrorCollectorHolder.remove(); // 清理旧数据（防御性）
+        ErrorCollector collector = ErrorCollectorHolder.get(); // 懒加载创建
+
+        // 5. 分片：将全量 List 切分为固定大小的批次
         int batchSize = adapter.getBatchSize();
         List<List<T>> batches = Lists.partition(list, batchSize);
         log.info("[{}] 分片完成，共 {} 批，每批 {} 条", taskId, batches.size(), batchSize);
 
-        // 5. 逐批处理：累加成功/失败计数
+        // 6. 逐批处理：累加成功/失败计数
         int successCount = 0;
         int failCount = 0;
         List<String> errorMsgList = new ArrayList<>();
@@ -169,16 +178,20 @@ public class ExcelImportTemplate {
         for (int i = 0; i < batches.size(); i++) {
             List<T> batch = batches.get(i);
 
-            // 5.1 处理单批：校验 → 转换 → 持久化
+            // 6.1 处理单批：校验 → 转换 → 持久化
             BatchResult result = processBatch(taskId, batch, adapter, i + 1, errorMsgList);
             successCount += result.successIncrement;
             failCount += result.failIncrement;
 
-            // 5.2 实时上报进度：客户端轮询可感知到处理进展
+            // 6.2 实时上报进度：客户端轮询可感知到处理进展
             importProgressPort.updateProgress(taskId, successCount, failCount, errorMsgList);
         }
 
-        // 6. 最终状态判定
+        // 6. 最终状态判定 + 错误文件
+        if (collector.hasErrors()) {
+            saveErrorFile(taskId, collector, adapter);
+        }
+
         if (failCount == 0) {
             // 全部成功
             importProgressPort.finish(taskId, successCount);
@@ -189,6 +202,9 @@ public class ExcelImportTemplate {
             log.info("[{}] 导入任务部分完成, total={}, success={}, fail={}",
                     taskId, total, successCount, failCount);
         }
+
+        // 7. 清理 ThreadLocal
+        ErrorCollectorHolder.remove();
 
     }
 
@@ -216,6 +232,8 @@ public class ExcelImportTemplate {
     private <T, E> void doExecuteStream(
             String taskId, File file, ImportAdapter<T, E> adapter,
             int batchSize, int estimatedRows) {
+        ErrorCollectorHolder.remove();
+        ErrorCollector collector = ErrorCollectorHolder.get();
 
         // 1. 初始化进度：total 使用预估值，processed 会从 0 开始累加
         importProgressPort.init(taskId, estimatedRows);
@@ -243,6 +261,10 @@ public class ExcelImportTemplate {
         int finalSuccess = successCount.get();
         int finalFail = failCount.get();
 
+        if (collector.hasErrors()) {
+            saveErrorFile(taskId, collector, adapter);
+        }
+
         if (finalFail == 0) {
             importProgressPort.finish(taskId, finalSuccess);
             log.info("[{}] 流式导入任务全部成功完成, success={}", taskId, finalSuccess);
@@ -252,6 +274,7 @@ public class ExcelImportTemplate {
                     taskId, finalSuccess, finalFail);
         }
 
+        ErrorCollectorHolder.remove();
     }
 
     /**
@@ -270,8 +293,10 @@ public class ExcelImportTemplate {
      * @param <E> 持久化对应的 Entity 类型
      */
     private <T, E> BatchResult processBatch(
-            String taskId, List<T> batch, ImportAdapter<T, E> adapter,
-            int batchNo,List<String> errorMsgList) {
+            String taskId, List<T> batch,
+            ImportAdapter<T, E> adapter, int batchNo, List<String> errorMsgList) {
+
+        ErrorCollector collector = ErrorCollectorHolder.get(); // 获取全局唯一实例
 
         try {
             // 3.1 业务校验：适配器过滤非法/重复数据
@@ -285,17 +310,24 @@ public class ExcelImportTemplate {
             // 3.1.1 防御：整批校验不通过时直接标记失败，跳过转换和持久化
             if (validated.isEmpty()) {
                 addErrorMsg(errorMsgList, "第" + batchNo + "批数据全部校验失败");
+                collector.addError(-1, "批次" + batchNo + "全部校验失败");
                 return new BatchResult(0, batch.size());
             }
 
             // 3.2 数据转换：DTO → Domain → Entity（含密码加密、默认值填充等）
-            long start = System.currentTimeMillis();
             List<E> entities = adapter.convert(validated);
-            long end = System.currentTimeMillis();
-            log.warn("数据转换耗时{}", end - start);
 
             // 3.3 批量持久化：写入数据库（适配器内部可再分片，防止 SQL 过长）
             adapter.persist(entities);
+
+            // 收集错误信息到前端展示
+            if (collector.hasErrors()) {
+                for (ErrorRecord error : collector.getErrors()) {
+                    String msg = (error.getRowIndex() > 0 ? "第" + error.getRowIndex() + "行" : "批次" + batchNo)
+                        + ": " + error.getErrorReason();
+                    addErrorMsg(errorMsgList, msg);
+                }
+            }
 
             log.info("[{}] 第 {} 批处理完成，success={}, fail={}",
                     taskId, batchNo, validated.size(), filtered);
@@ -306,9 +338,24 @@ public class ExcelImportTemplate {
             // 故障隔离：单批失败只影响本批次，记录错误后继续处理下一批
             log.error("[{}] 第 {} 批处理失败, batchSize={}", taskId, batchNo, batch.size(), e);
             addErrorMsg(errorMsgList, "第" + batchNo + "批:" + truncate(e.getMessage()));
+            collector.addError(-1, "批次" + batchNo + "处理异常: " + e.getMessage());
             return new BatchResult(0, batch.size());
         }
 
+    }
+
+    // ========== 错误文件保存 ==========
+    private void saveErrorFile(String taskId, ErrorCollector collector, ImportAdapter<?, ?> adapter) {
+        try {
+            File errorFile = errorFileService.generateErrorFile(
+                collector.getErrors(),
+                adapter.getHeaders()
+            );
+            importProgressPort.saveErrorFilePath(taskId, errorFile.getAbsolutePath());
+            log.info("[{}] 错误文件已保存: {}", taskId, errorFile.getAbsolutePath());
+        } catch (Exception e) {
+            log.error("[{}] 保存错误文件失败", taskId, e);
+        }
     }
 
     /**
@@ -363,4 +410,5 @@ public class ExcelImportTemplate {
         if (str == null) return "";
         return str.length() > 80 ? str.substring(0, 80) + "..." : str;
     }
+
 }

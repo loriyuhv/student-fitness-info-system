@@ -129,6 +129,7 @@ public class ExcelImportAppService {
                 System.getProperty("java.io.tmpdir"),
                 ExcelConstants.TEMP_DIR_ROOT + "/" + dateDir + "/" + taskId
         );
+        // 如果目录不存在且创建失败则抛异常
         if (!tempDir.exists() && !tempDir.mkdirs()) {
             log.warn("临时目录已存在或创建失败: {}", tempDir.getAbsolutePath());
             throw new BizException(ResultCode.SYSTEM_ERROR, "无法创建临时目录: " + tempDir.getAbsolutePath());

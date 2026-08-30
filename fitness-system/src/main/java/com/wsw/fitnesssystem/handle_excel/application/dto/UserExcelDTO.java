@@ -1,5 +1,6 @@
 package com.wsw.fitnesssystem.handle_excel.application.dto;
 
+import com.alibaba.excel.annotation.ExcelIgnore;
 import com.alibaba.excel.annotation.ExcelProperty;
 import lombok.Data;
 
@@ -10,6 +11,7 @@ import lombok.Data;
  */
 @Data
 public class UserExcelDTO {
+
     @ExcelProperty("用户账号")
     private String username;
 
@@ -18,4 +20,11 @@ public class UserExcelDTO {
 
     @ExcelProperty("昵称")
     private String nickname;
+
+    /**
+     * 行号，由监听器注入
+     */
+    @ExcelIgnore
+    private Integer rowIndex = -1;
+
 }
