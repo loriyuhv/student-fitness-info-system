@@ -138,9 +138,9 @@ public class RedisImportProgressRepository implements ImportProgressPort {
 
         try {
             redis.opsForHash().putAll(ExcelRedisKeys.importTaskKey(taskId), map);
-            log.warn("[{}] 进度标记为 FAILED, errorMsg={}", taskId, errorMsg);
+            log.warn("[{}] Progress marked as FAILED, errorMsg={}", taskId, errorMsg);
         } catch (Exception e) {
-            log.error("[{}] Redis 进度标记失败", taskId, e);
+            log.error("[{}] Failed to mark progress as FAILED in Redis", taskId, e);
         }
     }
 

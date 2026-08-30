@@ -5,6 +5,7 @@ import com.wsw.fitnesssystem.handle_excel.core.adapter.ImportAdapter;
 import com.wsw.fitnesssystem.handle_excel.core.executor.ImportTaskExecutor;
 import com.wsw.fitnesssystem.handle_excel.core.port.ImportFileLockPort;
 import com.wsw.fitnesssystem.handle_excel.core.port.ImportRateLimitPort;
+import com.wsw.fitnesssystem.handle_excel.core.utils.FileCleanupUtils;
 import com.wsw.fitnesssystem.handle_excel.domain.enums.ExcelBizTypeEnum;
 import com.wsw.fitnesssystem.handle_excel.infrastructure.config.ExcelConstants;
 import com.wsw.fitnesssystem.shared.exception.BizException;
@@ -66,7 +67,7 @@ public class ExcelImportAppService {
         boolean locked = importFileLockPort.tryLock(md5, taskId);
         if (!locked) {
             // 防重失败：清理已转存的临时文件，避免磁盘泄漏
-            cleanupTempFile(tempFile);
+            FileCleanupUtils.cleanup(tempFile);
             log.warn("[{}] Duplicate file submission rejected, md5={}, userId={}", taskId, md5, userId);
             throw new BizException(
                 ResultCode.PARAM_INVALID,
@@ -191,27 +192,6 @@ public class ExcelImportAppService {
         } catch (IOException e) {
             log.error("Failed to compute MD5 for file: {}", file.getAbsolutePath(), e);
             throw new BizException(ResultCode.SYSTEM_ERROR, "Failed to compute file MD5: " + e.getMessage());
-        }
-    }
-
-    /**
-     * 防重失败时清理已转存的临时文件
-     *
-     * @param tempFile 临时文件
-     */
-    private void cleanupTempFile(File tempFile) {
-        if (tempFile == null) return;
-
-        try {
-            if (tempFile.exists() && !tempFile.delete()) {
-                log.warn("Failed to delete temp file: {}", tempFile.getAbsolutePath());
-            }
-            File parent = tempFile.getParentFile();
-            if (parent != null && parent.exists() && !parent.delete()) {
-                log.warn("Failed to delete temp directory: {}", parent.getAbsolutePath());
-            }
-        } catch (Exception e) {
-            log.warn("Exception occurred while cleaning up temp files", e);
         }
     }
 

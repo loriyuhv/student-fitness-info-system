@@ -9,11 +9,11 @@ import com.wsw.fitnesssystem.handle_excel.core.model.ErrorRecord;
 import com.wsw.fitnesssystem.handle_excel.core.parser.ExcelParser;
 import com.wsw.fitnesssystem.handle_excel.core.port.ImportProgressPort;
 import com.wsw.fitnesssystem.handle_excel.core.service.ErrorFileService;
+import com.wsw.fitnesssystem.handle_excel.core.utils.FileCleanupUtils;
 import com.wsw.fitnesssystem.handle_excel.infrastructure.config.ExcelConstants;
 import com.wsw.fitnesssystem.shared.response.ResultCode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.io.FileUtils;
 import org.springframework.stereotype.Component;
 
 import java.io.File;
@@ -91,33 +91,32 @@ public class ExcelImportTemplate {
 
         try {
             // ========== Step 1: 预估行数，决策解析模式 ==========
-            long estimatedRows = excelParser.estimatedRowCount(file);
+            int estimatedRows = excelParser.estimatedRowCount(file);
             int batchSize = adapter.getBatchSize();
-
             if (estimatedRows < ExcelConstants.STREAM_THRESHOLD) {
                 // 小文件：全量解析，代码简单，内存 = O(total)
-                log.info("[{}] 预估 {} 行，采用“全量处理”模式", taskId, estimatedRows);
+                log.info("[{}] Estimated {} rows, using full processing mode", taskId, estimatedRows);
                 doExecuteFull(taskId, file, adapter);
             } else {
                 // 大文件：真流式解析，内存 = O(batchSize)，与文件大小无关
-                log.info("[{}] 预估 {} 行，采用“真流式处理”模式, batchSize={}",
-                        taskId, estimatedRows, batchSize);
-                doExecuteStream(taskId, file, adapter, batchSize, (int) estimatedRows);
+                log.info("[{}] Estimated {} rows, using streaming processing mode, batchSize={}",
+                    taskId, estimatedRows, batchSize);
+                doExecuteStream(taskId, file, adapter, batchSize, estimatedRows);
             }
         } catch (ExcelException e) {
             // Excel 模块已知异常（格式损坏、密码保护、解析失败等）
             String defaultMsg = e.getResultCode().getMessage();
             String customMsg = e.getMessage();
             String finalMsg = defaultMsg + "：" + customMsg;
-            log.error("[{}] 导入任务业务异常: {}", taskId, finalMsg, e);
+            log.error("[{}] Business exception occurred: {}", taskId, finalMsg, e);
             importProgressPort.fail(taskId, finalMsg);
         } catch (Exception e) {
             // 未知异常兜底：防止任何未捕获异常导致任务状态悬空
-            log.error("[{}] 导入任务异常终止", taskId, e);
+            log.error("[{}] Import task terminated abnormally", taskId, e);
             importProgressPort.fail(taskId, ResultCode.SERVER_TEMP_ERROR.getMessage());
         } finally {
             // ========== Step 5: 清理临时文件（强制兜底） ==========
-            cleanup(file);
+            FileCleanupUtils.cleanup(file);
         }
 
     }
@@ -376,27 +375,6 @@ public class ExcelImportTemplate {
     private void addErrorMsg(List<String> errorMsgList, String msg) {
         if (errorMsgList.size() < ExcelConstants.ERROR_MSG_MAX_COUNT) {
             errorMsgList.add(msg);
-        }
-    }
-
-    /**
-     * 清理临时文件及父目录
-     * @param file Excel文件
-     */
-    private void cleanup(File file) {
-        if (file == null) return;
-        try {
-            if (file.exists()) {
-                FileUtils.delete(file);
-                log.info("临时文件已删除: {}", file.getAbsolutePath());
-            }
-            File parent = file.getParentFile();
-            if (parent != null && parent.exists()) {
-                FileUtils.deleteDirectory(parent);
-                log.info("临时目录已删除: {}", parent.getAbsolutePath());
-            }
-        } catch (Exception e) {
-            log.warn("临时文件清理失败, path={}", file.getAbsolutePath(), e);
         }
     }
 

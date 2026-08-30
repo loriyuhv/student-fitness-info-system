@@ -13,7 +13,7 @@ import org.springframework.stereotype.Component;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 
 /**
@@ -92,8 +92,8 @@ public class ExcelParser {
      * @param file Excel 文件
      * @return 预估行数；预估失败时返回 0，保守走全量模式
      */
-    public long estimatedRowCount(File file) {
-        AtomicLong count = new AtomicLong(0);
+    public int estimatedRowCount(File file) {
+        AtomicInteger count = new AtomicInteger(0);
 
         try {
             EasyExcel.read(file, new ReadListener<>() {
@@ -105,7 +105,8 @@ public class ExcelParser {
                 public void doAfterAllAnalysed(AnalysisContext context) {}
             }).sheet().doRead();
         } catch (Exception e) {
-            log.warn("Excel 行数预估失败，保守按全量模式处理, file={}", file.getAbsolutePath(), e);
+            log.warn("Row count estimation failed, falling back to full processing mode, file={}",
+                file.getAbsolutePath(), e);
             return 0;
         }
 
