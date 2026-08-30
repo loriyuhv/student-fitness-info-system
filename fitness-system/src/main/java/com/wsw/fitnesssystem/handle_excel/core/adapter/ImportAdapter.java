@@ -72,14 +72,6 @@ public interface ImportAdapter<T, E> {
      */
     void persist(List<E> entities);
 
-    /**
-     * 导出模板文件名（用于下载空模板）
-     * @return 模板文件名
-     */
-    default String getTemplateFileName() {
-        return getBizType().toLowerCase() + "_template.xlsx";
-    }
-
     // ====== 通用元数据方法（用于错误文件生成） ======
 
     /**

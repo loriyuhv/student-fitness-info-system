@@ -13,6 +13,7 @@ import java.util.stream.Collectors;
  * 业务适配器工厂
  * <li>Spring 启动时自动扫描所有 ImportAdapter 实现类，按 bizType 注册;</li>
  * <li>运行时根据 bizType 获取对应适配器</li>
+ *
  * @author loriyuhv
  * @version 1.0 2026/8/21 12:07
  * @since 1.0
@@ -20,23 +21,27 @@ import java.util.stream.Collectors;
 @Slf4j
 @Component
 public class BusinessAdapterFactory {
+
     private final Map<String, ImportAdapter<?, ?>> adapterMap;
 
     public BusinessAdapterFactory(List<ImportAdapter<?, ?>> adapters) {
-        this.adapterMap = adapters.stream()
-                .collect(Collectors.toMap(
-                        ImportAdapter::getBizType,
-                        adapter -> adapter,
-                        (a, b) -> {
-                            throw new IllegalStateException(
-                                    "bizType 重复注册: " + a.getBizType() + ", 冲突类: "
-                                            + a.getClass().getName() + " vs "
-                                            + b.getClass().getName()
-                            );
-                        }
-                ));
-        log.info("Excel 导入适配器注册完成，共 {} 个: {}",
-                adapterMap.size(), adapterMap.keySet());
+        this.adapterMap = adapters
+            .stream()
+            .collect(Collectors.toMap(
+                ImportAdapter::getBizType,
+                adapter -> adapter,
+                (a, b) -> {
+                    throw new IllegalStateException(
+                        "Duplicate bizType registration: " + a.getBizType()
+                            + ", conflicting classes: " + a.getClass().getName()
+                            + " vs " + b.getClass().getName()
+                    );
+                })
+            );
+
+        log.info("Excel import adapters registered: {} types, bizTypes: [{}]",
+            adapterMap.size(), String.join(", ", adapterMap.keySet())
+        );
     }
 
     /**
@@ -50,7 +55,9 @@ public class BusinessAdapterFactory {
     public <T, E> ImportAdapter<T, E> getImportAdapter(String bizType) {
         ImportAdapter<?, ?> adapter = adapterMap.get(bizType);
         if (adapter == null) {
-            throw new BizException(ResultCode.PARAM_INVALID, "不支持的导入类型: " + bizType + "，已注册类型: " + adapterMap.keySet());
+            throw new BizException(ResultCode.PARAM_INVALID,
+                "Unsupported import type: " + bizType + ", registered types: " + adapterMap.keySet()
+            );
         }
         return (ImportAdapter<T, E>) adapter;
     }
@@ -62,4 +69,5 @@ public class BusinessAdapterFactory {
     public List<String> getAllBizTypes() {
         return List.copyOf(adapterMap.keySet());
     }
+
 }

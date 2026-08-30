@@ -51,7 +51,8 @@ public class ExcelImportController {
     @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER')")
     public ApiResult<String> importExcel(
             @RequestParam String bizType,
-            @RequestParam("file") MultipartFile file) {
+            @RequestParam("file") MultipartFile file
+    ) {
         // 字符串转枚举，非法参数直接抛出异常
         ExcelBizTypeEnum bizTypeEnum = ExcelBizTypeEnum.getByCode(bizType);
         Operator operator = RequestContextHolder.getRequiredOperator();

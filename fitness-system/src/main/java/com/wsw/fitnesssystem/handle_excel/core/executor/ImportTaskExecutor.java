@@ -36,8 +36,7 @@ public class ImportTaskExecutor {
      * @param md5     文件 MD5（用于任务完成后释放防重锁）
      */
     @Async("businessExecutor")
-    @SuppressWarnings({"rawtypes", "unchecked"})
-    public void submit(String taskId, File file, ImportAdapter adapter, String md5) {
+    public void submit(String taskId, File file, ImportAdapter<?, ?> adapter, String md5) {
         log.info("[{}] 提交导入任务到线程池, bizType={}, file={}, md5={}",
                 taskId, adapter.getBizType(), file.getAbsolutePath(), md5);
         try {
