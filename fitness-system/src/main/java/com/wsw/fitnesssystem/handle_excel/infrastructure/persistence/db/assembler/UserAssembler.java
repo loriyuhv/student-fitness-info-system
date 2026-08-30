@@ -42,7 +42,6 @@ public class UserAssembler {
         entity.setUserType(ExcelConstants.DEFAULT_USER_TYPE); // 学生
         entity.setStatus(ExcelConstants.DEFAULT_STATUS); // 启用
         entity.setDeleted(ExcelConstants.DEFAULT_DELETED); // 未删除
-        // 如需保留行号到实体，可增加 @Transient 字段
 
         return entity;
     }

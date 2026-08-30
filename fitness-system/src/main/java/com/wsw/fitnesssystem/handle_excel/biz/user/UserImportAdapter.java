@@ -57,17 +57,17 @@ public class UserImportAdapter implements ImportAdapter<UserExcelDTO, SysUser> {
     }
 
     /**
-     * <p>适配器层只做轻量过滤：剔除明显无法解析的行（空用户名）</p>
+     * <p>适配器层只做格式校验：只负责必填、长度、格式等基础校验</p>
      * <p>复杂的业务查重、格式规则收敛到 DomainService</p>
      * <p>但必须记录被剔除的行，供错误 Excel 生成使用</p>
      *
-     * @param batch 一批 Excel DTO
-     * @return 初次过滤后的结果
+     * @param batch 原始 DTO 批次
+     * @return 格式校验通过的 DTO 列表
      */
     @Override
     public List<UserExcelDTO> validate(List<UserExcelDTO> batch) {
         ErrorCollector collector = ErrorCollectorHolder.get();
-        ArrayList<UserExcelDTO> validList = new ArrayList<>();
+        List<UserExcelDTO> validList = new ArrayList<>();
 
         for (UserExcelDTO dto : batch) {
             // 1. 校验用户账号不能为空
@@ -80,14 +80,30 @@ public class UserImportAdapter implements ImportAdapter<UserExcelDTO, SysUser> {
                 continue;
             }
 
+            String trimmedUsername = dto.getUsername().trim();
+            dto.setUsername(trimmedUsername);
+
             // 2. 校验用户名长度
-            if (dto.getUsername().trim().length() > ExcelConstants.USERNAME_MAX_LENGTH) {
+            if (trimmedUsername.length() > ExcelConstants.USERNAME_MAX_LENGTH) {
                 collector.addError(
                     dto.getRowIndex(),
                     List.of(dto.getUsername(), dto.getPassword(), dto.getNickname()),
                     "用户账号长度超过限制（最大 " + ExcelConstants.USERNAME_MAX_LENGTH + " 个字符）"
                 );
                 continue;
+            }
+
+            // 3. 密码格式校验 密码不能为空并且长度不能小于6
+            if (StringUtils.isNotBlank(dto.getPassword())
+                && dto.getPassword().length() < ExcelConstants.PASSWORD_MIN_LENGTH) {
+
+                collector.addError(
+                    dto.getRowIndex(),
+                    List.of(trimmedUsername, dto.getPassword(), dto.getNickname()),
+                    "密码必须至少" + ExcelConstants.PASSWORD_MIN_LENGTH + "位字符"
+                );
+                continue;
+
             }
 
             // 校验通过，加入成功列表

@@ -25,34 +25,33 @@ public class User {
 
     /**
      * 工厂方法：强制走业务规则创建
-     * <p>规则：</p>
-     * <li>1. 用户名非空且长度不超过上限</li>
-     * <li>2. 密码为空时使用默认密码</li>
-     * <li>3. 昵称为空时默认使用用户名</li>
+     * <p>注意：格式校验（非空、长度）应在调用前完成，此处仅做防御性检查</p>
      *
-     * @param username    用户名
-     * @param rawPassword 原始密码（可为空）
-     * @param nickname    昵称（可为空）
+     * @param username    用户名（已校验过非空和长度）
+     * @param rawPassword 原始密码
+     * @param nickname    昵称
+     * @param rowIndex    行号
      * @return 合法的 User 领域对象
-     * @throws BizException 当用户名非法时
      */
     public static User create(String username, String rawPassword, String nickname, int rowIndex) {
+        // 防御性检查：虽然是冗余，但保护领域对象不创建非法状态
         if (StringUtils.isBlank(username)) {
             throw new BizException(ResultCode.PARAM_INVALID, "用户名不能为空");
         }
-        String trimmedUsername = username.trim();
-        if (trimmedUsername.length() > ExcelConstants.USERNAME_MAX_LENGTH) {
-            throw new BizException(ResultCode.PARAM_INVALID, "用户名长度超过限制: " + trimmedUsername);
+
+        if (username.length() > ExcelConstants.USERNAME_MAX_LENGTH) {
+            throw new BizException(ResultCode.PARAM_INVALID, "用户名长度超过限制: " + username);
+        }
+
+        if (rawPassword.length() < ExcelConstants.PASSWORD_MIN_LENGTH) {
+            throw new BizException(
+                ResultCode.PARAM_INVALID, "密码至少" + ExcelConstants.PASSWORD_MIN_LENGTH + "字符");
         }
 
         User user = new User();
-        user.setUsername(trimmedUsername);
-        user.setPassword(StringUtils.isBlank(rawPassword)
-                ? ExcelConstants.DEFAULT_PASSWORD
-                : rawPassword);
-        user.setNickname(StringUtils.isBlank(nickname)
-                ? trimmedUsername
-                : nickname.trim());
+        user.setUsername(username);
+        user.setPassword(rawPassword);
+        user.setNickname(StringUtils.isBlank(nickname) ? username : nickname.trim());
         user.setRowIndex(rowIndex);
         return user;
     }

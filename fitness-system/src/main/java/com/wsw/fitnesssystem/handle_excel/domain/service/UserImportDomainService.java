@@ -8,7 +8,6 @@ import com.wsw.fitnesssystem.handle_excel.infrastructure.persistence.db.UserBatc
 import com.wsw.fitnesssystem.shared.exception.BizException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -32,66 +31,65 @@ public class UserImportDomainService {
     private final UserBatchRepository userBatchRepository;
 
     /**
-     * 批量校验并转换为领域对象
-     * <p>流程：</p>
-     * <li>1. 过滤格式非法的 DTO（空用户名等）</li>
-     * <li>2. 批量查询数据库已存在的用户名</li>
-     * <li>3. 使用充血模型 {@link User#create} 构造合法领域对象</li>
-     * @param batch Excel DTO 批次
-     * @return 校验通过并转换后的领域模型列表（已去重）
+     * 业务批量校验并转换为领域对象
+     *
+     * <p>前提：传入的 DTO 已经通过格式校验（非空、长度等）</p>
+     * <p>职责：查重、业务规则校验、创建领域对象</p>
+     *
+     * @param dtoList dtoList 格式校验通过的 DTO 列表（保证非空用户名）
+     * @return 合法的领域对象列表
      */
-    public List<User> validateAndConvert(List<UserExcelDTO> batch) {
+    public List<User> validateAndConvert(List<UserExcelDTO> dtoList) {
+
         ErrorCollector collector = ErrorCollectorHolder.get();
         List<User> result = new ArrayList<>();
 
-        // 1. 基础格式过滤
-        List<UserExcelDTO> validDtoList = batch.stream()
-                .filter(dto ->
-                        dto != null && StringUtils.isNotBlank(dto.getUsername()))
-                .toList();
+        if (dtoList == null || dtoList.isEmpty()) return List.of();
 
-        if (validDtoList.isEmpty()) {
-            return List.of();
-        }
-
-        // 2. 批量查重：查询数据库中已存在的用户名
-        List<String> usernames = validDtoList.stream()
-                .map(UserExcelDTO::getUsername)
-                .map(String::trim)
-                .distinct()
-                .toList();
-
-        if (usernames.isEmpty()) {
-            return List.of();
-        }
+        // 1. 批量查重（只查库，不做格式校验）
+        List<String> usernames = dtoList.stream().map(UserExcelDTO::getUsername).distinct().toList();
 
         Set<String> existingUsernames = userBatchRepository.findExistingUsernames(usernames);
 
-        // 3. 领域转换（通过充血模型的工厂方法保证合法性）
-        for (UserExcelDTO dto : validDtoList) {
-            String username = dto.getUsername().trim();
+        // 2. 业务校验 + 转换
+        for (UserExcelDTO dto : dtoList) {
+            String username = dto.getUsername();
+            int rowIndex = dto.getRowIndex() != null ? dto.getRowIndex() : -1;
+            List<String> rowData = List.of(username, dto.getPassword(), dto.getNickname());
+
+            // 2.1 查重校验
             if (existingUsernames.contains(username)) {
-                collector.addError(
-                    dto.getRowIndex(),
-                    List.of(username, dto.getPassword(), dto.getNickname()),
-                    "用户名已存在: " + username
-                );
-                // log.warn("用户名已存在，跳过: {}", username);
-                continue; // 跳过空用户名或已存在的
+                collector.addError(rowIndex, rowData, "用户名已存在: " + username);
+                continue;
             }
+
+            // 2.2 业务规则校验（如：用户名是否包含特殊字符）
+            if (!isValidUsernameFormat(username)) {
+                collector.addError(rowIndex, rowData, "用户名包含非法字符: " + username);
+                continue;
+            }
+
+            // 2.3 创建领域对象
             try {
-                User user = User.create(username, dto.getPassword(), dto.getNickname(), dto.getRowIndex());
+                User user = User.create(username, dto.getPassword(), dto.getNickname(), rowIndex);
                 result.add(user);
             } catch (BizException e) {
-                collector.addError(
-                    dto.getRowIndex(),
-                    List.of(username, dto.getPassword(), dto.getNickname()),
-                    e.getMessage()
-                );
-                log.warn("用户创建失败: {}", e.getMessage());
+                // 理论上不会触发（因为格式校验已做），但保留防御性
+                collector.addError(rowIndex, rowData, e.getMessage());
             }
         }
+
         return result;
+    }
+
+    /**
+     * 用户名格式校验（示例：只允许字母、数字、下划线）
+     *
+     * @param username 代校验的用户名称
+     * @return 校验后的用户名称
+     */
+    private boolean isValidUsernameFormat(String username) {
+        return username != null && username.matches("^[a-zA-Z0-9_]+$");
     }
 
 }

@@ -52,11 +52,11 @@ public class ExcelConstants {
     /** 默认删除标记：0-未删除 */
     public static final Integer DEFAULT_DELETED = 0;
 
-    /** 默认密码（空密码时使用） */
-    public static final String DEFAULT_PASSWORD = "123456";
-
     /** 用户名最大长度 */
     public static final int USERNAME_MAX_LENGTH = 50;
+
+    /** 密码最小长度 */
+    public static final int PASSWORD_MIN_LENGTH = 6;
 
     // ==================== Redis ====================
 

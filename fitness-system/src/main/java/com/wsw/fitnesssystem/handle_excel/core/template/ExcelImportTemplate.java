@@ -165,7 +165,8 @@ public class ExcelImportTemplate {
         // 5. 分片：将全量 List 切分为固定大小的批次
         int batchSize = adapter.getBatchSize();
         List<List<T>> batches = Lists.partition(list, batchSize);
-        log.info("[{}] 分片完成，共 {} 批，每批 {} 条", taskId, batches.size(), batchSize);
+        log.info("[{}] Sharding completed, {} batches, batch size: {} rows",
+            taskId, batches.size(), batchSize);
 
         // 6. 逐批处理：累加成功/失败计数
         int successCount = 0;
@@ -291,7 +292,8 @@ public class ExcelImportTemplate {
      */
     private <T, E> BatchResult processBatch(
             String taskId, List<T> batch,
-            ImportAdapter<T, E> adapter, int batchNo, List<String> errorMsgList) {
+            ImportAdapter<T, E> adapter,
+            int batchNo, List<String> errorMsgList) {
 
         ErrorCollector collector = ErrorCollectorHolder.get(); // 获取全局唯一实例
 
