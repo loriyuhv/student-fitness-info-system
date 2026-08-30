@@ -16,4 +16,5 @@ public interface ImportRateLimitPort {
      * @param userId 用户ID；为 null 或 <=0 时不做限制（未登录场景）
      */
     void checkRateLimit(Long userId);
+
 }

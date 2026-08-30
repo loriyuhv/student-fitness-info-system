@@ -67,14 +67,17 @@ public class ExcelImportAppService {
         if (!locked) {
             // 防重失败：清理已转存的临时文件，避免磁盘泄漏
             cleanupTempFile(tempFile);
-            log.warn("[{}] 文件重复提交被拒绝, md5={}, userId={}", taskId, md5, userId);
-            throw new BizException(ResultCode.PARAM_INVALID, "该文件正在导入中，请勿重复提交");
+            log.warn("[{}] Duplicate file submission rejected, md5={}, userId={}", taskId, md5, userId);
+            throw new BizException(
+                ResultCode.PARAM_INVALID,
+                "This file is already being imported, please do not submit again"
+            );
         }
 
         // 6. 提交异步任务（传文件路径 + 适配器）（携带 md5，任务完成后 finally 释放锁）
         taskExecutor.submit(taskId, tempFile, adapter, md5);
-        log.info("[{}] 导入任务已提交, bizType={}, userId={}, md5={}",
-                taskId, bizTypeEnum.getCode(), userId, md5);
+        log.info("[{}] Import task submitted, bizType={}, userId={}, md5={}",
+            taskId, bizTypeEnum.getCode(), userId, md5);
 
         // 7. 立即返回 taskId，HTTP 线程释放
         return taskId;
@@ -82,14 +85,25 @@ public class ExcelImportAppService {
 
     // ========== 私有方法 ==========
 
+    /**
+     * 校验上传文件
+     * <p>校验项：</p>
+     * <li>1. 文件非空</li>
+     * <li>2. 文件名非空</li>
+     * <li>3. 文件扩展名合法（.xlsx / .xls）</li>
+     * <li>4. 文件大小不超过 50MB</li>
+     *
+     * @param file 待校验的文件
+     * @throws BizException 校验失败时抛出
+     */
     private void validateFile(MultipartFile file) {
         if (file == null || file.isEmpty()) {
-            throw new BizException(ResultCode.PARAM_INVALID, "上传文件不能为空");
+            throw new BizException(ResultCode.PARAM_INVALID, "Upload file cannot be empty");
         }
 
         String originalFilename = file.getOriginalFilename();
         if (originalFilename == null) {
-            throw new BizException(ResultCode.PARAM_INVALID, "文件名不能为空");
+            throw new BizException(ResultCode.PARAM_INVALID, "File name cannot be empty");
         }
 
         // FIX: 取真实扩展名，防止 file.xlsx.exe 绕过校验
@@ -103,12 +117,15 @@ public class ExcelImportAppService {
         }
         if (!validExt) {
             throw new BizException(ResultCode.PARAM_TYPE_ERROR,
-                    "仅支持 .xlsx / .xls 格式，当前文件: " + originalFilename);
+                "Unsupported file format: " + originalFilename + ". Only .xlsx and .xls are allowed"
+            );
         }
 
-        // 限制单文件大小 50MB
+        // 限制单文件大小 例如50MB
         if (file.getSize() > ExcelConstants.MAX_FILE_SIZE) {
-            throw new BizException(ResultCode.PARAM_INVALID, "文件大小超过 50MB 限制");
+            throw new BizException(ResultCode.PARAM_INVALID,
+                "File size exceeds " + (ExcelConstants.MAX_FILE_SIZE / 1024 / 1024) + "MB limit"
+            );
         }
     }
 
@@ -122,6 +139,17 @@ public class ExcelImportAppService {
         return lastDot == -1 ? "" : filename.substring(lastDot).toLowerCase();
     }
 
+    /**
+     * 将上传的 MultipartFile 转存为本地临时文件
+     *
+     * <p>按日期分目录存储，避免单目录下文件过多影响性能。
+     * 临时文件路径：{@code {java.io.tmpdir}/excel-import/{date}/{taskId}/data.xlsx}</p>
+     *
+     * @param file 上传的 Excel 文件
+     * @param taskId 任务 ID，用于隔离不同任务的临时目录
+     * @return 转存后的临时文件对象
+     * @throws BizException 当无法创建临时目录或文件转存失败时抛出
+     */
     private File saveTempFile(MultipartFile file, String taskId) {
         // 按日期分片存储，避免单目录文件过多
         String dateDir = java.time.LocalDate.now().toString();
@@ -129,35 +157,40 @@ public class ExcelImportAppService {
                 System.getProperty("java.io.tmpdir"),
                 ExcelConstants.TEMP_DIR_ROOT + "/" + dateDir + "/" + taskId
         );
+
         // 如果目录不存在且创建失败则抛异常
         if (!tempDir.exists() && !tempDir.mkdirs()) {
-            log.warn("临时目录已存在或创建失败: {}", tempDir.getAbsolutePath());
-            throw new BizException(ResultCode.SYSTEM_ERROR, "无法创建临时目录: " + tempDir.getAbsolutePath());
+            log.warn("Failed to create temp directory: {}", tempDir.getAbsolutePath());
+            throw new BizException(ResultCode.SYSTEM_ERROR,
+                "Unable to create temp directory: " + tempDir.getAbsolutePath()
+            );
         }
 
         File tempFile = new File(tempDir, ExcelConstants.TEMP_FILE_NAME);
         try {
             file.transferTo(tempFile);
-            log.debug("[{}] 文件转存成功: {}", taskId, tempFile.getAbsolutePath());
+            log.debug("[{}] File saved to temp location: {}", taskId, tempFile.getAbsolutePath());
         } catch (IOException e) {
-            log.error("[{}] 文件转存失败", taskId, e);
-            throw new BizException(ResultCode.SYSTEM_ERROR, "文件转存失败: " + e.getMessage());
+            log.error("[{}] Failed to save temp file", taskId, e);
+            throw new BizException(ResultCode.SYSTEM_ERROR, "Failed to save temp file: " + e.getMessage());
         }
+
         return tempFile;
     }
 
     /**
      * 计算文件 MD5（纯计算，无外部依赖，放在 AppService 内部即可）
      *
-     * @param file Excel文件
-     * @return MD5
+     * @param file 要计算 MD5 的文件
+     * @return 文件的 MD5 十六进制字符串
+     * @throws BizException 当文件读取失败时抛出
      */
     private String computeFileMd5(File file) {
         try (FileInputStream fis = new FileInputStream(file)) {
             return DigestUtils.md5DigestAsHex(fis);
         } catch (IOException e) {
-            log.error("文件 MD5 计算失败: {}", file.getAbsolutePath(), e);
-            throw new BizException(ResultCode.SYSTEM_ERROR, "文件校验失败");
+            log.error("Failed to compute MD5 for file: {}", file.getAbsolutePath(), e);
+            throw new BizException(ResultCode.SYSTEM_ERROR, "Failed to compute file MD5: " + e.getMessage());
         }
     }
 
@@ -168,16 +201,17 @@ public class ExcelImportAppService {
      */
     private void cleanupTempFile(File tempFile) {
         if (tempFile == null) return;
+
         try {
             if (tempFile.exists() && !tempFile.delete()) {
-                log.warn("临时文件删除失败: {}", tempFile.getAbsolutePath());
+                log.warn("Failed to delete temp file: {}", tempFile.getAbsolutePath());
             }
             File parent = tempFile.getParentFile();
             if (parent != null && parent.exists() && !parent.delete()) {
-                log.warn("临时目录删除失败: {}", parent.getAbsolutePath());
+                log.warn("Failed to delete temp directory: {}", parent.getAbsolutePath());
             }
         } catch (Exception e) {
-            log.warn("清理临时文件异常", e);
+            log.warn("Exception occurred while cleaning up temp files", e);
         }
     }
 

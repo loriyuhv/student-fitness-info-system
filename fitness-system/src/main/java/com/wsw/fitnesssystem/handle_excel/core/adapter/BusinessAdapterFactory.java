@@ -1,5 +1,6 @@
 package com.wsw.fitnesssystem.handle_excel.core.adapter;
 
+import com.wsw.fitnesssystem.handle_excel.core.template.ExcelImportTemplate;
 import com.wsw.fitnesssystem.shared.exception.BizException;
 import com.wsw.fitnesssystem.shared.response.ResultCode;
 import lombok.extern.slf4j.Slf4j;
@@ -45,21 +46,44 @@ public class BusinessAdapterFactory {
     }
 
     /**
-     * 根据业务类型获取导入适配器
+     * 根据业务类型获取对应的导入适配器。
+     * <p><b>工作机制：</b></p>
+     * <ul>
+     *     <li>适配器在 Spring 容器启动时由 {@link BusinessAdapterFactory} 自动扫描注册</li>
+     *     <li>所有实现了 {@link ImportAdapter} 接口的 Bean，按其 {@link ImportAdapter#getBizType()} 返回值建立映射</li>
+     *     <li>若同一 bizType 被多个适配器实现，容器启动时会抛出 {@link IllegalStateException}，遵循快速失败原则</li>
+     * </ul>
+     *
+     * <p><b>返回值说明：</b></p>
+     * <ul>
+     *     <li>返回类型为 {@code ImportAdapter<?, ?>}（通配符类型），表示适配器具体的泛型参数（DTO 和 Entity 类型）由适配器实现类自身决定</li>
+     *     <li>调用方（如 {@link ExcelImportTemplate}）在调用时会通过 Java 类型推断自动匹配具体的泛型参数</li>
+     * </ul>
+     *
+     * <p><b>异常说明：</b></p>
+     * <ul>
+     *     <li>若传入的 {@code bizType} 未在容器中注册，抛出 {@link BizException}，错误码为 {@code PARAM_INVALID}</li>
+     *     <li>异常信息中包含当前已注册的所有 bizType 列表，便于快速定位问题</li>
+     * </ul>
+     *
+     * <p><b>调用示例：</b></p>
+     * <pre>{@code
+     * ImportAdapter<?, ?> adapter = adapterFactory.getImportAdapter("USER_IMPORT");
+     * // 调用方会自动推断泛型类型，无需显式转换
+     * excelImportTemplate.execute(taskId, file, adapter);
+     * }</pre>
+     *
      * @param bizType 业务类型编码
-     * @return 导入适配器
-     * @param <T> DTO类型
-     * @param <E> Entity类型
+     * @return 对应的导入适配器实例，类型为通配符
      */
-    @SuppressWarnings("unchecked")
-    public <T, E> ImportAdapter<T, E> getImportAdapter(String bizType) {
+    public ImportAdapter<?, ?> getImportAdapter(String bizType) {
         ImportAdapter<?, ?> adapter = adapterMap.get(bizType);
         if (adapter == null) {
             throw new BizException(ResultCode.PARAM_INVALID,
                 "Unsupported import type: " + bizType + ", registered types: " + adapterMap.keySet()
             );
         }
-        return (ImportAdapter<T, E>) adapter;
+        return adapter;
     }
 
     /**

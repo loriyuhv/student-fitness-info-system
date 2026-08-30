@@ -36,9 +36,9 @@ public class RedisImportFileLockRepository implements ImportFileLockPort {
                 .setIfAbsent(key, taskId, Duration.ofMinutes(ExcelConstants.FILE_LOCK_TTL_MINUTES));
 
         if (Boolean.TRUE.equals(success)) {
-            log.info("获取文件导入锁成功, md5={}, taskId={}", fileMd5, taskId);
+            log.info("File lock acquired successfully, md5={}, taskId={}", fileMd5, taskId);
         } else {
-            log.warn("获取文件导入锁失败, md5={}, taskId={}", fileMd5, taskId);
+            log.warn("Failed to acquire file lock, md5={}, taskId={}", fileMd5, taskId);
         }
 
         return Boolean.TRUE.equals(success);
@@ -52,7 +52,7 @@ public class RedisImportFileLockRepository implements ImportFileLockPort {
 
         String key = ExcelRedisKeys.lockImportKey(fileMd5);
         Boolean deleted = redis.delete(key);
-        log.info("释放文件导入锁, md5={}, result={}", fileMd5, deleted);
+        log.info("File lock released, md5={}, result={}", fileMd5, deleted);
     }
 
 }

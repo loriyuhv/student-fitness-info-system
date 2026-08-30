@@ -37,13 +37,14 @@ public class ImportTaskExecutor {
      */
     @Async("businessExecutor")
     public void submit(String taskId, File file, ImportAdapter<?, ?> adapter, String md5) {
-        log.info("[{}] 提交导入任务到线程池, bizType={}, file={}, md5={}",
-                taskId, adapter.getBizType(), file.getAbsolutePath(), md5);
+        log.info("[{}] Import task submitted to thread pool, bizType={}, file={}, md5={}",
+            taskId, adapter.getBizType(), file.getAbsolutePath(), md5);
+
         try {
             importTemplate.execute(taskId, file, adapter);
         } catch (Exception e) {
             // 最后一道防线：模板方法内部已有 try-catch，这里防止 Runnable 抛异常导致线程池静默吞掉
-            log.error("[{}] 导入任务执行器捕获未处理异常", taskId, e);
+            log.error("[{}] Import task executor caught unhandled exception", taskId, e);
         } finally {
             // 任务结束（成功/失败/异常）后，主动释放文件锁
             // Redis TTL 作为兜底，防止进程崩溃导致锁永久泄漏

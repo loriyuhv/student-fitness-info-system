@@ -29,10 +29,15 @@ public class RedisImportRateLimitRepository implements ImportRateLimitPort {
     private final StringRedisTemplate redis;
     private static final int RATE_LIMIT_WINDOW_SECONDS = ExcelConstants.RATE_LIMIT_WINDOW_SECONDS;
     private static final int RATE_LIMIT_MAX_COUNT = ExcelConstants.RATE_LIMIT_MAX_COUNT;
-
-    private static final String LUA_SCRIPT = "local current = redis.call('incr', KEYS[1]) " +
-            "if current == 1 then redis.call('expire', KEYS[1], ARGV[1]) end " +
-            "return current";
+    private static final String LUA_SCRIPT = """
+        local current = redis.call('incr', KEYS[1])
+        
+        if current == 1 then
+            redis.call('expire', KEYS[1], ARGV[1])
+        end
+        
+        return current
+        """;
 
     @Override
     public void checkRateLimit(Long userId) {
@@ -41,14 +46,16 @@ public class RedisImportRateLimitRepository implements ImportRateLimitPort {
         }
 
         String key = ExcelRedisKeys.limitImportKey(userId);
-
         Long current = redis.execute(new DefaultRedisScript<>(LUA_SCRIPT, Long.class),
                 Collections.singletonList(key), String.valueOf(RATE_LIMIT_WINDOW_SECONDS));
 
         if (current > RATE_LIMIT_MAX_COUNT) {
-            log.warn("用户 {} 导入过于频繁，当前 {} 次/{} 秒", userId, current, RATE_LIMIT_WINDOW_SECONDS);
+            log.warn("User {} exceeded rate limit: {} requests in {} seconds",
+                userId, current, RATE_LIMIT_WINDOW_SECONDS
+            );
             throw new BizException(ResultCode.PARAM_INVALID,
-                    "导入操作过于频繁，请 " + RATE_LIMIT_WINDOW_SECONDS + " 秒后再试");
+                "Too many import requests, please try again after " + RATE_LIMIT_WINDOW_SECONDS + " seconds"
+            );
         }
     }
 
