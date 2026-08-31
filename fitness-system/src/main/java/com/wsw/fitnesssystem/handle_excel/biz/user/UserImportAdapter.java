@@ -70,55 +70,89 @@ public class UserImportAdapter implements ImportAdapter<UserExcelDTO, SysUser> {
         List<UserExcelDTO> validList = new ArrayList<>();
 
         for (UserExcelDTO dto : batch) {
-            // 1. 校验用户账号不能为空
+            int rowIndex = dto.getRowIndex() != null ? dto.getRowIndex() : -1;
+
+            // ========== 1. 校区校验（必填） ==========
+            if (dto.getCampusId() == null) {
+                collector.addError(rowIndex, buildRowData(dto), "校区不能为空");
+                continue;
+            }
+
+            // ========== 2. 用户账号校验（必填） ==========
             if (StringUtils.isBlank(dto.getUsername())) {
-                collector.addError(
-                    dto.getRowIndex(),
-                    List.of(
-                        "",
-                        Objects.toString(dto.getPassword(), ""),
-                        Objects.toString(dto.getNickname(), "")
-                    ),
-                    "用户账号不能为空"
-                );
+                collector.addError(rowIndex, buildRowData(dto), "用户账号不能为空");
                 continue;
             }
 
             String trimmedUsername = dto.getUsername().trim();
             dto.setUsername(trimmedUsername);
 
-            // 2. 校验用户名长度
             if (trimmedUsername.length() > ExcelConstants.USERNAME_MAX_LENGTH) {
                 collector.addError(
-                    dto.getRowIndex(),
-                    List.of(
-                        dto.getUsername(),
-                        Objects.toString(dto.getPassword(), ""),
-                        Objects.toString(dto.getNickname(), "")
-                    ),
+                    rowIndex,
+                    buildRowData(dto),
                     "用户账号长度超过限制（最大 " + ExcelConstants.USERNAME_MAX_LENGTH + " 个字符）"
                 );
                 continue;
             }
 
-            // 3. 密码格式校验 密码不能为空并且长度不能小于6
+            // ========== 3. 密码校验（必填） ==========
             if (StringUtils.isBlank(dto.getPassword())
                 || dto.getPassword().length() < ExcelConstants.PASSWORD_MIN_LENGTH) {
-
                 collector.addError(
-                    dto.getRowIndex(),
-                    List.of(
-                        trimmedUsername,
-                        Objects.toString(dto.getPassword(), ""),
-                        Objects.toString(dto.getNickname(), "")
-                    ),
-                    "密码必须至少" + ExcelConstants.PASSWORD_MIN_LENGTH + "位字符"
+                    rowIndex,
+                    buildRowData(dto),
+                    "密码必须至少 " + ExcelConstants.PASSWORD_MIN_LENGTH + " 位字符"
                 );
                 continue;
-
             }
 
-            // 校验通过，加入成功列表
+            // ========== 4. 昵称校验（选填，有长度限制） ==========
+            String nickname = Objects.toString(dto.getNickname(), "").trim();
+            dto.setNickname(nickname);
+
+            if (nickname.length() > ExcelConstants.NICKNAME_MAX_LENGTH) {
+                collector.addError(
+                    rowIndex,
+                    buildRowData(dto),
+                    "昵称超过最大长度限制（最大 " + ExcelConstants.NICKNAME_MAX_LENGTH + " 个字符）"
+                );
+                continue;
+            }
+
+            // ========== 5. 手机号码校验（选填，填了必须合法） ==========
+            String phone = Objects.toString(dto.getPhoneNumber(), "").trim();
+            dto.setPhoneNumber(phone);
+
+            if (!phone.isEmpty() && !phone.matches(ExcelConstants.PHONE_REGEX)) {
+                collector.addError(
+                    rowIndex,
+                    buildRowData(dto),
+                    "手机号码格式不正确（需为 11 位中国手机号）"
+                );
+                continue;
+            }
+
+            // ========== 6. 邮箱校验（选填，填了必须合法） ==========
+            String email = Objects.toString(dto.getEmail(), "").trim().toLowerCase();
+            dto.setEmail(email);
+
+            if (!email.isEmpty() && !email.matches(ExcelConstants.EMAIL_REGEX)) {
+                collector.addError(
+                    rowIndex,
+                    buildRowData(dto),
+                    "邮箱格式不正确（仅支持 @163.com、@126.com、@qq.com、@gmail.com）"
+                );
+                continue;
+            }
+
+            // ========== 7. 用户类型校验（必填） ==========
+            if (dto.getUserType() == null) {
+                collector.addError(rowIndex, buildRowData(dto), "用户类型不能为空");
+                continue;
+            }
+
+            // 所有校验通过
             validList.add(dto);
         }
 
@@ -154,7 +188,22 @@ public class UserImportAdapter implements ImportAdapter<UserExcelDTO, SysUser> {
 
     @Override
     public List<String> getHeaders() {
-        return List.of("用户账号", "密码", "昵称");
+        return List.of("校区", "用户账号", "密码", "昵称", "手机号码", "邮箱", "用户类型");
+    }
+
+    /**
+     * 构建行数据（用于错误 Excel）
+     */
+    private List<String> buildRowData(UserExcelDTO dto) {
+        return List.of(
+            Objects.toString(dto.getCampusId(), ""),
+            Objects.toString(dto.getUsername(), ""),
+            Objects.toString(dto.getPassword(), ""),
+            Objects.toString(dto.getNickname(), ""),
+            Objects.toString(dto.getPhoneNumber(), ""),
+            Objects.toString(dto.getEmail(), ""),
+            Objects.toString(dto.getUserType(), "")
+        );
     }
 
 }

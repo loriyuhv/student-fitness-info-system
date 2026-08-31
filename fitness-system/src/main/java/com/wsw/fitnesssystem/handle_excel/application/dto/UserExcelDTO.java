@@ -13,6 +13,9 @@ import lombok.Data;
 @Data
 public class UserExcelDTO implements RowIndexAware {
 
+    @ExcelProperty("校区")
+    private Long campusId;
+
     @ExcelProperty("用户账号")
     private String username;
 
@@ -22,9 +25,15 @@ public class UserExcelDTO implements RowIndexAware {
     @ExcelProperty("昵称")
     private String nickname;
 
-    /**
-     * 行号，由监听器注入
-     */
+    @ExcelProperty("手机号码")
+    private String phoneNumber;
+
+    @ExcelProperty("邮箱")
+    private String email;
+
+    @ExcelProperty("用户类型")
+    private Integer userType;
+
     @ExcelIgnore
     private Integer rowIndex = -1;
 

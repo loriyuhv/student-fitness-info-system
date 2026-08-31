@@ -40,12 +40,6 @@ public class ExcelConstants {
     public static final int DB_BATCH_SIZE = 500;
 
     // ==================== 用户导入默认值 ====================
-    /** 默认校区 ID */
-    public static final Long DEFAULT_CAMPUS_ID = 1001L;
-
-    /** 默认用户类型：2-学生 */
-    public static final Integer DEFAULT_USER_TYPE = 2;
-
     /** 默认状态：1-启用 */
     public static final Integer DEFAULT_STATUS = 1;
 
@@ -85,4 +79,23 @@ public class ExcelConstants {
 
     /** 临时文件名 */
     public static final String TEMP_FILE_NAME = "data.xlsx";
+
+    // ==================== 用户导入校验 ====================
+
+    /** 昵称（姓名）最大长度 */
+    public static final int NICKNAME_MAX_LENGTH = 20;
+
+    /** 手机号正则（中国手机号） */
+    public static final String PHONE_REGEX = "^1[3-9]\\d{9}$";
+
+    /**
+     * 邮箱正则（支持网易、QQ、Google）
+     * - 163.com
+     * - 126.com
+     * - qq.com
+     * - gmail.com
+     */
+    public static final String EMAIL_REGEX =
+        "^[a-zA-Z0-9._%+-]+@(163\\.com|126\\.com|qq\\.com|gmail\\.com)$";
+
 }

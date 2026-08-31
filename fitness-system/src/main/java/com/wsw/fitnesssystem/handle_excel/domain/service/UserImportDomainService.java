@@ -57,9 +57,13 @@ public class UserImportDomainService {
             String username = dto.getUsername();
             int rowIndex = dto.getRowIndex() != null ? dto.getRowIndex() : -1;
             List<String> rowData = List.of(
+                Objects.toString(dto.getCampusId(), ""),
                 username,
                 Objects.toString(dto.getPassword(), ""),
-                Objects.toString(dto.getNickname(), "")
+                Objects.toString(dto.getNickname(), ""),
+                Objects.toString(dto.getPhoneNumber(), ""),
+                Objects.toString(dto.getEmail(), ""),
+                Objects.toString(dto.getUserType(), "")
             );
 
             // 2.1 查重校验
@@ -76,7 +80,16 @@ public class UserImportDomainService {
 
             // 2.3 创建领域对象
             try {
-                User user = User.create(username, dto.getPassword(), dto.getNickname(), rowIndex);
+                User user = User.create(
+                    dto.getCampusId(),
+                    username,
+                    dto.getPassword(),
+                    dto.getNickname(),
+                    dto.getPhoneNumber(),
+                    dto.getEmail(),
+                    dto.getUserType(),
+                    rowIndex
+                );
                 result.add(user);
             } catch (BizException e) {
                 // 理论上不会触发（因为格式校验已做），但保留防御性

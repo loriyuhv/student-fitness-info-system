@@ -33,13 +33,13 @@ public class UserAssembler {
         SysUser entity = new SysUser();
 
         entity.setRowIndex(user.getRowIndex());
-        entity.setCampusId(ExcelConstants.DEFAULT_CAMPUS_ID);
+        entity.setCampusId(user.getCampusId());
         entity.setUsername(user.getUsername());
         entity.setPassword(passwordEncoder.encode(user.getPassword()));
         entity.setNickname(user.getNickname());
-        entity.setPhoneNumber(null);
-        entity.setEmail(null);
-        entity.setUserType(ExcelConstants.DEFAULT_USER_TYPE); // 学生
+        entity.setPhoneNumber(user.getPhoneNumber());
+        entity.setEmail(user.getEmail());
+        entity.setUserType(user.getUserType()); // 学生
         entity.setStatus(ExcelConstants.DEFAULT_STATUS); // 启用
         entity.setDeleted(ExcelConstants.DEFAULT_DELETED); // 未删除
 
