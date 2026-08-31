@@ -64,4 +64,23 @@ public interface ImportProgressPort {
 
     String getErrorFilePath(String taskId);
 
+    /**
+     * 请求取消任务（设置取消标记）
+     */
+    void requestCancel(String taskId);
+
+    /**
+     * 检查任务是否已被取消
+     * @param taskId 任务ID
+     * @return true 如果任务已被取消
+     */
+    boolean isCancelled(String taskId);
+
+    /**
+     * 标记任务为已取消状态（最终状态）
+     *
+     * @param taskId 任务ID
+     */
+    void markCancelled(String taskId);
+
 }

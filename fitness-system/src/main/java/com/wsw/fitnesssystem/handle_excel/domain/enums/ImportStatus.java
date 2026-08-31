@@ -12,6 +12,7 @@ public enum ImportStatus {
     FINISHED,       // 全部成功
     PARTIAL,        // 部分成功
     FAILED,         // 失败
+    CANCELLED,      // 已被用户取消
     NOT_FOUND;      // 记录不存在（仅 DTO 层使用，不入库）
 
     public boolean isCompleted() {

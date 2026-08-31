@@ -124,6 +124,14 @@ public enum ResultCode {
     FITNESS_DATA_NOT_FOUND(404101, HttpStatus.NOT_FOUND, "体测数据不存在"),
     FITNESS_DATA_ALREADY_EXIST(409101, HttpStatus.CONFLICT, "体测数据已存在"),
     FILE_NOT_FOUND(404003, HttpStatus.NOT_FOUND, "文件不存在"),
+    IMPORT_TASK_NOT_FOUND(404105, HttpStatus.NOT_FOUND, "导入任务不存在"),
+
+
+    /* ===================================================================================== */
+    /* ================================== 业务冲突 409xxx ================================= */
+    /* ===================================================================================== */
+
+    TASK_CANCELLED(409002, HttpStatus.CONFLICT, "导入任务已被用户取消"),
 
     /* ================= 体测业务错误 422xxx ================= */
 

@@ -4,6 +4,7 @@ import com.wsw.fitnesssystem.handle_excel.application.ExcelImportAppService;
 import com.wsw.fitnesssystem.handle_excel.application.ExcelImportProgressQueryAppService;
 import com.wsw.fitnesssystem.handle_excel.core.port.ImportProgressPort;
 import com.wsw.fitnesssystem.handle_excel.domain.enums.ExcelBizTypeEnum;
+import com.wsw.fitnesssystem.handle_excel.domain.enums.ImportStatus;
 import com.wsw.fitnesssystem.handle_excel.interfaces.dto.ImportProgressDTO;
 import com.wsw.fitnesssystem.shared.context.RequestContextHolder;
 import com.wsw.fitnesssystem.shared.domain.valueobject.Operator;
@@ -107,6 +108,34 @@ public class ExcelImportController {
             log.error("下载错误文件失败", e);
             throw new BizException(ResultCode.SYSTEM_ERROR, "下载失败");
         }
+    }
+
+    /**
+     * 取消导入任务
+     *
+     * @param taskId 任务ID
+     * @return 操作结果
+     */
+    @PostMapping("/import/cancel")
+    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER')")
+    public ApiResult<String> cancelImport(@RequestParam String taskId) {
+        // 1. 检查任务是否存在
+        ImportProgressDTO progress = importProgressPort.getProgress(taskId);
+        if (progress.getStatus() == null || progress.getStatus() == ImportStatus.NOT_FOUND) {
+            throw new BizException(ResultCode.IMPORT_TASK_NOT_FOUND, "Task not found: " + taskId);
+        }
+
+        // 2. 只有正在运行的任务才能取消（INIT 或 PROCESSING）
+        if (!progress.isRunning()) {
+            throw new BizException(ResultCode.PARAM_INVALID,
+                "Task is not running, current status: " + progress.getStatus());
+        }
+
+        // 3. 请求取消
+        importProgressPort.requestCancel(taskId);
+        log.info("User requested cancellation for task: {}", taskId);
+
+        return ApiResult.success("Cancellation request submitted");
     }
 
 }

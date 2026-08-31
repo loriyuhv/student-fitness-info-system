@@ -182,6 +182,35 @@ public class RedisImportProgressRepository implements ImportProgressPort {
         return val == null ? null : val.toString();
     }
 
+    @Override
+    public void requestCancel(String taskId) {
+        String key = ExcelRedisKeys.importTaskKey(taskId);
+        redis.opsForHash().put(key, ImportTaskField.CANCELLED.getKey(), "1");
+        log.info("[{}] Cancellation requested", taskId);
+    }
+
+    @Override
+    public boolean isCancelled(String taskId) {
+        String key = ExcelRedisKeys.importTaskKey(taskId);
+        Object val = redis.opsForHash().get(key, ImportTaskField.CANCELLED.getKey());
+        return "1".equals(val);
+    }
+
+    @Override
+    public void markCancelled(String taskId) {
+        Map<String, String> map = new HashMap<>();
+        put(map, ImportTaskField.STATUS, ImportStatus.CANCELLED.name());
+        put(map, ImportTaskField.ERROR_MSG, "Task cancelled by user");
+
+        String key = ExcelRedisKeys.importTaskKey(taskId);
+        try {
+            redis.opsForHash().putAll(key, map);
+            log.info("[{}] Marked as CANCELLED", taskId);
+        } catch (Exception e) {
+            log.error("[{}] Failed to mark as CANCELLED", taskId, e);
+        }
+    }
+
     /**
      * 安全 put：支持 String / Integer / List 等多种类型自动序列化
      * @param map Hash

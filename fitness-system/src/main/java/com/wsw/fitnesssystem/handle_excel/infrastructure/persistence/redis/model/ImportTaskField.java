@@ -18,7 +18,8 @@ public enum ImportTaskField {
     PROCESSED("processed"),
     SUCCESS_COUNT("successCount"),
     FAIL_COUNT("failCount"),
-    ERROR_MSG("errorMsg");
+    ERROR_MSG("errorMsg"),
+    CANCELLED("cancelled");
 
     private final String key;
 

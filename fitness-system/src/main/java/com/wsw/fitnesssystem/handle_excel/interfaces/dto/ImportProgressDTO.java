@@ -74,4 +74,12 @@ public class ImportProgressDTO {
         return status != null && status.isFailed();
     }
 
+    /**
+     * 是否运行
+     * @return true 运行
+     */
+    public boolean isRunning() {
+        return status != null && status.isRunning();
+    }
+
 }

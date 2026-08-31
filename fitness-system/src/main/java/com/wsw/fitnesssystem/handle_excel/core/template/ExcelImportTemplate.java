@@ -5,6 +5,7 @@ import com.wsw.fitnesssystem.handle_excel.core.adapter.ImportAdapter;
 import com.wsw.fitnesssystem.handle_excel.core.collector.ErrorCollector;
 import com.wsw.fitnesssystem.handle_excel.core.collector.ErrorCollectorHolder;
 import com.wsw.fitnesssystem.handle_excel.core.exception.ExcelException;
+import com.wsw.fitnesssystem.handle_excel.core.exception.ImportCancelledException;
 import com.wsw.fitnesssystem.handle_excel.core.model.ErrorRecord;
 import com.wsw.fitnesssystem.handle_excel.core.parser.ExcelParser;
 import com.wsw.fitnesssystem.handle_excel.core.port.ImportProgressPort;
@@ -17,10 +18,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -105,6 +103,11 @@ public class ExcelImportTemplate {
                     taskId, estimatedRows, batchSize);
                 doExecuteStream(taskId, file, adapter, batchSize, estimatedRows);
             }
+        } catch (ImportCancelledException e) {
+            // 用户主动取消：标记状态为 CANCELLED，不记录为错误
+            log.warn("[{}] Task cancelled by user", taskId);
+            importProgressPort.markCancelled(taskId);
+            // 资源清理在 finally 中执行
         } catch (ExcelException e) {
             // Excel 模块已知异常（格式损坏、密码保护、解析失败等）
             String defaultMsg = e.getResultCode().getMessage();
@@ -175,19 +178,21 @@ public class ExcelImportTemplate {
         int failCount = 0;
 
         for (int i = 0; i < batches.size(); i++) {
-            List<T> batch = batches.get(i);
+            // 6.1 每批处理前检查取消
+            checkCancelled(taskId);
 
-            // 6.1 处理单批：校验 → 转换 → 持久化
+            // 6.2 处理单批：校验 → 转换 → 持久化
+            List<T> batch = batches.get(i);
             BatchResult result = processBatch(taskId, batch, adapter, i + 1);
             successCount += result.successIncrement;
             failCount += result.failIncrement;
 
-            // 6.2 实时上报进度：客户端轮询可感知到处理进展
+            // 6.3 实时上报进度：客户端轮询可感知到处理进展
             List<String> errorSummary = buildErrorSummary(collector);
             importProgressPort.updateProgress(taskId, successCount, failCount, errorSummary);
         }
 
-        // 6. 最终状态判定 + 错误文件
+        // 7. 最终状态判定 + 错误文件
         if (collector.hasErrors()) {
             saveErrorFile(taskId, collector, adapter);
         }
@@ -205,7 +210,7 @@ public class ExcelImportTemplate {
                 taskId, total, successCount, failCount);
         }
 
-        // 7. 清理 ThreadLocal
+        // 8. 清理 ThreadLocal
         ErrorCollectorHolder.remove();
 
     }
@@ -234,6 +239,7 @@ public class ExcelImportTemplate {
     private <T, E> void doExecuteStream(
             String taskId, File file, ImportAdapter<T, E> adapter, int batchSize, int estimatedRows) {
 
+
         ErrorCollectorHolder.remove();
         ErrorCollector collector = ErrorCollectorHolder.get();
 
@@ -247,6 +253,9 @@ public class ExcelImportTemplate {
 
         // 3. 启动流式解析：Consumer 回调中直接处理，不长期持有引用
         excelParser.parseStream(file, adapter.getDtoClass(), batchSize, batch -> {
+            // 每批处理前检查取消
+            checkCancelled(taskId);
+
             int currentBatch = batchIndex.incrementAndGet();
 
             // 3.1 处理当前批次
@@ -342,6 +351,18 @@ public class ExcelImportTemplate {
     }
 
     // ==================== 辅助方法 ====================
+
+    /**
+     * 检查任务是否被取消，如果被取消则抛出 ImportCancelledException
+     *
+     * @param taskId 任务ID
+     */
+    private void checkCancelled(String taskId) {
+        if (importProgressPort.isCancelled(taskId)) {
+            throw new ImportCancelledException(
+                ResultCode.TASK_CANCELLED, "Task " + taskId + " cancelled by user");
+        }
+    }
 
     /**
      * 单批处理结果封装

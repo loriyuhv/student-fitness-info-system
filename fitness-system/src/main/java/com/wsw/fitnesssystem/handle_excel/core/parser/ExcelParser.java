@@ -4,6 +4,7 @@ import com.alibaba.excel.EasyExcel;
 import com.alibaba.excel.context.AnalysisContext;
 import com.alibaba.excel.read.listener.ReadListener;
 import com.wsw.fitnesssystem.handle_excel.core.exception.ExcelException;
+import com.wsw.fitnesssystem.handle_excel.core.exception.ImportCancelledException;
 import com.wsw.fitnesssystem.handle_excel.infrastructure.excel.EasyExcelListener;
 import com.wsw.fitnesssystem.handle_excel.infrastructure.excel.StreamBatchListener;
 import com.wsw.fitnesssystem.shared.response.ResultCode;
@@ -45,6 +46,9 @@ public class ExcelParser {
 
         try {
             EasyExcel.read(file, dtoClass, new EasyExcelListener<>(list)).sheet().doRead();
+        } catch (ImportCancelledException e) {
+            // 取消异常直接原样抛出
+            throw e;
         } catch (Exception e) {
             log.error("Excel full parse failed, dtoClass={}, file={}",
                 dtoClass.getSimpleName(), file.getAbsolutePath(), e);
@@ -74,14 +78,15 @@ public class ExcelParser {
 
         try {
             EasyExcel.read(file, dtoClass, new StreamBatchListener<>(consumer, batchSize))
-                    .sheet().doRead();
+                .sheet().doRead();
+        } catch (ImportCancelledException e) {
+            // 取消异常直接原样抛出，不包装
+            throw e;
         } catch (Exception e) {
-            log.error("Excel 流式解析失败, dtoClass={}, file={}",
-                    dtoClass.getSimpleName(), file.getAbsolutePath(), e);
-            throw new ExcelException(
-                    ResultCode.PARAM_TYPE_ERROR, "Excel 解析失败: " + e.getMessage(), e);
+            log.error("Excel stream parse failed, dtoClass={}, file={}",
+                dtoClass.getSimpleName(), file.getAbsolutePath(), e);
+            throw new ExcelException(ResultCode.PARAM_TYPE_ERROR, "Excel parse failed: " + e.getMessage(), e);
         }
-
     }
 
     /**
