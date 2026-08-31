@@ -79,13 +79,19 @@ public class BatchPersistHelper {
                             } catch (DuplicateKeyException singleEx) {
                                 int row = rowExtractor != null ? rowExtractor.apply(entity) : -1;
                                 // 精确捕获重复键异常
-                                collector.addError(row, "数据重复: " + singleEx.getMessage());
+                                collector.addError(row, "数据重复: 该记录已存在（用户名或唯一键冲突）");
+                                log.warn("Duplicate key for row {}, entity: {}", row, entity, singleEx);
                             } catch (DataIntegrityViolationException singleEx) {
                                 int row = rowExtractor != null ? rowExtractor.apply(entity) : -1;
-                                collector.addError(row, "数据格式异常: " + singleEx.getMostSpecificCause().getMessage());
+                                String cause = singleEx.getMostSpecificCause().getMessage();
+                                // 截断过长消息，只保留前50个字符
+                                String friendlyMsg = cause.length() > 30 ? cause.substring(0, 30) + "..." : cause;
+                                collector.addError(row, "数据格式异常: " + friendlyMsg);
+                                log.warn("Data integrity violation for row {}, entity: {}", row, entity, singleEx);
                             } catch (Exception singleEx) {
                                 int row = rowExtractor != null ? rowExtractor.apply(entity) : -1;
-                                collector.addError(row, "插入失败: " + singleEx.getMessage());
+                                collector.addError(row, "插入失败");
+                                log.warn("Insert failed for row {}, entity: {}", row, entity, singleEx);
                             }
                         }
                     }

@@ -2,9 +2,9 @@ package com.wsw.fitnesssystem.handle_excel.infrastructure.excel;
 
 import com.alibaba.excel.context.AnalysisContext;
 import com.alibaba.excel.event.AnalysisEventListener;
+import com.wsw.fitnesssystem.handle_excel.core.model.RowIndexAware;
 import lombok.extern.slf4j.Slf4j;
 
-import java.lang.reflect.Method;
 import java.util.List;
 
 /**
@@ -32,14 +32,9 @@ public class EasyExcelListener<T> extends AnalysisEventListener<T> {
         // 2. 通过反射设置行号
         Integer rowNum = context.readRowHolder().getRowIndex() + 1;
 
-        try {
-            Method setRowIndex = data.getClass().getMethod("setRowIndex", Integer.class);
-            setRowIndex.invoke(data,  rowNum);
-        } catch (NoSuchMethodException ignored) {
-            // 当前DTO不需要注入行号，属于正常场景，静默跳过
-        } catch (Exception e) {
-            log.error("Failed to set row number for Excel DTO, row: {}", rowNum, e);
-        }
+        if (data instanceof RowIndexAware aware) {
+            aware.setRowIndex(rowNum);
+        } // 无接口则静默跳过
 
         // 3. 添加解析后的数据
         list.add(data);

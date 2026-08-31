@@ -2,6 +2,7 @@ package com.wsw.fitnesssystem.handle_excel.application.dto;
 
 import com.alibaba.excel.annotation.ExcelIgnore;
 import com.alibaba.excel.annotation.ExcelProperty;
+import com.wsw.fitnesssystem.handle_excel.core.model.RowIndexAware;
 import lombok.Data;
 
 /**
@@ -10,7 +11,7 @@ import lombok.Data;
  * @since 1.0
  */
 @Data
-public class UserExcelDTO {
+public class UserExcelDTO implements RowIndexAware {
 
     @ExcelProperty("用户账号")
     private String username;

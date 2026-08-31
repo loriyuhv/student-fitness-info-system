@@ -2,9 +2,9 @@ package com.wsw.fitnesssystem.handle_excel.infrastructure.excel;
 
 import com.alibaba.excel.context.AnalysisContext;
 import com.alibaba.excel.event.AnalysisEventListener;
+import com.wsw.fitnesssystem.handle_excel.core.model.RowIndexAware;
 import lombok.extern.slf4j.Slf4j;
 
-import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
@@ -37,11 +37,8 @@ public class StreamBatchListener<T> extends AnalysisEventListener<T> {
     public void invoke(T data, AnalysisContext context) {
         if (data == null) return;
 
-        try {
-            Method setRowIndex = data.getClass().getMethod("setRowIndex", int.class);
-            setRowIndex.invoke(data, context.readRowHolder().getRowIndex() + 1);
-        } catch (Exception e) {
-            // 忽略
+        if (data instanceof RowIndexAware aware) {
+            aware.setRowIndex(context.readRowHolder().getRowIndex() + 1);
         }
 
         buffer.add(data);
