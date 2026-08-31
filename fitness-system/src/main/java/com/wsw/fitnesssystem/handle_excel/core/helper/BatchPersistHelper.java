@@ -2,7 +2,6 @@ package com.wsw.fitnesssystem.handle_excel.core.helper;
 
 import com.google.common.collect.Lists;
 import com.wsw.fitnesssystem.handle_excel.core.collector.ErrorCollector;
-import com.wsw.fitnesssystem.handle_excel.infrastructure.persistence.db.mapper.ExcelSysUserMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -28,8 +27,6 @@ import java.util.function.Function;
 @Component
 @RequiredArgsConstructor
 public class BatchPersistHelper {
-
-    private final ExcelSysUserMapper userMapper;
 
     /**
      * 安全批量插入（带回退机制）
