@@ -122,6 +122,8 @@ public class ExcelImportTemplate {
         } finally {
             // ========== Step 5: 清理临时文件（强制兜底） ==========
             FileCleanupUtils.cleanup(file);
+            // ========== Step 6：清理 ThreadLocal ==========
+            ErrorCollectorHolder.remove();
         }
 
     }
@@ -238,7 +240,6 @@ public class ExcelImportTemplate {
      */
     private <T, E> void doExecuteStream(
             String taskId, File file, ImportAdapter<T, E> adapter, int batchSize, int estimatedRows) {
-
 
         ErrorCollectorHolder.remove();
         ErrorCollector collector = ErrorCollectorHolder.get();
