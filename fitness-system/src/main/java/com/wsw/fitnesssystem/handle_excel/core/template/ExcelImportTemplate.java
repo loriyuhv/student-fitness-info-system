@@ -18,7 +18,9 @@ import org.springframework.stereotype.Component;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -171,18 +173,18 @@ public class ExcelImportTemplate {
         // 6. 逐批处理：累加成功/失败计数
         int successCount = 0;
         int failCount = 0;
-        List<String> errorMsgList = new ArrayList<>();
 
         for (int i = 0; i < batches.size(); i++) {
             List<T> batch = batches.get(i);
 
             // 6.1 处理单批：校验 → 转换 → 持久化
-            BatchResult result = processBatch(taskId, batch, adapter, i + 1, errorMsgList);
+            BatchResult result = processBatch(taskId, batch, adapter, i + 1);
             successCount += result.successIncrement;
             failCount += result.failIncrement;
 
             // 6.2 实时上报进度：客户端轮询可感知到处理进展
-            importProgressPort.updateProgress(taskId, successCount, failCount, errorMsgList);
+            List<String> errorSummary = buildErrorSummary(collector);
+            importProgressPort.updateProgress(taskId, successCount, failCount, errorSummary);
         }
 
         // 6. 最终状态判定 + 错误文件
@@ -193,12 +195,14 @@ public class ExcelImportTemplate {
         if (failCount == 0) {
             // 全部成功
             importProgressPort.finish(taskId, successCount);
-            log.info("[{}] 导入任务全部成功完成, total={}, success={}", taskId, total, successCount);
+            log.info("[{}] Import task completed successfully, total={}, success={}",
+                taskId, total, successCount);
         } else {
             // 部分成功（存在失败批次或校验过滤）
-            importProgressPort.partial(taskId, successCount, failCount, errorMsgList);
-            log.info("[{}] 导入任务部分完成, total={}, success={}, fail={}",
-                    taskId, total, successCount, failCount);
+            List<String> errorSummary = buildErrorSummary(collector);
+            importProgressPort.partial(taskId, successCount, failCount, errorSummary);
+            log.info("[{}] Import task partially completed, total={}, success={}, fail={}",
+                taskId, total, successCount, failCount);
         }
 
         // 7. 清理 ThreadLocal
@@ -228,8 +232,8 @@ public class ExcelImportTemplate {
      * @param <E> 持久化对应的 Entity 类型
      */
     private <T, E> void doExecuteStream(
-            String taskId, File file, ImportAdapter<T, E> adapter,
-            int batchSize, int estimatedRows) {
+            String taskId, File file, ImportAdapter<T, E> adapter, int batchSize, int estimatedRows) {
+
         ErrorCollectorHolder.remove();
         ErrorCollector collector = ErrorCollectorHolder.get();
 
@@ -239,7 +243,6 @@ public class ExcelImportTemplate {
         // 2. 流式状态跟踪：使用原子类保证回调内的线程安全
         AtomicInteger successCount = new AtomicInteger(0);
         AtomicInteger failCount = new AtomicInteger(0);
-        List<String> errorMsgList = new ArrayList<>();
         AtomicInteger batchIndex = new AtomicInteger(0);
 
         // 3. 启动流式解析：Consumer 回调中直接处理，不长期持有引用
@@ -247,12 +250,13 @@ public class ExcelImportTemplate {
             int currentBatch = batchIndex.incrementAndGet();
 
             // 3.1 处理当前批次
-            BatchResult result = processBatch(taskId, batch, adapter, currentBatch, errorMsgList);
+            BatchResult result = processBatch(taskId, batch, adapter, currentBatch);
             successCount.addAndGet(result.successIncrement);
             failCount.addAndGet(result.failIncrement);
 
+            List<String> errorSummary = buildErrorSummary(collector);
             // 3.2 实时上报进度
-            importProgressPort.updateProgress(taskId, successCount.get(), failCount.get(), errorMsgList);
+            importProgressPort.updateProgress(taskId, successCount.get(), failCount.get(), errorSummary);
         });
 
         // 4. 流式解析结束，汇总最终结果
@@ -265,11 +269,12 @@ public class ExcelImportTemplate {
 
         if (finalFail == 0) {
             importProgressPort.finish(taskId, finalSuccess);
-            log.info("[{}] 流式导入任务全部成功完成, success={}", taskId, finalSuccess);
+            log.info("[{}] Stream import completed successfully, success={}", taskId, finalSuccess);
         } else {
-            importProgressPort.partial(taskId, finalSuccess, finalFail, errorMsgList);
-            log.info("[{}] 流式导入任务部分完成, success={}, fail={}",
-                    taskId, finalSuccess, finalFail);
+            List<String> errorSummary = buildErrorSummary(collector);
+            importProgressPort.partial(taskId, finalSuccess, finalFail, errorSummary);
+            log.info("[{}] Stream import partially completed, success={}, fail={}",
+                taskId, finalSuccess, finalFail);
         }
 
         ErrorCollectorHolder.remove();
@@ -285,17 +290,14 @@ public class ExcelImportTemplate {
      * @param batch 当前批次原始数据（Excel 解析后的 DTO 列表）
      * @param adapter 业务适配器，提供 validate / convert / persist 实现
      * @param batchNo 当前批次序号（从 1 开始），用于错误定位
-     * @param errorMsgList 全局错误信息列表（本方法向其中追加错误，受 MAX_COUNT 限制）
      * @return 批次处理结果（成功增量、失败增量）
      * @param <T> Excel 解析对应的 DTO 类型
      * @param <E> 持久化对应的 Entity 类型
      */
     private <T, E> BatchResult processBatch(
-            String taskId, List<T> batch,
-            ImportAdapter<T, E> adapter,
-            int batchNo, List<String> errorMsgList) {
+            String taskId, List<T> batch, ImportAdapter<T, E> adapter, int batchNo) {
 
-        ErrorCollector collector = ErrorCollectorHolder.get(); // 获取全局唯一实例
+        ErrorCollector collector = ErrorCollectorHolder.get();
 
         try {
             // 3.1 业务校验：适配器过滤非法/重复数据
@@ -303,13 +305,13 @@ public class ExcelImportTemplate {
             int filtered = batch.size() - validated.size();
 
             if (filtered > 0) {
-                log.info("[{}] 第 {} 批过滤 {} 条重复/非法数据", taskId, batchNo, filtered);
+                log.info("[{}] Batch {} filtered {} invalid rows", taskId, batchNo, filtered);
             }
 
-            // 3.1.1 防御：整批校验不通过时直接标记失败，跳过转换和持久化
+            // 防御：整批校验不通过时直接标记失败，跳过转换和持久化
             if (validated.isEmpty()) {
-                addErrorMsg(errorMsgList, "第" + batchNo + "批数据全部校验失败");
-                collector.addError(-1, "批次" + batchNo + "全部校验失败");
+                // 只添加当前批次特有的错误，不遍历collector
+                collector.addError(-1, "Batch " + batchNo + " all validation failed");
                 return new BatchResult(0, batch.size());
             }
 
@@ -319,25 +321,16 @@ public class ExcelImportTemplate {
             // 3.3 批量持久化：写入数据库（适配器内部可再分片，防止 SQL 过长）
             adapter.persist(entities);
 
-            // 收集错误信息到前端展示
-            if (collector.hasErrors()) {
-                for (ErrorRecord error : collector.getErrors()) {
-                    String msg = (error.getRowIndex() > 0 ? "第" + error.getRowIndex() + "行" : "批次" + batchNo)
-                        + ": " + error.getErrorReason();
-                    addErrorMsg(errorMsgList, msg);
-                }
-            }
-
-            log.info("[{}] 第 {} 批处理完成，success={}, fail={}",
-                    taskId, batchNo, validated.size(), filtered);
+            log.info("[{}] Batch {} processed successfully, success={}, fail={}",
+                taskId, batchNo, validated.size(), filtered);
 
             return new BatchResult(validated.size(), filtered);
 
         } catch (Exception e) {
             // 故障隔离：单批失败只影响本批次，记录错误后继续处理下一批
-            log.error("[{}] 第 {} 批处理失败, batchSize={}", taskId, batchNo, batch.size(), e);
-            addErrorMsg(errorMsgList, "第" + batchNo + "批:" + truncate(e.getMessage()));
-            collector.addError(-1, "批次" + batchNo + "处理异常: " + e.getMessage());
+            log.error("[{}] Batch {} processing failed", taskId, batchNo, e);
+            collector.addError(-1,
+                "Batch " + batchNo + " processing exception: " + e.getMessage());
             return new BatchResult(0, batch.size());
         }
 
@@ -367,26 +360,28 @@ public class ExcelImportTemplate {
     private record BatchResult(int successIncrement, int failIncrement) {}
 
     /**
-     * 安全添加错误信息，防止内存无限增长
-     * 仅保留最近 {@link ExcelConstants#ERROR_MSG_MAX_COUNT} 条
-     * @param errorMsgList 错误信息列表
-     * @param msg 错误信息
-     */
-    private void addErrorMsg(List<String> errorMsgList, String msg) {
-        if (errorMsgList.size() < ExcelConstants.ERROR_MSG_MAX_COUNT) {
-            errorMsgList.add(msg);
-        }
-    }
-
-    /**
-     * 截断字符串，防止存入 Redis 过长
+     * 从 ErrorCollector 构建错误摘要（用于前端轮询显示）
      *
-     * @param str 字符串
-     * @return 截断后的字符串
+     * @param collector 错误收集器
+     * @return 格式化后的错误摘要列表（最多 ERROR_MSG_MAX_COUNT 条，已去重）
      */
-    private String truncate(String str) {
-        if (str == null) return "";
-        return str.length() > 80 ? str.substring(0, 80) + "..." : str;
+    private List<String> buildErrorSummary(ErrorCollector collector) {
+        if (collector == null || !collector.hasErrors()) {
+            return List.of();
+        }
+
+        Set<String> uniqueErrors = new LinkedHashSet<>();
+
+        for (ErrorRecord error : collector.getErrors()) {
+            String msg = (error.getRowIndex() > 0 ? "Row " + error.getRowIndex() : "Unknown row")
+                + ": " + error.getErrorReason();
+            uniqueErrors.add(msg);
+            if (uniqueErrors.size() >= ExcelConstants.ERROR_MSG_MAX_COUNT) {
+                break;
+            }
+        }
+
+        return new ArrayList<>(uniqueErrors);
     }
 
 }

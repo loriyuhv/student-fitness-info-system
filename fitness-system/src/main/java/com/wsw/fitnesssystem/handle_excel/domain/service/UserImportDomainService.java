@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 
 /**
@@ -55,7 +56,11 @@ public class UserImportDomainService {
         for (UserExcelDTO dto : dtoList) {
             String username = dto.getUsername();
             int rowIndex = dto.getRowIndex() != null ? dto.getRowIndex() : -1;
-            List<String> rowData = List.of(username, dto.getPassword(), dto.getNickname());
+            List<String> rowData = List.of(
+                username,
+                Objects.toString(dto.getPassword(), ""),
+                Objects.toString(dto.getNickname(), "")
+            );
 
             // 2.1 查重校验
             if (existingUsernames.contains(username)) {

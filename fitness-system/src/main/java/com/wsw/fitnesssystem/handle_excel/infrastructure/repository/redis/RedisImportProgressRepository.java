@@ -63,15 +63,13 @@ public class RedisImportProgressRepository implements ImportProgressPort {
      * @param taskId 任务ID
      * @param successCount 成功数量
      * @param failCount 失败数量
-     * @param errorMsgList 错误信息列表
      */
-    public void updateProgress(String taskId, int successCount, int failCount,
-                               List<String> errorMsgList) {
+    public void updateProgress(String taskId, int successCount, int failCount, List<String> errorSummary) {
         Map<String, String> map = new HashMap<>();
         put(map, ImportTaskField.PROCESSED, successCount + failCount);
         put(map, ImportTaskField.SUCCESS_COUNT, successCount);
         put(map, ImportTaskField.FAIL_COUNT, failCount);
-        put(map, ImportTaskField.ERROR_MSG, errorMsgList);
+        put(map, ImportTaskField.ERROR_MSG, errorSummary);
 
         try {
             redis.opsForHash().putAll(ExcelRedisKeys.importTaskKey(taskId), map);

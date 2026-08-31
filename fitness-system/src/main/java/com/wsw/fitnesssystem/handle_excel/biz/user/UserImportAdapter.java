@@ -22,6 +22,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * 用户导入适配器 — 技术适配层 支持并行密码加密
@@ -74,7 +75,11 @@ public class UserImportAdapter implements ImportAdapter<UserExcelDTO, SysUser> {
             if (StringUtils.isBlank(dto.getUsername())) {
                 collector.addError(
                     dto.getRowIndex(),
-                    List.of("", dto.getPassword(), dto.getNickname()),
+                    List.of(
+                        "",
+                        Objects.toString(dto.getPassword(), ""),
+                        Objects.toString(dto.getNickname(), "")
+                    ),
                     "用户账号不能为空"
                 );
                 continue;
@@ -87,19 +92,27 @@ public class UserImportAdapter implements ImportAdapter<UserExcelDTO, SysUser> {
             if (trimmedUsername.length() > ExcelConstants.USERNAME_MAX_LENGTH) {
                 collector.addError(
                     dto.getRowIndex(),
-                    List.of(dto.getUsername(), dto.getPassword(), dto.getNickname()),
+                    List.of(
+                        dto.getUsername(),
+                        Objects.toString(dto.getPassword(), ""),
+                        Objects.toString(dto.getNickname(), "")
+                    ),
                     "用户账号长度超过限制（最大 " + ExcelConstants.USERNAME_MAX_LENGTH + " 个字符）"
                 );
                 continue;
             }
 
             // 3. 密码格式校验 密码不能为空并且长度不能小于6
-            if (StringUtils.isNotBlank(dto.getPassword())
-                && dto.getPassword().length() < ExcelConstants.PASSWORD_MIN_LENGTH) {
+            if (StringUtils.isBlank(dto.getPassword())
+                || dto.getPassword().length() < ExcelConstants.PASSWORD_MIN_LENGTH) {
 
                 collector.addError(
                     dto.getRowIndex(),
-                    List.of(trimmedUsername, dto.getPassword(), dto.getNickname()),
+                    List.of(
+                        trimmedUsername,
+                        Objects.toString(dto.getPassword(), ""),
+                        Objects.toString(dto.getNickname(), "")
+                    ),
                     "密码必须至少" + ExcelConstants.PASSWORD_MIN_LENGTH + "位字符"
                 );
                 continue;

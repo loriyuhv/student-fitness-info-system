@@ -26,9 +26,8 @@ public interface ImportProgressPort {
      * @param taskId 任务ID
      * @param successCount 成功数量
      * @param failCount 失败数量
-     * @param errorMsgList 错误信息列表
      */
-    void updateProgress(String taskId, int successCount, int failCount, List<String> errorMsgList);
+    void updateProgress(String taskId, int successCount, int failCount, List<String> errorSummary);
 
     /**
      * 全部成功完成
