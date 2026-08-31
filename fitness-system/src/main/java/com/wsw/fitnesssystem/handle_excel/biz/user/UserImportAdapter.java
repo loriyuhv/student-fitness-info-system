@@ -21,7 +21,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 
 /**
@@ -133,41 +132,28 @@ public class UserImportAdapter implements ImportAdapter<UserExcelDTO, SysUser> {
 
         // Step 2: 技术转换：Domain → Entity（含密码加密、默认值填充等技术细节）
         // return userAssembler.toEntityList(domainUsers);
-        return parallelConvertExecutor.execute(domainUsers, userAssembler::toEntity);
+        return parallelConvertExecutor.execute(domainUsers, userAssembler::toEntity, User::getRowIndex);
     }
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public void persist(List<SysUser> entities) {
-        if (entities == null || entities.isEmpty()) return;
+    public int persist(List<SysUser> entities) {
+        if (entities == null || entities.isEmpty()) return 0;
 
         ErrorCollector collector = ErrorCollectorHolder.get();
         // 内部再分片，防止 SQL 过长
-        batchPersistHelper.safeBatchInsert(
+        return batchPersistHelper.safeBatchInsert(
             entities,
             userMapper::batchInsert,  // 批量插入
             userMapper::insert, // 单条插入（降级时使用）
             ExcelConstants.DB_BATCH_SIZE,
             collector
         );
-        // log.debug("用户批量插入完成，共 {} 条", entities.size());
     }
 
     @Override
     public List<String> getHeaders() {
         return List.of("用户账号", "密码", "昵称");
-    }
-
-    @Override
-    public List<String> toRowData(SysUser entity) {
-        return List.of(entity.getUsername(), entity.getPassword(), entity.getNickname());
-    }
-
-    @Override
-    public Map<SysUser, Integer> getRowIndexMap(List<SysUser> entities) {
-        // 如果需要精确行号，在 convert 时保存映射
-        // 由于我们通过 User 的 rowIndex 已保存，可在 UserAssembler 中赋值
-        return Map.of();
     }
 
 }

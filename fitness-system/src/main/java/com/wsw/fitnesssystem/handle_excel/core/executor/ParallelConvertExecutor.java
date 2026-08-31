@@ -36,11 +36,13 @@ public class ParallelConvertExecutor {
      *
      * @param list      待转换列表
      * @param converter 单条转换函数（必须线程安全、无状态）
+     * @param rowExtractor 行号提取器（可从源对象中提取行号）
      * @param <T>       源类型
      * @param <R>       目标类型
      * @return 转换后的列表（失败项被静默跳过，但错误已记录）
      */
-    public <T, R> List<R> execute(List<T> list, Function<T, R> converter) {
+    public <T, R> List<R> execute(
+        List<T> list, Function<T, R> converter, Function<T, Integer> rowExtractor) {
 
         if (list == null || list.isEmpty()) return List.of();
 
@@ -55,15 +57,19 @@ public class ParallelConvertExecutor {
                 .toList();
 
             // 【阶段2：等待结果, 串行汇总（线程安全）】逐个调用 join，等所有任务完成，收集结果
+            int i = 0;
             for (CompletableFuture<ConversionResult<R>> future : futures) {
                 ConversionResult<R> result = future.join();
                 if (result.isSuccess()) {
                     results.add(result.result());
                 } else {
                     Throwable error = result.error();
-                    collector.addError(-1, "Conversion failed: " + error.getMessage());
+                    T item = list.get(i);
+                    int row = rowExtractor != null ? rowExtractor.apply(item) : -1;
+                    collector.addError(row, "Conversion failed: " + error.getMessage());
                     log.warn("Conversion failed for one item", error);
                 }
+                i++;
             }
         } catch (Exception e) {
             // 【降级】并行出问题了，退回单线程处理
@@ -72,7 +78,8 @@ public class ParallelConvertExecutor {
                 try {
                     results.add(converter.apply(item));
                 } catch (Exception ex) {
-                    collector.addError(-1, "Conversion failed: " + ex.getMessage());
+                    int row = rowExtractor != null ? rowExtractor.apply(item) : -1;
+                    collector.addError(row, "Conversion failed: " + ex.getMessage());
                 }
             }
         }

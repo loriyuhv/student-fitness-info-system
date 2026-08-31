@@ -9,6 +9,7 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Component;
 
+import java.lang.reflect.Method;
 import java.util.List;
 import java.util.function.Function;
 
@@ -62,7 +63,7 @@ public class BatchPersistHelper {
                 totalSuccess += batchInsertFunc.apply(bigBatch);
             } catch (DataIntegrityViolationException e) {
                 // 2. 大块失败 → 拆小组（50条）
-                log.warn("大块批量插入失败 ({} 条)，拆分为小组重试...", bigBatch.size());
+                log.warn("Batch insert failed ({} rows), splitting into sub-batches...", bigBatch.size());
                 int subSize = 50;
                 List<List<E>> subBatches = Lists.partition(bigBatch, subSize);
 
@@ -71,30 +72,56 @@ public class BatchPersistHelper {
                         totalSuccess += batchInsertFunc.apply(subBatch);
                     } catch (Exception subEx) {
                         // 3. 小组失败 → 逐条插入（精确定位脏数据）
-                        log.warn("子批插入失败 ({} 条)，降级为逐条插入...", subBatch.size());
+                        log.warn(
+                            "Sub-batch insert failed ({} rows), falling back to single insert...",
+                            subBatch.size()
+                        );
                         for (E entity : subBatch) {
                             try {
                                 totalSuccess += singleInsertFunc.apply(entity);
                             } catch (DuplicateKeyException singleEx) {
+                                int row = extractRowIndex(entity);
                                 // 精确捕获重复键异常
-                                collector.addError(-1, "数据重复: " + singleEx.getMessage());
+                                collector.addError(row, "数据重复: " + singleEx.getMessage());
                             } catch (DataIntegrityViolationException singleEx) {
-                                collector.addError(-1, "数据格式异常: " + singleEx.getMostSpecificCause().getMessage());
+                                int row = extractRowIndex(entity);
+                                collector.addError(row, "数据格式异常: " + singleEx.getMostSpecificCause().getMessage());
                             } catch (Exception singleEx) {
-                                collector.addError(-1, "插入失败: " + singleEx.getMessage());
+                                int row = extractRowIndex(entity);
+                                collector.addError(row, "插入失败: " + singleEx.getMessage());
                             }
                         }
                     }
                 }
             } catch (Exception e) {
                 // 其他未知异常，整批记录错误
-                log.error("批量插入未知异常", e);
+                log.error("Unknown batch insert error", e);
                 for (E entity : bigBatch) {
-                    collector.addError(-1, "系统异常: " + e.getMessage());
+                    int row = extractRowIndex(entity);
+                    collector.addError(row, "系统异常：" + e.getMessage());
                 }
             }
         }
+
         return totalSuccess;
+    }
+
+    /**
+     * 从实体中提取行号（通过反射或强制类型转换）
+     *
+     * @param entity 实体
+     * @return 行数
+     * @param <E> 实体类型
+     */
+    private <E> int extractRowIndex(E entity) {
+        try {
+            // 假设实体有 getRowIndex() 方法
+            Method method = entity.getClass().getMethod("getRowIndex");
+            Object result = method.invoke(entity);
+            return result instanceof Integer ? (Integer) result : -1;
+        } catch (Exception e) {
+            return -1;
+        }
     }
 
 }

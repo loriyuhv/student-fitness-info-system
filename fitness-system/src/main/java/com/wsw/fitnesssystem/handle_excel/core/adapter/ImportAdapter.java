@@ -3,7 +3,6 @@ package com.wsw.fitnesssystem.handle_excel.core.adapter;
 import com.wsw.fitnesssystem.handle_excel.infrastructure.config.ExcelConstants;
 
 import java.util.List;
-import java.util.Map;
 
 /**
  * 导入适配器契约 — 各业务模块必须实现此接口
@@ -64,13 +63,11 @@ public interface ImportAdapter<T, E> {
 
     /**
      * 批量持久化
-     * <p>建议实现：</p>
-     * <li>1. MyBatis-Plus batchInsert</li>
-     * <li>2. 内部再分片（防止 SQL 过长）</li>
-     * <li>3. 可添加 @Transactional 保证原子性</li>
+     *
      * @param entities 转换后的 Entity 列表
+     * @return 实际成功插入的行数
      */
-    void persist(List<E> entities);
+    int persist(List<E> entities);
 
     // ====== 通用元数据方法（用于错误文件生成） ======
 
@@ -79,21 +76,6 @@ public interface ImportAdapter<T, E> {
      */
     default List<String> getHeaders() {
         return List.of();
-    }
-
-    /**
-     * 将实体转换为原始行数据（用于生成错误文件）
-     */
-    default List<String> toRowData(E entity) {
-        return List.of();
-    }
-
-    /**
-     * 获取实体对应的 Excel 行号映射
-     * 由适配器在 convert 时构建，供 persist 阶段使用
-     */
-    default Map<E, Integer> getRowIndexMap(List<E> entities) {
-        return Map.of();
     }
 
 }

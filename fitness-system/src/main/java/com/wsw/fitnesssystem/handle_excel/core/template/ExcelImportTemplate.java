@@ -298,9 +298,10 @@ public class ExcelImportTemplate {
             String taskId, List<T> batch, ImportAdapter<T, E> adapter, int batchNo) {
 
         ErrorCollector collector = ErrorCollectorHolder.get();
+        int batchSize = batch.size();
 
         try {
-            // 3.1 业务校验：适配器过滤非法/重复数据
+            // 1. 业务校验：适配器过滤非法/重复数据
             List<T> validated = adapter.validate(batch);
             int filtered = batch.size() - validated.size();
 
@@ -308,23 +309,27 @@ public class ExcelImportTemplate {
                 log.info("[{}] Batch {} filtered {} invalid rows", taskId, batchNo, filtered);
             }
 
-            // 防御：整批校验不通过时直接标记失败，跳过转换和持久化
+            // 2. 防御：整批校验不通过时直接标记失败，跳过转换和持久化
             if (validated.isEmpty()) {
                 // 只添加当前批次特有的错误，不遍历collector
                 collector.addError(-1, "Batch " + batchNo + " all validation failed");
                 return new BatchResult(0, batch.size());
             }
 
-            // 3.2 数据转换：DTO → Domain → Entity（含密码加密、默认值填充等）
+            // 3. 数据转换：DTO → Domain → Entity（含密码加密、默认值填充等）
             List<E> entities = adapter.convert(validated);
 
-            // 3.3 批量持久化：写入数据库（适配器内部可再分片，防止 SQL 过长）
-            adapter.persist(entities);
+            // 4. 批量持久化：写入数据库（适配器内部可再分片，防止 SQL 过长）
+            int inserted = adapter.persist(entities);
+
+            // 5. 计算失败数 = 总行数 - 成功数
+            //    所有失败的行都已经在 collector 中有记录，计数只是为了统计和进度展示
+            int failed = batchSize - inserted;
 
             log.info("[{}] Batch {} processed successfully, success={}, fail={}",
-                taskId, batchNo, validated.size(), filtered);
+                taskId, batchNo, inserted, failed);
 
-            return new BatchResult(validated.size(), filtered);
+            return new BatchResult(inserted, failed);
 
         } catch (Exception e) {
             // 故障隔离：单批失败只影响本批次，记录错误后继续处理下一批
@@ -336,19 +341,7 @@ public class ExcelImportTemplate {
 
     }
 
-    // ========== 错误文件保存 ==========
-    private void saveErrorFile(String taskId, ErrorCollector collector, ImportAdapter<?, ?> adapter) {
-        try {
-            File errorFile = errorFileService.generateErrorFile(
-                collector.getErrors(),
-                adapter.getHeaders()
-            );
-            importProgressPort.saveErrorFilePath(taskId, errorFile.getAbsolutePath());
-            log.info("[{}] 错误文件已保存: {}", taskId, errorFile.getAbsolutePath());
-        } catch (Exception e) {
-            log.error("[{}] 保存错误文件失败", taskId, e);
-        }
-    }
+    // ==================== 辅助方法 ====================
 
     /**
      * 单批处理结果封装
@@ -358,6 +351,25 @@ public class ExcelImportTemplate {
      * @param failIncrement 本批次失败条数（含校验过滤和异常）
      */
     private record BatchResult(int successIncrement, int failIncrement) {}
+
+    /**
+     * 错误文件保存
+     * @param taskId 任务ID
+     * @param collector 错误信息收集器
+     * @param adapter 适配器
+     */
+    private void saveErrorFile(String taskId, ErrorCollector collector, ImportAdapter<?, ?> adapter) {
+        try {
+            File errorFile = errorFileService.generateErrorFile(
+                collector.getErrors(),
+                adapter.getHeaders()
+            );
+            importProgressPort.saveErrorFilePath(taskId, errorFile.getAbsolutePath());
+            log.info("[{}] Error file saved: {}", taskId, errorFile.getAbsolutePath());
+        } catch (Exception e) {
+            log.error("[{}] Failed to save error file", taskId, e);
+        }
+    }
 
     /**
      * 从 ErrorCollector 构建错误摘要（用于前端轮询显示）

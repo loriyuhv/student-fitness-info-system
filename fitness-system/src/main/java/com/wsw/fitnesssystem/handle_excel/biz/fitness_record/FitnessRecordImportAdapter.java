@@ -43,7 +43,7 @@ public class FitnessRecordImportAdapter implements ImportAdapter<FitnessExcelDTO
     }
 
     @Override
-    public void persist(List<FitnessRecord> entities) {
-
+    public int persist(List<FitnessRecord> entities) {
+        return 0;
     }
 }
