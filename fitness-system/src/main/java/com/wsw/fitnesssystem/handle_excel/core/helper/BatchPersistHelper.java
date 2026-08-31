@@ -8,7 +8,6 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Component;
 
-import java.lang.reflect.Method;
 import java.util.List;
 import java.util.function.Function;
 
@@ -44,7 +43,8 @@ public class BatchPersistHelper {
         Function<List<E>, Integer> batchInsertFunc,
         Function<E, Integer> singleInsertFunc,
         int batchSize,
-        ErrorCollector collector
+        ErrorCollector collector,
+        Function<E, Integer> rowExtractor
     ) {
         if (entities == null || entities.isEmpty()) return 0;
 
@@ -77,14 +77,14 @@ public class BatchPersistHelper {
                             try {
                                 totalSuccess += singleInsertFunc.apply(entity);
                             } catch (DuplicateKeyException singleEx) {
-                                int row = extractRowIndex(entity);
+                                int row = rowExtractor != null ? rowExtractor.apply(entity) : -1;
                                 // 精确捕获重复键异常
                                 collector.addError(row, "数据重复: " + singleEx.getMessage());
                             } catch (DataIntegrityViolationException singleEx) {
-                                int row = extractRowIndex(entity);
+                                int row = rowExtractor != null ? rowExtractor.apply(entity) : -1;
                                 collector.addError(row, "数据格式异常: " + singleEx.getMostSpecificCause().getMessage());
                             } catch (Exception singleEx) {
-                                int row = extractRowIndex(entity);
+                                int row = rowExtractor != null ? rowExtractor.apply(entity) : -1;
                                 collector.addError(row, "插入失败: " + singleEx.getMessage());
                             }
                         }
@@ -94,31 +94,13 @@ public class BatchPersistHelper {
                 // 其他未知异常，整批记录错误
                 log.error("Unknown batch insert error", e);
                 for (E entity : bigBatch) {
-                    int row = extractRowIndex(entity);
+                    int row = rowExtractor != null ? rowExtractor.apply(entity) : -1;
                     collector.addError(row, "系统异常：" + e.getMessage());
                 }
             }
         }
 
         return totalSuccess;
-    }
-
-    /**
-     * 从实体中提取行号（通过反射或强制类型转换）
-     *
-     * @param entity 实体
-     * @return 行数
-     * @param <E> 实体类型
-     */
-    private <E> int extractRowIndex(E entity) {
-        try {
-            // 假设实体有 getRowIndex() 方法
-            Method method = entity.getClass().getMethod("getRowIndex");
-            Object result = method.invoke(entity);
-            return result instanceof Integer ? (Integer) result : -1;
-        } catch (Exception e) {
-            return -1;
-        }
     }
 
 }

@@ -67,7 +67,8 @@ class BatchPersistHelperTest {
             batchInsertFunc,
             singleInsertFunc,
             2,  // batchSize = 2，预期分 3 批
-            collector
+            collector,
+            null
         );
 
         // 验证
@@ -107,7 +108,8 @@ class BatchPersistHelperTest {
             batchInsertFunc,
             singleInsertFunc,
             5,
-            collector
+            collector,
+            null
         );
 
         // 验证：所有10条都成功插入（通过单条插入）
@@ -144,7 +146,8 @@ class BatchPersistHelperTest {
             batchInsertFunc,
             singleInsertFunc,
             10,  // batchSize=10，只有1批大块
-            collector
+            collector,
+            null
         );
 
         // 验证：成功插入2条（A和C），B失败被记录
@@ -174,7 +177,8 @@ class BatchPersistHelperTest {
             batchInsertFunc,
             singleInsertFunc,
             10,
-            collector
+            collector,
+            null
         );
 
         assertThat(result).isEqualTo(0);
@@ -196,7 +200,8 @@ class BatchPersistHelperTest {
             batchInsertFunc,
             singleInsertFunc,
             10,
-            collector
+            collector,
+            null
         );
 
         assertThat(result).isEqualTo(0);
@@ -227,7 +232,8 @@ class BatchPersistHelperTest {
             batchInsertFunc,
             singleInsertFunc,
             10,
-            collector
+            collector,
+            null
         );
 
         // 验证：全部失败，3条错误记录
@@ -277,7 +283,8 @@ class BatchPersistHelperTest {
             batchInsertFunc,
             singleInsertFunc,
             10,
-            collector
+            collector,
+            TestEntity::getRowIndex
         );
 
         assertThat(result).isEqualTo(0);

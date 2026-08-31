@@ -147,7 +147,8 @@ public class UserImportAdapter implements ImportAdapter<UserExcelDTO, SysUser> {
             userMapper::batchInsert,  // 批量插入
             userMapper::insert, // 单条插入（降级时使用）
             ExcelConstants.DB_BATCH_SIZE,
-            collector
+            collector,
+            SysUser::getRowIndex
         );
     }
 

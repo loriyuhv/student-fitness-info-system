@@ -57,7 +57,7 @@ public class StreamBatchListener<T> extends AnalysisEventListener<T> {
         if (!buffer.isEmpty()) {
             flush();
         }
-        log.info("流式解析完成，总数据 {} 条，共分 {} 批处理", totalCount, batchCount);
+        log.info("Stream parsing completed, total: {} rows, batches: {}", totalCount, batchCount);
     }
 
     /**
