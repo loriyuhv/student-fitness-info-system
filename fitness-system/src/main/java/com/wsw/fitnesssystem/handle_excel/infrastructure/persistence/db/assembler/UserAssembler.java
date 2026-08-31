@@ -2,7 +2,7 @@ package com.wsw.fitnesssystem.handle_excel.infrastructure.persistence.db.assembl
 
 import com.wsw.fitnesssystem.handle_excel.domain.model.User;
 import com.wsw.fitnesssystem.handle_excel.infrastructure.config.ExcelConstants;
-import com.wsw.fitnesssystem.handle_excel.infrastructure.persistence.db.entity.SysUser;
+import com.wsw.fitnesssystem.handle_excel.infrastructure.persistence.db.entity.SysUserEntity;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
@@ -29,8 +29,8 @@ public class UserAssembler {
      * @param user 领域模型
      * @return 持久化实体
      */
-    public SysUser toEntity(User user) {
-        SysUser entity = new SysUser();
+    public SysUserEntity toEntity(User user) {
+        SysUserEntity entity = new SysUserEntity();
 
         entity.setRowIndex(user.getRowIndex());
         entity.setCampusId(user.getCampusId());

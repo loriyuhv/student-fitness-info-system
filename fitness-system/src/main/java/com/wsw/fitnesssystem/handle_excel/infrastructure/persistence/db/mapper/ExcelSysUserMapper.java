@@ -1,7 +1,7 @@
 package com.wsw.fitnesssystem.handle_excel.infrastructure.persistence.db.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
-import com.wsw.fitnesssystem.handle_excel.infrastructure.persistence.db.entity.SysUser;
+import com.wsw.fitnesssystem.handle_excel.infrastructure.persistence.db.entity.SysUserEntity;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
@@ -13,10 +13,10 @@ import java.util.List;
  * @since 1.0
  */
 @Mapper
-public interface ExcelSysUserMapper extends BaseMapper<SysUser> {
+public interface ExcelSysUserMapper extends BaseMapper<SysUserEntity> {
 
     /** 批量插入（XML实现） */
-    int batchInsert(@Param("list") List<SysUser> list);
+    int batchInsert(@Param("list") List<SysUserEntity> list);
 
     /** 查询已存在用户名 */
     List<String> selectExistingUsernames(@Param("usernames") List<String> usernames);

@@ -11,7 +11,7 @@ import com.wsw.fitnesssystem.handle_excel.domain.model.User;
 import com.wsw.fitnesssystem.handle_excel.domain.service.UserImportDomainService;
 import com.wsw.fitnesssystem.handle_excel.infrastructure.config.ExcelConstants;
 import com.wsw.fitnesssystem.handle_excel.infrastructure.persistence.db.assembler.UserAssembler;
-import com.wsw.fitnesssystem.handle_excel.infrastructure.persistence.db.entity.SysUser;
+import com.wsw.fitnesssystem.handle_excel.infrastructure.persistence.db.entity.SysUserEntity;
 import com.wsw.fitnesssystem.handle_excel.infrastructure.persistence.db.mapper.ExcelSysUserMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -38,7 +38,7 @@ import java.util.Objects;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class UserImportAdapter implements ImportAdapter<UserExcelDTO, SysUser> {
+public class UserImportAdapter implements ImportAdapter<UserExcelDTO, SysUserEntity> {
 
     private final UserAssembler userAssembler;
     private final ExcelSysUserMapper userMapper;
@@ -160,7 +160,7 @@ public class UserImportAdapter implements ImportAdapter<UserExcelDTO, SysUser> {
     }
 
     @Override
-    public List<SysUser> convert(List<UserExcelDTO> dtoList) {
+    public List<SysUserEntity> convert(List<UserExcelDTO> dtoList) {
         // Step 1: 领域层完成业务校验 + 查重 + 领域转换
         List<User> domainUsers = domainService.validateAndConvert(dtoList);
 
@@ -171,7 +171,7 @@ public class UserImportAdapter implements ImportAdapter<UserExcelDTO, SysUser> {
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public int persist(List<SysUser> entities) {
+    public int persist(List<SysUserEntity> entities) {
         if (entities == null || entities.isEmpty()) return 0;
 
         ErrorCollector collector = ErrorCollectorHolder.get();
@@ -182,7 +182,7 @@ public class UserImportAdapter implements ImportAdapter<UserExcelDTO, SysUser> {
             userMapper::insert, // 单条插入（降级时使用）
             ExcelConstants.DB_BATCH_SIZE,
             collector,
-            SysUser::getRowIndex
+            SysUserEntity::getRowIndex
         );
     }
 
