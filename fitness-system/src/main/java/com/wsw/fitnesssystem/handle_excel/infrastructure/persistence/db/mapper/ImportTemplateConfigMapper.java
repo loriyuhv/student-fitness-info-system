@@ -2,7 +2,7 @@ package com.wsw.fitnesssystem.handle_excel.infrastructure.persistence.db.mapper;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
-import com.wsw.fitnesssystem.handle_excel.infrastructure.persistence.db.entity.ExcelTemplateConfigEntity;
+import com.wsw.fitnesssystem.handle_excel.infrastructure.persistence.db.entity.ImportTemplateConfigEntity;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
@@ -12,7 +12,7 @@ import org.apache.ibatis.annotations.Param;
  * @since 1.0
  */
 @Mapper
-public interface ExcelTemplateConfigMapper extends BaseMapper<ExcelTemplateConfigEntity> {
+public interface ImportTemplateConfigMapper extends BaseMapper<ImportTemplateConfigEntity> {
 
     /**
      * 根据业务类型查询启用的模板配置
@@ -20,12 +20,12 @@ public interface ExcelTemplateConfigMapper extends BaseMapper<ExcelTemplateConfi
      * @param bizType 业务类型
      * @return 模板配置
      */
-    default ExcelTemplateConfigEntity findEnabledByBizType(@Param("bizType") String bizType) {
+    default ImportTemplateConfigEntity findEnabledByBizType(@Param("bizType") String bizType) {
         return selectOne(
-            new LambdaQueryWrapper<ExcelTemplateConfigEntity>()
-                .eq(ExcelTemplateConfigEntity::getBizType, bizType)
-                .eq(ExcelTemplateConfigEntity::getStatus, 1)
-                .eq(ExcelTemplateConfigEntity::getDeleted, 0)
+            new LambdaQueryWrapper<ImportTemplateConfigEntity>()
+                .eq(ImportTemplateConfigEntity::getBizType, bizType)
+                .eq(ImportTemplateConfigEntity::getStatus, 1)
+                .eq(ImportTemplateConfigEntity::getDeleted, 0)
         );
     }
 

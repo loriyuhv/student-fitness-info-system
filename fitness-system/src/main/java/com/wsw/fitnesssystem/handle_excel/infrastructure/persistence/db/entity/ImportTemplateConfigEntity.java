@@ -18,7 +18,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @TableName(value = "excel_template_config", autoResultMap = true)
-public class ExcelTemplateConfigEntity {
+public class ImportTemplateConfigEntity {
 
     @TableId(type = IdType.AUTO)
     private Long id;

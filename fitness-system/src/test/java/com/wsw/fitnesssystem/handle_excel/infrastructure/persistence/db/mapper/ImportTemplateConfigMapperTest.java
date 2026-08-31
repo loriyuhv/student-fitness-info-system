@@ -1,6 +1,6 @@
 package com.wsw.fitnesssystem.handle_excel.infrastructure.persistence.db.mapper;
 
-import com.wsw.fitnesssystem.handle_excel.infrastructure.persistence.db.entity.ExcelTemplateConfigEntity;
+import com.wsw.fitnesssystem.handle_excel.infrastructure.persistence.db.entity.ImportTemplateConfigEntity;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,10 +19,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 @SpringBootTest
 @Transactional
 @DisplayName("ExcelTemplateConfigMapper 集成测试")
-class ExcelTemplateConfigMapperTest {
+class ImportTemplateConfigMapperTest {
 
     @Autowired
-    private ExcelTemplateConfigMapper mapper;
+    private ImportTemplateConfigMapper mapper;
 
     @Test
     @DisplayName("查询所有模板配置")
@@ -35,7 +35,7 @@ class ExcelTemplateConfigMapperTest {
     @DisplayName("根据业务类型查询 - JSON 自动映射")
     void shouldFindEnabledByBizType() {
         // When
-        ExcelTemplateConfigEntity entity = mapper.findEnabledByBizType("USER_IMPORT");
+        ImportTemplateConfigEntity entity = mapper.findEnabledByBizType("USER_IMPORT");
 
         // Then
         assertThat(entity).isNotNull();
@@ -53,7 +53,7 @@ class ExcelTemplateConfigMapperTest {
     @DisplayName("插入模板配置 - JSON 自动序列化")
     void shouldInsertWithJsonFields() {
         // Given
-        ExcelTemplateConfigEntity entity = new ExcelTemplateConfigEntity();
+        ImportTemplateConfigEntity entity = new ImportTemplateConfigEntity();
         entity.setBizType("TEST_INTEGRATION");
         entity.setFileName("test.xlsx");
         entity.setSheetName("测试");
@@ -63,7 +63,7 @@ class ExcelTemplateConfigMapperTest {
 
         // When
         mapper.insert(entity);
-        ExcelTemplateConfigEntity result = mapper.findEnabledByBizType("TEST_INTEGRATION");
+        ImportTemplateConfigEntity result = mapper.findEnabledByBizType("TEST_INTEGRATION");
 
         // Then
         assertThat(result).isNotNull();

@@ -1,6 +1,6 @@
 package com.wsw.fitnesssystem.handle_excel.infrastructure.repository.db;
 
-import com.wsw.fitnesssystem.handle_excel.infrastructure.persistence.db.entity.ExcelTemplateConfigEntity;
+import com.wsw.fitnesssystem.handle_excel.infrastructure.persistence.db.entity.ImportTemplateConfigEntity;
 import com.wsw.fitnesssystem.shared.exception.BizException;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.DisplayName;
@@ -24,17 +24,17 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 // 测试后自动回滚
 @Transactional
 @DisplayName("ExcelTemplateConfigRepository 单元测试")
-class ExcelTemplateConfigRepositoryTest {
+class ImportTemplateConfigRepositoryTest {
 
     @Autowired
-    private ExcelTemplateConfigRepository repository;
+    private ImportTemplateConfigRepository repository;
 
     @Test
     @DisplayName("根据业务类型查询模板配置 - 成功")
     void shouldFindByBizType_whenExists() {
         // Given: 预先插入的 USER_IMPORT 模板数据
         // When
-        ExcelTemplateConfigEntity entity = repository.findByBizType("USER_IMPORT");
+        ImportTemplateConfigEntity entity = repository.findByBizType("USER_IMPORT");
 
         // Then
         assertThat(entity).isNotNull();
@@ -50,7 +50,7 @@ class ExcelTemplateConfigRepositoryTest {
     @DisplayName("根据业务类型查询模板配置 - 不存在时返回 null")
     void shouldReturnNull_whenBizTypeNotFound() {
         // When
-        ExcelTemplateConfigEntity entity = repository.findByBizType("NOT_EXIST_TYPE");
+        ImportTemplateConfigEntity entity = repository.findByBizType("NOT_EXIST_TYPE");
 
         // Then
         assertThat(entity).isNull();
@@ -61,7 +61,7 @@ class ExcelTemplateConfigRepositoryTest {
     void shouldThrowException_whenBizTypeNotFound() {
         // When & Then
         assertThatThrownBy(() -> {
-            ExcelTemplateConfigEntity result = repository.findOrThrow("NOT_EXIST_TYPE");
+            ImportTemplateConfigEntity result = repository.findOrThrow("NOT_EXIST_TYPE");
             assertThat(result).isNull();
         }).isInstanceOf(BizException.class).hasMessageContaining("Template not configured");
     }
@@ -70,7 +70,7 @@ class ExcelTemplateConfigRepositoryTest {
     @DisplayName("保存模板配置 - 新增")
     void shouldInsert_whenIdIsNull() {
         // Given
-        ExcelTemplateConfigEntity entity = new ExcelTemplateConfigEntity();
+        ImportTemplateConfigEntity entity = new ImportTemplateConfigEntity();
         entity.setBizType("TEST_TYPE");
         entity.setFileName("test_template.xlsx");
         entity.setSheetName("测试模板");
@@ -83,7 +83,7 @@ class ExcelTemplateConfigRepositoryTest {
 
         // When
         repository.saveOrUpdate(entity);
-        ExcelTemplateConfigEntity result = repository.findByBizType("TEST_TYPE");
+        ImportTemplateConfigEntity result = repository.findByBizType("TEST_TYPE");
 
         // Then
         assertThat(result).isNotNull();
@@ -100,7 +100,7 @@ class ExcelTemplateConfigRepositoryTest {
 
         // When
         repository.deleteByBizType(bizType);
-        ExcelTemplateConfigEntity entity = repository.findByBizType(bizType);
+        ImportTemplateConfigEntity entity = repository.findByBizType(bizType);
 
         // Then
         assertThat(entity).isNull();  // 查询时过滤了 enabled=0

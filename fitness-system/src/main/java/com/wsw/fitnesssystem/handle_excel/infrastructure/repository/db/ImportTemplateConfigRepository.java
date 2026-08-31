@@ -1,8 +1,8 @@
 package com.wsw.fitnesssystem.handle_excel.infrastructure.repository.db;
 
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
-import com.wsw.fitnesssystem.handle_excel.infrastructure.persistence.db.entity.ExcelTemplateConfigEntity;
-import com.wsw.fitnesssystem.handle_excel.infrastructure.persistence.db.mapper.ExcelTemplateConfigMapper;
+import com.wsw.fitnesssystem.handle_excel.infrastructure.persistence.db.entity.ImportTemplateConfigEntity;
+import com.wsw.fitnesssystem.handle_excel.infrastructure.persistence.db.mapper.ImportTemplateConfigMapper;
 import com.wsw.fitnesssystem.shared.exception.BizException;
 import com.wsw.fitnesssystem.shared.response.ResultCode;
 import lombok.RequiredArgsConstructor;
@@ -17,24 +17,24 @@ import org.springframework.stereotype.Repository;
 @Slf4j
 @Repository
 @RequiredArgsConstructor
-public class ExcelTemplateConfigRepository {
+public class ImportTemplateConfigRepository {
 
-    private final ExcelTemplateConfigMapper mapper;
+    private final ImportTemplateConfigMapper mapper;
 
     /**
      * 根据业务类型查询模板配置
      * @param bizType 业务类型
      * @return 模板配置实体，如果不存在返回 null
      */
-    public ExcelTemplateConfigEntity findByBizType(String bizType) {
+    public ImportTemplateConfigEntity findByBizType(String bizType) {
         return mapper.findEnabledByBizType(bizType);
     }
 
     /**
      * 查询模板配置，如果不存在则抛出异常
      */
-    public ExcelTemplateConfigEntity findOrThrow(String bizType) {
-        ExcelTemplateConfigEntity entity = findByBizType(bizType);
+    public ImportTemplateConfigEntity findOrThrow(String bizType) {
+        ImportTemplateConfigEntity entity = findByBizType(bizType);
         if (entity == null) {
             log.warn("Template config not found for bizType: {}", bizType);
             throw new BizException(ResultCode.PARAM_INVALID,
@@ -46,7 +46,7 @@ public class ExcelTemplateConfigRepository {
     /**
      * 保存或更新模板配置
      */
-    public void saveOrUpdate(ExcelTemplateConfigEntity entity) {
+    public void saveOrUpdate(ImportTemplateConfigEntity entity) {
         if (entity.getId() == null) {
             mapper.insert(entity);
         } else {
@@ -66,10 +66,10 @@ public class ExcelTemplateConfigRepository {
      */
     public void deleteByBizType(String bizType) {
         mapper.update(null,
-            new LambdaUpdateWrapper<ExcelTemplateConfigEntity>()
-                .eq(ExcelTemplateConfigEntity::getBizType, bizType)
-                .set(ExcelTemplateConfigEntity::getStatus, 0)
-                .set(ExcelTemplateConfigEntity::getDeleted, 1)
+            new LambdaUpdateWrapper<ImportTemplateConfigEntity>()
+                .eq(ImportTemplateConfigEntity::getBizType, bizType)
+                .set(ImportTemplateConfigEntity::getStatus, 0)
+                .set(ImportTemplateConfigEntity::getDeleted, 1)
         );
         log.info("Template disabled for bizType: {}", bizType);
     }

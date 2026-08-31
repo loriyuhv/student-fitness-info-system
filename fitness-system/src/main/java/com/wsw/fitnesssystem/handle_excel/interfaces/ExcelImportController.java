@@ -2,6 +2,7 @@ package com.wsw.fitnesssystem.handle_excel.interfaces;
 
 import com.wsw.fitnesssystem.handle_excel.application.ExcelImportAppService;
 import com.wsw.fitnesssystem.handle_excel.application.ExcelImportProgressQueryAppService;
+import com.wsw.fitnesssystem.handle_excel.application.ImportTemplateAppService;
 import com.wsw.fitnesssystem.handle_excel.core.port.ImportProgressPort;
 import com.wsw.fitnesssystem.handle_excel.domain.enums.ExcelBizTypeEnum;
 import com.wsw.fitnesssystem.handle_excel.domain.enums.ImportStatus;
@@ -38,6 +39,7 @@ public class ExcelImportController {
 
     private final ImportProgressPort importProgressPort;
     private final ExcelImportAppService importAppService;
+    private final ImportTemplateAppService importTemplateAppService;
     private final ExcelImportProgressQueryAppService importProgressQueryAppService;
 
     /**
@@ -136,6 +138,21 @@ public class ExcelImportController {
         log.info("User requested cancellation for task: {}", taskId);
 
         return ApiResult.success("Cancellation request submitted");
+    }
+
+    /**
+     * 下载导入模板
+     *
+     * @param bizType  业务类型（如 USER_IMPORT）
+     * @param response HTTP 响应
+     */
+    @GetMapping("/import/template")
+    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER')")
+    public void downloadTemplate(@RequestParam String bizType, HttpServletResponse response) {
+        // 校验 bizType 是否合法（利用枚举校验）
+        ExcelBizTypeEnum.getByCode(bizType);
+        // 调用应用服务生成并下载
+        importTemplateAppService.downloadTemplate(bizType, response);
     }
 
 }
