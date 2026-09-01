@@ -2,9 +2,7 @@
 // 职责：用户信息、权限和角色
 import { type UserInfo } from '@/types'
 
-export const useUserStore = defineStore(
-  'user',
-  () => {
+export const useUserStore = defineStore('user', () => {
   // state
   const userInfo = ref<UserInfo | null>(null)
 

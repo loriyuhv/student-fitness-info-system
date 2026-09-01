@@ -1,9 +1,9 @@
 // router/index.ts
 /*
-* 路由职责：
-* 1.页面是否需要登录?
-* 2.当前用户是否有权限?
-* 3.放行 / 跳转
+ * 路由职责：
+ * 1.页面是否需要登录?
+ * 2.当前用户是否有权限?
+ * 3.放行 / 跳转
  */
 import type { App } from 'vue'
 import type { RouteMeta } from '@/types'
@@ -18,7 +18,7 @@ import { createRouter, createWebHistory, type RouteRecordRaw } from 'vue-router'
 // 常量统一权限编码，杜绝字符写错
 const PERM = {
   STUDENT_CENTER: 'fitness:record:self:view',
-  MANAGE_PAGE: 'fitness:record:view'
+  MANAGE_PAGE: 'fitness:record:view',
 }
 
 // 路由配置
@@ -51,6 +51,7 @@ const routes: RouteRecordRaw[] = [
     component: DefaultLayout,
     meta: {
       requiresAuth: true,
+      permissions: [PERM.STUDENT_CENTER],
     } as RouteMeta,
     children: [
       {
@@ -59,7 +60,6 @@ const routes: RouteRecordRaw[] = [
         component: () => import('@/views/student/Dashboard.vue'),
         meta: {
           title: '学生体测信息个人详情',
-          permissions: [PERM.STUDENT_CENTER],
         } as RouteMeta,
       },
     ],
@@ -70,6 +70,7 @@ const routes: RouteRecordRaw[] = [
     component: DefaultLayout,
     meta: {
       requiresAuth: true,
+      permissions: [PERM.MANAGE_PAGE],
     } as RouteMeta,
     children: [
       {
@@ -78,7 +79,6 @@ const routes: RouteRecordRaw[] = [
         component: () => import('@/views/teacher/Dashboard.vue'),
         meta: {
           title: '学生体测信息管理',
-          permissions: [PERM.MANAGE_PAGE],
         } as RouteMeta,
       },
     ],

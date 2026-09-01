@@ -21,7 +21,7 @@ const handleAuthFailure = async (redirect = true) => {
   clearAuth()
   const path = redirect
     ? `/auth/login?redirect=${encodeURIComponent(window.location.pathname + window.location.search)}`
-    : '/auth/login'
+    : '/atuh/login'
   await router.push(path)
 }
 

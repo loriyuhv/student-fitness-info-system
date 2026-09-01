@@ -103,12 +103,7 @@ import { ElMessage } from 'element-plus'
 import type { FormRules } from 'element-plus'
 import { User, Lock } from '@element-plus/icons-vue'
 import type { LoginForm } from '@/types'
-// import {
-//   setRememberedAccount,
-//   getRememberedAccount,
-//   clearRememberedAccount,
-// } from '@/utils/auth'
-import { getDeviceType } from '@/utils/device.ts'
+import { getDeviceId, getDeviceType } from '@/utils/device.ts'
 import { login } from '@/utils/auth'
 import { getHomePath } from '@/utils/router-helper'
 import { useUserStore } from '@/store'
@@ -125,6 +120,7 @@ const loginForm = reactive<LoginForm>({
   username: '',
   password: '',
   deviceType: getDeviceType(),
+  deviceId: getDeviceId(),
   rememberMe: false,
 })
 

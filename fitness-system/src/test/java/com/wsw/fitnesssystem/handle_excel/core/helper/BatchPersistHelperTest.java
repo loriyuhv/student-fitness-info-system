@@ -155,7 +155,7 @@ class BatchPersistHelperTest {
         assertThat(collector.hasErrors()).isTrue();
         assertThat(collector.getErrorCount()).isEqualTo(1);
         assertThat(collector.getErrors().get(0).getErrorReason())
-            .contains("Duplicate key: B");
+            .contains("数据重复: 该记录已存在（用户名或唯一键冲突）");
 
         verify(batchInsertFunc, times(2)).apply(anyList());
         verify(singleInsertFunc, times(3)).apply(anyString());

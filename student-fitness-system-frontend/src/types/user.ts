@@ -7,6 +7,7 @@ export interface LoginForm {
   username: string // 用户账户
   password: string // 用户密码
   deviceType: string // 设备类型
+  deviceId?: string // 设备ID
   rememberMe?: boolean // 记住密码（可选）
   captcha?: string // 验证码（可选）
   imgCode?: string // 图形验证码（可选）
