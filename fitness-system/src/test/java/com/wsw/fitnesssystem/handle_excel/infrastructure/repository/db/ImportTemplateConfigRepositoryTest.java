@@ -23,7 +23,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 @SpringBootTest
 // 测试后自动回滚
 @Transactional
-@DisplayName("ExcelTemplateConfigRepository 单元测试")
+@DisplayName("ImportTemplateConfigRepository 单元测试")
 class ImportTemplateConfigRepositoryTest {
 
     @Autowired
