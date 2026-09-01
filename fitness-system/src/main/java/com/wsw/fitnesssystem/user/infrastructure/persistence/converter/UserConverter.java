@@ -1,12 +1,12 @@
 package com.wsw.fitnesssystem.user.infrastructure.persistence.converter;
 
 import com.wsw.fitnesssystem.user.domain.model.User;
+import com.wsw.fitnesssystem.user.domain.port.PasswordEncryptorPort;
 import com.wsw.fitnesssystem.user.domain.valueobject.UserSource;
 import com.wsw.fitnesssystem.user.domain.valueobject.UserStatus;
 import com.wsw.fitnesssystem.user.domain.valueobject.UserType;
 import com.wsw.fitnesssystem.user.infrastructure.persistence.entity.UserPo;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
 /**
@@ -18,7 +18,7 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class UserConverter {
 
-    private final PasswordEncoder passwordEncoder;
+    private final PasswordEncryptorPort passwordEncryptorPort;
 
     /**
      * 领域模型 → 持久化实体
@@ -28,7 +28,7 @@ public class UserConverter {
         po.setCampusId(user.getCampusId());
         po.setUsername(user.getUsername());
         // 加密密码
-        po.setPassword(passwordEncoder.encode(user.getPassword()));
+        po.setPassword(passwordEncryptorPort.encode(user.getPassword()));
         po.setNickname(user.getNickname());
         po.setPhoneNumber(user.getPhoneNumber());
         po.setEmail(user.getEmail());
