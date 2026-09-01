@@ -3,8 +3,6 @@ package com.wsw.fitnesssystem.user.infrastructure.persistence.entity;
 import com.baomidou.mybatisplus.annotation.*;
 import lombok.Data;
 
-import java.io.Serial;
-import java.io.Serializable;
 import java.time.LocalDateTime;
 
 /**
@@ -21,10 +19,7 @@ import java.time.LocalDateTime;
  */
 @Data
 @TableName("sys_user") // 启用 MP 代理
-public class UserPo implements Serializable {
-
-    @Serial
-    private static final long serialVersionUID = 1L;
+public class UserPo {
 
     /** 用户ID */
     @TableId(type = IdType.AUTO)

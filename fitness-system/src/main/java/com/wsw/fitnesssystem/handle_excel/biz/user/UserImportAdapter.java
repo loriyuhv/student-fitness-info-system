@@ -4,15 +4,11 @@ import com.wsw.fitnesssystem.handle_excel.application.dto.UserExcelDTO;
 import com.wsw.fitnesssystem.handle_excel.core.adapter.ImportAdapter;
 import com.wsw.fitnesssystem.handle_excel.core.collector.ErrorCollector;
 import com.wsw.fitnesssystem.handle_excel.core.collector.ErrorCollectorHolder;
-import com.wsw.fitnesssystem.handle_excel.core.executor.ParallelConvertExecutor;
-import com.wsw.fitnesssystem.handle_excel.core.helper.BatchPersistHelper;
+import com.wsw.fitnesssystem.handle_excel.core.model.UserImportData;
+import com.wsw.fitnesssystem.handle_excel.core.model.UserImportResult;
+import com.wsw.fitnesssystem.handle_excel.core.port.UserImportPort;
 import com.wsw.fitnesssystem.handle_excel.domain.enums.ExcelBizTypeEnum;
-import com.wsw.fitnesssystem.handle_excel.domain.model.User;
-import com.wsw.fitnesssystem.handle_excel.domain.service.UserImportDomainService;
 import com.wsw.fitnesssystem.handle_excel.infrastructure.config.ExcelConstants;
-import com.wsw.fitnesssystem.handle_excel.infrastructure.persistence.db.assembler.UserAssembler;
-import com.wsw.fitnesssystem.handle_excel.infrastructure.persistence.db.entity.SysUserEntity;
-import com.wsw.fitnesssystem.handle_excel.infrastructure.persistence.db.mapper.ExcelSysUserMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -25,12 +21,21 @@ import java.util.Objects;
 
 /**
  * 用户导入适配器 — 技术适配层 支持并行密码加密
+ *
  * <p>职责边界：</p>
- * <li>1. 轻量过滤（空用户名等明显非法数据）</li>
- * <li>2. 调用 DomainService 完成业务校验 + 查重 + 领域转换</li>
- * <li>3. 通过 Assembler 完成 Domain → Entity 的技术转换</li>
- * <li>4. 批量持久化</li>
- * <p>不再包含业务规则（如密码默认值、昵称默认值、长度校验），这些已下沉到 {@link User}</p>
+ * <ul>
+ *   <li>格式校验（validate）：必填、长度、格式（手机号/邮箱）</li>
+ *   <li>数据转换（convert）：UserExcelDTO → UserImportData</li>
+ *   <li>调用导入端口（persist）：通过 UserImportPort 将数据传递给 user 模块</li>
+ * </ul>
+ *
+ * <p><b>模块解耦：</b></p>
+ * <ul>
+ *   <li>不依赖 user 模块的任何实体类（如 UserPo）</li>
+ *   <li>只依赖自己定义的 DTO（UserImportData）和 Port 接口（UserImportPort）</li>
+ *   <li>为微服务拆分预留零成本切换路径</li>
+ * </ul>
+ *
  * @author loriyuhv
  * @version 1.0 2026/8/21 15:48
  * @since 1.0
@@ -38,13 +43,9 @@ import java.util.Objects;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class UserImportAdapter implements ImportAdapter<UserExcelDTO, SysUserEntity> {
+public class UserImportAdapter implements ImportAdapter<UserExcelDTO, UserImportData> {
 
-    private final UserAssembler userAssembler;
-    private final ExcelSysUserMapper userMapper;
-    private final UserImportDomainService domainService;
-    private final BatchPersistHelper batchPersistHelper;
-    private final ParallelConvertExecutor parallelConvertExecutor;
+    private final UserImportPort userImportPort;
 
     @Override
     public String getBizType() {
@@ -56,9 +57,13 @@ public class UserImportAdapter implements ImportAdapter<UserExcelDTO, SysUserEnt
         return UserExcelDTO.class;
     }
 
+    // ============================================================
+    // 1. 格式校验（必填 + 长度 + 格式）
+    // ============================================================
+
     /**
      * <p>适配器层只做格式校验：只负责必填、长度、格式等基础校验</p>
-     * <p>复杂的业务查重、格式规则收敛到 DomainService</p>
+     * <p>复杂的业务查重、格式规则收敛到 user模块</p>
      * <p>但必须记录被剔除的行，供错误 Excel 生成使用</p>
      *
      * @param batch 原始 DTO 批次
@@ -152,6 +157,12 @@ public class UserImportAdapter implements ImportAdapter<UserExcelDTO, SysUserEnt
                 continue;
             }
 
+            if (dto.getUserType() < 0 || dto.getUserType() > 2) {
+                collector.addError(rowIndex, buildRowData(dto),
+                    "用户类型不正确，只能为 0（管理员）、1（教师）、2（学生）");
+                continue;
+            }
+
             // 所有校验通过
             validList.add(dto);
         }
@@ -159,37 +170,79 @@ public class UserImportAdapter implements ImportAdapter<UserExcelDTO, SysUserEnt
         return validList;
     }
 
-    @Override
-    public List<SysUserEntity> convert(List<UserExcelDTO> dtoList) {
-        // Step 1: 领域层完成业务校验 + 查重 + 领域转换
-        List<User> domainUsers = domainService.validateAndConvert(dtoList);
+    // ============================================================
+    // 2. 数据转换：UserExcelDTO → UserImportData
+    // ============================================================
 
-        // Step 2: 技术转换：Domain → Entity（含密码加密、默认值填充等技术细节）
-        // return userAssembler.toEntityList(domainUsers);
-        return parallelConvertExecutor.execute(domainUsers, userAssembler::toEntity, User::getRowIndex);
+    @Override
+    public List<UserImportData> convert(List<UserExcelDTO> dtoList) {
+        List<UserImportData> dataList = new ArrayList<>();
+
+        for (UserExcelDTO dto : dtoList) {
+            UserImportData data = UserImportData.builder()
+                .campusId(dto.getCampusId())
+                .username(dto.getUsername())
+                .password(dto.getPassword())
+                .nickname(dto.getNickname())
+                .phoneNumber(dto.getPhoneNumber())
+                .email(dto.getEmail())
+                .userType(dto.getUserType())
+                .rowIndex(dto.getRowIndex())
+                .build();
+
+            // 注意：当前 UserExcelDTO 还没有学生/教师特有字段
+            // 未来扩展时，可以从 dto 中获取 studentNo, classCode 等字段
+
+            dataList.add(data);
+        }
+
+        return dataList;
     }
+
+    // ============================================================
+    // 3. 持久化（调用 Port，由 user 模块实现）
+    // ============================================================
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public int persist(List<SysUserEntity> entities) {
+    public int persist(List<UserImportData> entities) {
         if (entities == null || entities.isEmpty()) return 0;
 
         ErrorCollector collector = ErrorCollectorHolder.get();
-        // 内部再分片，防止 SQL 过长
-        return batchPersistHelper.safeBatchInsert(
-            entities,
-            userMapper::batchInsert,  // 批量插入
-            userMapper::insert, // 单条插入（降级时使用）
-            ExcelConstants.DB_BATCH_SIZE,
-            collector,
-            SysUserEntity::getRowIndex
-        );
+
+        // 调用 Port 接口（由 user 模块的 LocalUserImportAdapter 实现）
+        List<UserImportResult> results = userImportPort.batchRegister(entities);
+
+        int successCount = 0;
+        for (UserImportResult result : results) {
+            if (result.isSuccess()) {
+                successCount++;
+            } else {
+                // 根据行号收集错误（User 聚合根保持纯净，rowIndex 不进入领域模型）
+                int rowIndex = result.getRowIndex() != null ? result.getRowIndex() : -1;
+                collector.addError(rowIndex, List.of(result.getUsername()), result.getErrorMessage());
+            }
+        }
+
+        log.info("用户导入完成: 总数={}, 成功={}, 失败={}",
+            entities.size(), successCount, entities.size() - successCount);
+
+        return successCount;
     }
+
+
+    // ============================================================
+    // 4. 元数据
+    // ============================================================
 
     @Override
     public List<String> getHeaders() {
         return List.of("校区", "用户账号", "密码", "昵称", "手机号码", "邮箱", "用户类型");
     }
+
+    // ============================================================
+    // 5. 辅助方法
+    // ============================================================
 
     /**
      * 构建行数据（用于错误 Excel）

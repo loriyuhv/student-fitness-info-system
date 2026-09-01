@@ -3,7 +3,7 @@ package com.wsw.fitnesssystem.handle_excel.biz.fitness_record;
 import com.wsw.fitnesssystem.handle_excel.application.dto.FitnessExcelDTO;
 import com.wsw.fitnesssystem.handle_excel.core.adapter.ImportAdapter;
 import com.wsw.fitnesssystem.handle_excel.domain.enums.ExcelBizTypeEnum;
-import com.wsw.fitnesssystem.handle_excel.infrastructure.persistence.db.entity.FitnessRecord;
+import com.wsw.fitnesssystem.handle_excel.infrastructure.persistence.entity.FitnessRecord;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 

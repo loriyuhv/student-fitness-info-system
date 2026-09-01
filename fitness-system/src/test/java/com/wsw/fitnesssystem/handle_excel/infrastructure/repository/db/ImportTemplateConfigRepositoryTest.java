@@ -1,6 +1,7 @@
 package com.wsw.fitnesssystem.handle_excel.infrastructure.repository.db;
 
-import com.wsw.fitnesssystem.handle_excel.infrastructure.persistence.db.entity.ImportTemplateConfigEntity;
+import com.wsw.fitnesssystem.handle_excel.infrastructure.persistence.entity.ImportTemplateConfigEntity;
+import com.wsw.fitnesssystem.handle_excel.infrastructure.persistence.repository.ImportTemplateConfigRepository;
 import com.wsw.fitnesssystem.shared.exception.BizException;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.DisplayName;

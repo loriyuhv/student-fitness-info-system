@@ -5,6 +5,7 @@ import com.wsw.fitnesssystem.user.domain.valueobject.UserStatus;
 import com.wsw.fitnesssystem.user.domain.valueobject.UserType;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.Setter;
 
 import java.time.LocalDateTime;
 
@@ -23,29 +24,63 @@ import java.time.LocalDateTime;
  * @version 1.0 2026/8/26 12:36
  * @since 1.0
  */
+@Setter
 @Getter
 @Builder
 public class User {
 
+    // ==================== 核心标识 ====================
+
+    /** 用户ID（数据库自增） */
     private Long userId;
+
+    /** 校区ID（多租户隔离） */
     private Long campusId;
+
+    // ==================== 认证信息 ====================
+
+    /** 登录账号（唯一） */
     private String username;
+
     /** BCrypt 哈希值（仅持有，不处理逻辑）*/
     private String password;
+
+    // ==================== 个人资料 ====================
+
+    /** 昵称（显示名称） */
     private String nickname;
+
+    /** 手机号码 */
     private String phoneNumber;
+
+    /** 邮箱 */
     private String email;
+
+    /** 备注 */
     private String remark;
+
+    // ==================== 角色与状态 ====================
+
+    /** 用户类型：0-管理员，1-教师，2-学生 */
     private UserType userType;
+
+    /** 用户来源：0-导入，1-同步，2-手动 */
     private UserSource source;
-    /** 启用/禁用 */
+
+    /** 启用状态：0-禁用，1-启用 */
     private UserStatus status;
+
     /** 逻辑删除标记 */
     private boolean deleted;
+
+    // ==================== 审计字段 ====================
+
     private Long createBy;
     private Long updateBy;
     private LocalDateTime createTime;
     private LocalDateTime updateTime;
+
+    // ==================== 业务方法 ====================
 
     /**
      * 启用用户（业务规则：只有禁用的才能启用）
@@ -58,7 +93,7 @@ public class User {
     }
 
     /**
-     * 禁用用户（业务规则：不能禁用管理员？可自定义）
+     * 禁用用户（管理员不允许被禁用）
      */
     public void disable() {
         if (this.userType == UserType.ADMIN) {
@@ -105,6 +140,43 @@ public class User {
             throw new IllegalStateException("用户未删除，无需恢复");
         }
         this.deleted = false;
+    }
+
+    // ==================== 辅助方法 ====================
+
+    /**
+     * 判断用户是否启用
+     */
+    public boolean isEnabled() {
+        return status == UserStatus.ENABLED;
+    }
+
+    /**
+     * 判断用户是否禁用
+     */
+    public boolean isDisabled() {
+        return status == UserStatus.DISABLED;
+    }
+
+    /**
+     * 判断是否为管理员
+     */
+    public boolean isAdmin() {
+        return userType == UserType.ADMIN;
+    }
+
+    /**
+     * 判断是否为教师
+     */
+    public boolean isTeacher() {
+        return userType == UserType.TEACHER;
+    }
+
+    /**
+     * 判断是否为学生
+     */
+    public boolean isStudent() {
+        return userType == UserType.STUDENT;
     }
 
 }

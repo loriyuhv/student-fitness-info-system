@@ -2,8 +2,13 @@ package com.wsw.fitnesssystem.shared.config;
 
 import com.baomidou.mybatisplus.extension.plugins.MybatisPlusInterceptor;
 import com.baomidou.mybatisplus.extension.plugins.inner.OptimisticLockerInnerInterceptor;
+import com.baomidou.mybatisplus.extension.spring.MybatisSqlSessionFactoryBean;
+import org.apache.ibatis.session.SqlSessionFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
+
+import javax.sql.DataSource;
 
 /**
  * MyBatis-Plus 配置类
@@ -24,6 +29,25 @@ public class MybatisPlusConfig {
         interceptor.addInnerInterceptor(new OptimisticLockerInnerInterceptor());
 
         return interceptor;
+    }
+
+    @Bean
+    public SqlSessionFactory sqlSessionFactory(DataSource dataSource) throws Exception {
+        MybatisSqlSessionFactoryBean factoryBean = new MybatisSqlSessionFactoryBean();
+
+        // 设置数据源
+        factoryBean.setDataSource(dataSource);
+
+        // 指定 Mapper XML 文件位置（支持通配符，匹配多个目录）
+        factoryBean.setMapperLocations(
+            new PathMatchingResourcePatternResolver()
+                .getResources("classpath*:mapper/**/*.xml")
+        );
+
+        // 设置 MyBatis-Plus 插件
+        factoryBean.setPlugins(mybatisPlusInterceptor());
+
+        return factoryBean.getObject();
     }
 
 }

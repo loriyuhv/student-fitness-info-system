@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wsw.fitnesssystem.user.infrastructure.persistence.mapper.SysUserMapper">
+
+    <!--
+    ============================================================
+    批量插入用户（用于 Excel 导入场景）
+    ============================================================
+    说明：
+      - 仅插入业务必需字段，不包含 create_time/update_time（由 MyBatis-Plus 自动填充）
+      - deleted 字段由 @TableLogic 注解自动管理，默认值 0
+      - 使用 FOREACH 批量插入，注意单次插入数据量不宜过大（建议 ≤ 2000 条）
+      - 自增 userId 由 MyBatis-Plus 自动回填到 UserPo 对象
+
+    参数：
+      list - SysUserEntity 列表（已加密密码、已设置状态等）
+
+    注意事项：
+      - MyBatis-Plus 的 @TableField(fill = FieldFill.INSERT) 在批量插入时不生效
+      - createTime/updateTime 在 XML 中未显式赋值，需确保数据库有默认值 CURRENT_TIMESTAMP
+    -->
+    <insert id="batchInsert">
+        INSERT INTO sys_user
+        (campus_id, username, password, nickname, phone_number, email, user_type, status, create_by, update_by)
+        VALUES
+        <foreach collection="list" item="item" separator=",">
+            (
+            #{item.campusId},
+            #{item.username},
+            #{item.password},
+            #{item.nickname},
+            #{item.phoneNumber},
+            #{item.email},
+            #{item.userType},
+            #{item.status},
+            #{item.createBy},
+            #{item.updateBy}
+            )
+        </foreach>
+    </insert>
+
+    <!--
+    ============================================================
+    批量查询已存在的用户名（用于 Excel 导入查重）
+    ============================================================
+    说明：
+      - 只查询未逻辑删除（deleted = 0）的用户
+      - 返回已存在的用户名列表，与输入参数一一对应（或子集）
+      - 用于 UserRegistrationAppService 中批量查重，避免逐条查询数据库
+
+    参数：
+      usernames - 待查重的用户名列表
+
+    返回值：
+      已存在的用户名列表（List<String>）
+    -->
+    <select id="selectExistingUsernames" resultType="string">
+        SELECT username FROM sys_user
+        WHERE deleted = 0
+        AND username IN
+        <foreach collection="usernames" item="item" open="(" close=")" separator=",">
+            #{item}
+        </foreach>
+    </select>
+
+</mapper>
