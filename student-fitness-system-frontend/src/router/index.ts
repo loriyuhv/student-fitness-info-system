@@ -51,7 +51,6 @@ const routes: RouteRecordRaw[] = [
     component: DefaultLayout,
     meta: {
       requiresAuth: true,
-      permissions: [PERM.STUDENT_CENTER],
     } as RouteMeta,
     children: [
       {
@@ -60,6 +59,7 @@ const routes: RouteRecordRaw[] = [
         component: () => import('@/views/student/Dashboard.vue'),
         meta: {
           title: '学生体测信息个人详情',
+          permissions: [PERM.STUDENT_CENTER],
         } as RouteMeta,
       },
     ],
@@ -70,7 +70,6 @@ const routes: RouteRecordRaw[] = [
     component: DefaultLayout,
     meta: {
       requiresAuth: true,
-      permissions: [PERM.MANAGE_PAGE],
     } as RouteMeta,
     children: [
       {
@@ -79,6 +78,7 @@ const routes: RouteRecordRaw[] = [
         component: () => import('@/views/teacher/Dashboard.vue'),
         meta: {
           title: '学生体测信息管理',
+          permissions: [PERM.MANAGE_PAGE],
         } as RouteMeta,
       },
     ],

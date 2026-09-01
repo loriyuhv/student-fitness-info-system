@@ -30,7 +30,7 @@ export interface UserInfo {
 /* 用户登录响应类型设计 */
 // 登录响应数据
 export interface LoginResponse {
-  accessToken: string // JWT令牌
-  refreshToken: string // 刷新令牌
-  expiresIn: number // 过期时间（秒）
+  access_token: string // JWT令牌
+  refresh_token: string // 刷新令牌
+  expires_in: number // 过期时间（秒）
 }

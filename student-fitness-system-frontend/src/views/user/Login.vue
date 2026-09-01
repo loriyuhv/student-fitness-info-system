@@ -130,7 +130,7 @@ const loginRules = reactive<FormRules>({
     {
       required: true,
       trigger: 'blur',
-      validator: (rule: unknown, value: string, callback: (error?: string | Error) => void) => {
+      validator: (_rule: unknown, value: string, callback: (error?: string | Error) => void) => {
         if (!value) {
           callback(new Error('请输入用户账号'))
         } else if (!/^\d{8,12}$/.test(value)) {
@@ -145,7 +145,7 @@ const loginRules = reactive<FormRules>({
     {
       required: true,
       trigger: 'blur',
-      validator: (rule: unknown, value: string, callback: (error?: string | Error) => void) => {
+      validator: (_rule: unknown, value: string, callback: (error?: string | Error) => void) => {
         if (!value) {
           callback(new Error('请输入用户密码'))
         } else if (value.length < 6) {
@@ -170,13 +170,6 @@ async function handleLogin(): Promise<void> {
     loading.value = true
 
     try {
-      // // 保存记住的账号
-      // if (loginForm.rememberMe) {
-      //   setRememberedAccount(loginForm.username)
-      // } else {
-      //   clearRememberedAccount()
-      // }
-
       await login(loginForm)
 
       ElMessage.success('登录成功')
@@ -212,18 +205,12 @@ async function copyContactInfo(): Promise<void> {
   const contactInfo = `管理员电话：010-12345678\n管理员邮箱：admin@school.edu.cn\n办公地址：行政楼301室`
 
   try {
-    // 使用 Clipboard API
+    // 现代剪贴板API（优先走这里）
     await navigator.clipboard.writeText(contactInfo)
     ElMessage.success('联系方式已复制到剪贴板')
-  } catch {
-    // 降级方案
-    const textarea = document.createElement('textarea')
-    textarea.value = contactInfo
-    document.body.appendChild(textarea)
-    textarea.select()
-    document.execCommand('copy')
-    document.body.removeChild(textarea)
-    ElMessage.success('联系方式已复制到剪贴板')
+  } catch (error) {
+    ElMessage.error('复制失败，请手动复制文本')
+    console.error('剪贴板复制失败：', error)
   }
 
   forgetDialogVisible.value = false
@@ -231,12 +218,6 @@ async function copyContactInfo(): Promise<void> {
 
 // 初始化
 onMounted(() => {
-  // 加载记住的账号
-  // const rememberedAccount = getRememberedAccount()
-  // if (rememberedAccount) {
-  //   loginForm.username = rememberedAccount
-  //   loginForm.rememberMe = true
-  // }
 })
 </script>
 

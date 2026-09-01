@@ -40,7 +40,7 @@ export async function logout(): Promise<void> {
 export async function getUserInfo(): Promise<UserInfo> {
   return httpRequest<UserInfo>({
     method: 'GET',
-    url: '/auth/user-info',
+    url: '/user/info',
   })
 }
 

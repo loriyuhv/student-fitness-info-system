@@ -2,11 +2,11 @@
 // 负责：认证业务流程
 
 import authApi from '@/api/auth'
-import type { LoginForm } from '@/types/user'
+import type { LoginForm, UserInfo } from '@/types/user'
 import { useUserStore, useTokenStore } from '@/store'
 
 // 正在执行的用户信息请求
-let userInfoPromise: null | Promise<any> = null
+let userInfoPromise: null | Promise<UserInfo> = null
 
 export function loadUserInfo(force = false) {
   const userStore = useUserStore()
@@ -92,13 +92,13 @@ export async function login(loginForm: LoginForm) {
   userInfoPromise = null // 强制丢弃可能进行中的旧请求
   const res = await authApi.login(loginForm)
 
-  if (!res.accessToken || !res.refreshToken) {
+  if (!res.access_token || !res.refresh_token) {
     throw new Error('登录凭证不存在')
   }
 
   // 保存token
   try {
-    tokenStore.setTokens(res.accessToken, res.refreshToken)
+    tokenStore.setTokens(res.access_token, res.refresh_token)
     await loadUserInfo()
     return res
   } catch (e) {

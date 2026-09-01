@@ -21,7 +21,7 @@ const handleAuthFailure = async (redirect = true) => {
   clearAuth()
   const path = redirect
     ? `/auth/login?redirect=${encodeURIComponent(window.location.pathname + window.location.search)}`
-    : '/atuh/login'
+    : '/auth/login'
   await router.push(path)
 }
 
@@ -50,7 +50,7 @@ axiosInstance.interceptors.response.use(
     }
 
     // 权限不足：跳转 401 页面
-    if (res.bizCode === ResultCode.PERMISSION_NO_ACCESS) {
+    if (res.bizCode === ResultCode.AUTH_CREDENTIAL_INVALID) {
       ElMessage.error('您没有权限访问此资源')
       await router.push('/401')
       return Promise.reject(new Error(res.message || '无访问权限'))
