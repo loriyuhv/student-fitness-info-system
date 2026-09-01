@@ -4,6 +4,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Builder;
 import lombok.Data;
 
+import java.util.Set;
+
 /**
  * 用户信息响应 DTO（Web 层面向 HTTP 协议）
  *
@@ -39,5 +41,7 @@ public class UserInfoResponse {
 
     @JsonProperty("user_type")
     private Integer userType;
+
+    private Set<String> permissions;
 
 }

@@ -4,6 +4,8 @@ import com.wsw.fitnesssystem.user.application.service.UserInfoQueryService;
 import lombok.Builder;
 import lombok.Data;
 
+import java.util.Set;
+
 /**
  * 用户信息查询结果（Application 层纯数据对象）
  *
@@ -31,5 +33,6 @@ public class UserInfoResult {
     private String remark;
     /** 0-管理员, 1-教师, 2-学生 */
     private Integer userType;
+    private Set<String> permissions;
 
 }
