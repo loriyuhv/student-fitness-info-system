@@ -2,8 +2,15 @@ package com.wsw.fitnesssystem.user.application.service;
 
 import com.wsw.fitnesssystem.handle_excel.core.model.UserImportData;
 import com.wsw.fitnesssystem.handle_excel.core.model.UserImportResult;
+import com.wsw.fitnesssystem.user.domain.model.StudentProfile;
+import com.wsw.fitnesssystem.user.domain.model.TeacherProfile;
 import com.wsw.fitnesssystem.user.domain.model.User;
+import com.wsw.fitnesssystem.user.domain.model.UserProfile;
+import com.wsw.fitnesssystem.user.domain.port.StudentProfileRepository;
+import com.wsw.fitnesssystem.user.domain.port.TeacherProfileRepository;
+import com.wsw.fitnesssystem.user.domain.port.UserProfileRepository;
 import com.wsw.fitnesssystem.user.domain.port.UserRepository;
+import com.wsw.fitnesssystem.user.domain.valueobject.Gender;
 import com.wsw.fitnesssystem.user.domain.valueobject.Status;
 import com.wsw.fitnesssystem.user.domain.valueobject.UserType;
 import lombok.RequiredArgsConstructor;
@@ -11,6 +18,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -28,6 +37,10 @@ import java.util.stream.Collectors;
 public class UserRegistrationAppService {
 
     private final UserRepository userRepository;
+    private final UserProfileRepository userProfileRepository;
+    private final StudentProfileRepository studentProfileRepository;
+    private final TeacherProfileRepository teacherProfileRepository;
+    private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
     /**
      * 批量注册用户（用于 Excel 导入）
@@ -108,6 +121,44 @@ public class UserRegistrationAppService {
                     .build();
 
                 userRepository.save(user);
+                Long userId = user.getUserId();
+
+                // 3.3.2 创建并保存 UserProfile（所有用户类型都需要）
+                UserProfile userProfile = UserProfile.builder()
+                    .userId(userId)
+                    .campusId(data.getCampusId())
+                    .gender(Gender.of(data.getGenderOrDefault()))
+                    .birthDate(parseDate(data.getBirthDate()))
+                    .avatarUrl(data.getAvatarUrl())
+                    .address(data.getAddress())
+                    .build();
+                userProfileRepository.save(userProfile);
+
+                // 3.3.3 根据用户类型插入扩展表
+                if (data.isStudent()) {
+                    StudentProfile student = StudentProfile.builder()
+                        .campusId(data.getCampusId())
+                        .userId(userId)
+                        .studentNo(data.getStudentNoOrDefault())
+                        .classId(data.getClassId())
+                        .enrollYear(data.getEnrollYear())
+                        .major(data.getMajor())
+                        .idCard(data.getIdCard())
+                        .gender(Gender.of(data.getGenderOrDefault()))
+                        .familyAddress(data.getFamilyAddress())
+                        .status(Status.ENABLED)
+                        .build();
+                    studentProfileRepository.save(student);
+                } else if (data.isTeacher()) {
+                    TeacherProfile teacher = TeacherProfile.builder()
+                        .campusId(data.getCampusId())
+                        .userId(userId)
+                        .teacherNo(data.getTeacherNoOrDefault())
+                        .gender(Gender.of(data.getGenderOrDefault()))
+                        .status(Status.ENABLED)
+                        .build();
+                    teacherProfileRepository.save(teacher);
+                }
 
                 results.add(successResult(data, user.getUserId()));
                 log.debug("用户注册成功: username={}, userId={}", username, user.getUserId());
@@ -127,6 +178,17 @@ public class UserRegistrationAppService {
     }
 
     // ==================== 辅助方法 ====================
+    private LocalDate parseDate(String dateStr) {
+        if (dateStr == null || dateStr.isBlank()) {
+            return null;
+        }
+        try {
+            return LocalDate.parse(dateStr.trim(), DATE_FORMATTER);
+        } catch (Exception e) {
+            log.warn("日期格式解析失败: {}", dateStr);
+            return null;
+        }
+    }
 
     /**
      * 构建成功结果

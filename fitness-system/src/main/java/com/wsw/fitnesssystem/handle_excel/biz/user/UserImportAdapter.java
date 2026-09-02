@@ -188,6 +188,16 @@ public class UserImportAdapter implements ImportAdapter<UserExcelDTO, UserImport
                 .email(dto.getEmail())
                 .userType(dto.getUserType())
                 .rowIndex(dto.getRowIndex())
+                .gender(dto.getGender())
+                .birthDate(dto.getBirthDate())
+                .address(dto.getAddress())
+                .studentNo(dto.getStudentNo())
+                .classId(dto.getClassId())
+                .enrollYear(dto.getEnrollYear())
+                .major(dto.getMajor())
+                .idCard(dto.getIdCard())
+                .familyAddress(dto.getFamilyAddress())
+                .teacherNo(dto.getTeacherNo())
                 .build();
 
             // 注意：当前 UserExcelDTO 还没有学生/教师特有字段
@@ -234,10 +244,28 @@ public class UserImportAdapter implements ImportAdapter<UserExcelDTO, UserImport
     // ============================================================
     // 4. 元数据
     // ============================================================
-
     @Override
     public List<String> getHeaders() {
-        return List.of("校区", "用户账号", "密码", "昵称", "手机号码", "邮箱", "用户类型");
+        return List.of(
+            "校区",
+            "用户账号",
+            "密码",
+            "昵称",
+            "手机号码",
+            "邮箱",
+            "用户类型",
+            "性别",
+            "出生日期",
+            "头像URL",
+            "联系地址",
+            "学号",
+            "班级ID",
+            "入学年份",
+            "专业",
+            "身份证号",
+            "家庭地址",
+            "教师工号"
+        );
     }
 
     // ============================================================
@@ -255,7 +283,18 @@ public class UserImportAdapter implements ImportAdapter<UserExcelDTO, UserImport
             Objects.toString(dto.getNickname(), ""),
             Objects.toString(dto.getPhoneNumber(), ""),
             Objects.toString(dto.getEmail(), ""),
-            Objects.toString(dto.getUserType(), "")
+            Objects.toString(dto.getUserType(), ""),
+            Objects.toString(dto.getGender(), ""),
+            Objects.toString(dto.getBirthDate(), ""),
+            Objects.toString(dto.getAvatarUrl(), ""),
+            Objects.toString(dto.getAddress(), ""),
+            Objects.toString(dto.getStudentNo(), ""),
+            Objects.toString(dto.getClassId(), ""),
+            Objects.toString(dto.getEnrollYear(), ""),
+            Objects.toString(dto.getMajor(), ""),
+            Objects.toString(dto.getIdCard(), ""),
+            Objects.toString(dto.getFamilyAddress(), ""),
+            Objects.toString(dto.getTeacherNo(), "")
         );
     }
 

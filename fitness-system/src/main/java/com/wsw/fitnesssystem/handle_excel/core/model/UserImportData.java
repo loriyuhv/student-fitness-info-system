@@ -52,13 +52,20 @@ public class UserImportData {
     /** Excel 行号（用于错误定位） */
     private Integer rowIndex;
 
+    // ==================== 用户扩展信息（user_profile） ====================
+
+    private Integer gender;          // 0-未知 1-男 2-女
+    private String birthDate;        // 出生日期，格式：yyyy-MM-dd
+    private String avatarUrl;
+    private String address;
+
     // ==================== 学生特有字段 ====================
 
-    /** 学号（仅学生类型时使用） */
+    /** 学号（仅学生类型时使用） 如果不传，默认用 username */
     private String studentNo;
 
     /** 班级编码（仅学生类型时使用，导入时只记录编码，不校验是否存在） */
-    private String classCode;
+    private Long classId;
 
     /** 专业（仅学生类型时使用） */
     private String major;
@@ -69,12 +76,12 @@ public class UserImportData {
     /** 身份证号（仅学生类型时使用） */
     private String idCard;
 
-    /** 性别（仅学生类型时使用）：0-未知，1-男，2-女 */
-    private Integer gender;
+    /** 家庭地址 */
+    private String familyAddress;
 
     // ==================== 教师特有字段 ====================
 
-    /** 教师工号（仅教师类型时使用） */
+    /** 教师工号（仅教师类型时使用） （如果不传，默认用 username） */
     private String teacherNo;
 
     // ==================== 工具方法 ====================
@@ -105,6 +112,18 @@ public class UserImportData {
      */
     public int getRowIndexOrDefault() {
         return rowIndex != null ? rowIndex : -1;
+    }
+
+    public String getStudentNoOrDefault() {
+        return studentNo != null && !studentNo.isBlank() ? studentNo : username;
+    }
+
+    public String getTeacherNoOrDefault() {
+        return teacherNo != null && !teacherNo.isBlank() ? teacherNo : username;
+    }
+
+    public Integer getGenderOrDefault() {
+        return gender != null ? gender : 0;
     }
 
 }
