@@ -4,7 +4,7 @@ import com.wsw.fitnesssystem.handle_excel.core.model.UserImportData;
 import com.wsw.fitnesssystem.handle_excel.core.model.UserImportResult;
 import com.wsw.fitnesssystem.user.domain.model.User;
 import com.wsw.fitnesssystem.user.domain.port.UserRepository;
-import com.wsw.fitnesssystem.user.domain.valueobject.UserStatus;
+import com.wsw.fitnesssystem.user.domain.valueobject.Status;
 import com.wsw.fitnesssystem.user.domain.valueobject.UserType;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -104,7 +104,7 @@ public class UserRegistrationAppService {
                     .phoneNumber(data.getPhoneNumber())
                     .email(data.getEmail())
                     .userType(UserType.of(data.getUserType()))
-                    .status(UserStatus.ENABLED)
+                    .status(Status.ENABLED)
                     .build();
 
                 userRepository.save(user);

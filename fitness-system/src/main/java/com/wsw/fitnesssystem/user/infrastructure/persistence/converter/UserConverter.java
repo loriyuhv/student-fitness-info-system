@@ -3,7 +3,7 @@ package com.wsw.fitnesssystem.user.infrastructure.persistence.converter;
 import com.wsw.fitnesssystem.user.domain.model.User;
 import com.wsw.fitnesssystem.user.domain.port.PasswordEncryptorPort;
 import com.wsw.fitnesssystem.user.domain.valueobject.UserSource;
-import com.wsw.fitnesssystem.user.domain.valueobject.UserStatus;
+import com.wsw.fitnesssystem.user.domain.valueobject.Status;
 import com.wsw.fitnesssystem.user.domain.valueobject.UserType;
 import com.wsw.fitnesssystem.user.infrastructure.persistence.entity.UserPo;
 import lombok.RequiredArgsConstructor;
@@ -56,7 +56,7 @@ public class UserConverter {
             .remark(po.getRemark())
             .userType(UserType.of(po.getUserType()))
             .source(UserSource.of(po.getSource()))
-            .status(UserStatus.of(po.getStatus()))
+            .status(Status.of(po.getStatus()))
             .deleted(po.getDeleted() == 1)
             .build();
     }

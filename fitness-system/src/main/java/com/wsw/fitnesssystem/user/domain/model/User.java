@@ -1,7 +1,7 @@
 package com.wsw.fitnesssystem.user.domain.model;
 
 import com.wsw.fitnesssystem.user.domain.valueobject.UserSource;
-import com.wsw.fitnesssystem.user.domain.valueobject.UserStatus;
+import com.wsw.fitnesssystem.user.domain.valueobject.Status;
 import com.wsw.fitnesssystem.user.domain.valueobject.UserType;
 import lombok.Builder;
 import lombok.Getter;
@@ -68,7 +68,7 @@ public class User {
     private UserSource source;
 
     /** 启用状态：0-禁用，1-启用 */
-    private UserStatus status;
+    private Status status;
 
     /** 逻辑删除标记 */
     private boolean deleted;
@@ -86,10 +86,10 @@ public class User {
      * 启用用户（业务规则：只有禁用的才能启用）
      */
     public void enable() {
-        if (this.status == UserStatus.ENABLED) {
+        if (this.status == Status.ENABLED) {
             throw new IllegalStateException("用户已是启用状态");
         }
-        this.status = UserStatus.ENABLED;
+        this.status = Status.ENABLED;
     }
 
     /**
@@ -99,7 +99,7 @@ public class User {
         if (this.userType == UserType.ADMIN) {
             throw new IllegalStateException("不允许禁用管理员账号");
         }
-        this.status = UserStatus.DISABLED;
+        this.status = Status.DISABLED;
     }
 
     /**
@@ -148,14 +148,14 @@ public class User {
      * 判断用户是否启用
      */
     public boolean isEnabled() {
-        return status == UserStatus.ENABLED;
+        return status == Status.ENABLED;
     }
 
     /**
      * 判断用户是否禁用
      */
     public boolean isDisabled() {
-        return status == UserStatus.DISABLED;
+        return status == Status.DISABLED;
     }
 
     /**
