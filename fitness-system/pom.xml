@@ -101,6 +101,12 @@
             <artifactId>lombok</artifactId>
             <optional>true</optional>
         </dependency>
+        <dependency>
+            <groupId>commons-validator</groupId>
+            <artifactId>commons-validator</artifactId>
+            <version>1.11.0</version>
+            <!-- <scope>compile</scope> -->
+        </dependency>
         <!-- 新增 Testcontainers 依赖 -->
         <dependency>
             <groupId>org.springframework.boot</groupId>

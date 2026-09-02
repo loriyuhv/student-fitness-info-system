@@ -12,6 +12,7 @@ import com.wsw.fitnesssystem.handle_excel.infrastructure.config.ExcelConstants;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.validator.routines.EmailValidator;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -142,11 +143,12 @@ public class UserImportAdapter implements ImportAdapter<UserExcelDTO, UserImport
             String email = Objects.toString(dto.getEmail(), "").trim().toLowerCase();
             dto.setEmail(email);
 
-            if (!email.isEmpty() && !email.matches(ExcelConstants.EMAIL_REGEX)) {
+            boolean isEmail = EmailValidator.getInstance().isValid(email);
+            if (!email.isEmpty() && !isEmail) {
                 collector.addError(
                     rowIndex,
                     buildRowData(dto),
-                    "邮箱格式不正确（仅支持 @163.com、@126.com、@qq.com、@gmail.com）"
+                    "邮箱格式不正确"
                 );
                 continue;
             }
@@ -199,9 +201,6 @@ public class UserImportAdapter implements ImportAdapter<UserExcelDTO, UserImport
                 .familyAddress(dto.getFamilyAddress())
                 .teacherNo(dto.getTeacherNo())
                 .build();
-
-            // 注意：当前 UserExcelDTO 还没有学生/教师特有字段
-            // 未来扩展时，可以从 dto 中获取 studentNo, classCode 等字段
 
             dataList.add(data);
         }

@@ -15,6 +15,8 @@ import com.wsw.fitnesssystem.user.domain.valueobject.Status;
 import com.wsw.fitnesssystem.user.domain.valueobject.UserType;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -161,11 +163,23 @@ public class UserRegistrationAppService {
                 }
 
                 results.add(successResult(data, user.getUserId()));
-                log.debug("用户注册成功: username={}, userId={}", username, user.getUserId());
-
-            } catch (Exception e) {
+                // log.debug("用户注册成功: username={}, userId={}", username, user.getUserId());
+            } catch (DuplicateKeyException e) {
+                // 精确捕获重复键异常
+                results.add(failResult(data, "数据重复: 该记录已存在（用户名或唯一键冲突）"));
                 log.error("用户注册失败: username={}, row={}", username, data.getRowIndex(), e);
+            } catch (DataIntegrityViolationException e) {
+                // int row = rowExtractor != null ? rowExtractor.apply(entity) : -1;
+                // String cause = singleEx.getMostSpecificCause().getMessage();
+                // 截断过长消息，只保留前50个字符
+                String cause = e.getMostSpecificCause().getMessage();
+                String friendlyMsg = cause.length() > 30 ? cause.substring(0, 30) + "..." : cause;
+                // collector.addError(row, "数据格式异常: " + friendlyMsg);
+                results.add(failResult(data, "数据格式异常: " + friendlyMsg));
+                log.error("用户注册失败: username={}, row={}", username, data.getRowIndex(), e);
+            } catch (Exception e) {
                 results.add(failResult(data, "系统异常: " + e.getMessage()));
+                log.error("用户注册失败: username={}, row={}", username, data.getRowIndex(), e);
             }
         }
 
