@@ -24,7 +24,7 @@ public interface ImportAdapter<T, E> {
     String getBizType();
 
     /**
-     * Excel 对应的 DTO Class，用于 EasyExcel 反射解析
+     * Excel 对应的 DTO Class，用于 FastExcel 反射解析
      * @return DTO Class
      */
     Class<T> getDtoClass();

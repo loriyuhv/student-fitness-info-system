@@ -4,6 +4,8 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.ToString;
 
+import java.util.List;
+
 /**
  * 用户导入结果对象
  * <p>由 user 模块返回，handle_excel 模块根据结果收集错误信息</p>
@@ -31,5 +33,7 @@ public class UserImportResult {
 
     /** 生成的用户ID（仅当 success=true 时有效） */
     private Long userId;
+
+    private List<String> rowData;
 
 }

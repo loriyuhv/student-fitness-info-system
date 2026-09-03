@@ -32,11 +32,13 @@ public class BusinessAdapterFactory {
                 ImportAdapter::getBizType,
                 adapter -> adapter,
                 (a, b) -> {
+                    // 容器启动阶段，检测到同一个bizType出现多个实现类，抛出Fail-Fast机制，Spring终止启动
                     throw new IllegalStateException(
-                        "Duplicate bizType registration: " + a.getBizType()
-                            + ", conflicting classes: " + a.getClass().getName()
-                            + " vs " + b.getClass().getName()
+                        "Duplicate bizType registration: %s, conflicting classes: %s vs %s".formatted(
+                            a.getBizType(), a.getDtoClass().getName(), b.getDtoClass().getName()
+                        )
                     );
+
                 })
             );
 
@@ -80,7 +82,9 @@ public class BusinessAdapterFactory {
         ImportAdapter<?, ?> adapter = adapterMap.get(bizType);
         if (adapter == null) {
             throw new BizException(ResultCode.PARAM_INVALID,
-                "Unsupported import type: " + bizType + ", registered types: " + adapterMap.keySet()
+                "Unsupported import type: %s, registered types: %s".formatted(
+                    bizType, String.join(", ", adapterMap.keySet())
+                )
             );
         }
         return adapter;

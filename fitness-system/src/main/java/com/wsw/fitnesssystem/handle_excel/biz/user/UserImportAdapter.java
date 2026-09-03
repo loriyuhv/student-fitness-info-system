@@ -229,7 +229,7 @@ public class UserImportAdapter implements ImportAdapter<UserExcelDTO, UserImport
             } else {
                 // 根据行号收集错误（User 聚合根保持纯净，rowIndex 不进入领域模型）
                 int rowIndex = result.getRowIndex() != null ? result.getRowIndex() : -1;
-                collector.addError(rowIndex, List.of(result.getUsername()), result.getErrorMessage());
+                collector.addError(rowIndex, result.getRowData(), result.getErrorMessage());
             }
         }
 

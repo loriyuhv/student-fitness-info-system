@@ -225,7 +225,31 @@ public class UserRegistrationAppService {
             .username(data.getUsername())
             .success(false)
             .errorMessage(reason)
+            .rowData(buildRowData(data))
             .build();
+    }
+
+    private List<String> buildRowData(UserImportData data) {
+        return List.of(
+            Objects.toString(data.getCampusId(), ""),
+            Objects.toString(data.getUsername(), ""),
+            "******",  // 密码脱敏
+            Objects.toString(data.getNickname(), ""),
+            Objects.toString(data.getPhoneNumber(), ""),
+            Objects.toString(data.getEmail(), ""),
+            Objects.toString(data.getUserType(), ""),
+            Objects.toString(data.getGender(), ""),
+            Objects.toString(data.getBirthDate(), ""),
+            Objects.toString(data.getAvatarUrl(), ""),
+            Objects.toString(data.getAddress(), ""),
+            Objects.toString(data.getStudentNo(), ""),
+            Objects.toString(data.getClassId(), ""),
+            Objects.toString(data.getEnrollYear(), ""),
+            Objects.toString(data.getMajor(), ""),
+            Objects.toString(data.getIdCard(), ""),
+            Objects.toString(data.getFamilyAddress(), ""),
+            Objects.toString(data.getTeacherNo(), "")
+        );
     }
 
 }
