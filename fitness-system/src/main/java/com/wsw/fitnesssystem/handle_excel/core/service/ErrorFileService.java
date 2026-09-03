@@ -1,8 +1,9 @@
 package com.wsw.fitnesssystem.handle_excel.core.service;
 
-import com.alibaba.excel.EasyExcel;
+import cn.idev.excel.FastExcel;
 import com.wsw.fitnesssystem.handle_excel.core.model.ErrorRecord;
 import lombok.extern.slf4j.Slf4j;
+import org.jspecify.annotations.NonNull;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
@@ -33,7 +34,25 @@ public class ErrorFileService {
         newHeaders.add("错误原因");
 
         // 数据行
+        List<List<String>> dataRows = buildErrorDataRows(errors, headers);
+
+        try {
+            File tempFile = File.createTempFile("import_errors_", ".xlsx");
+            FastExcel.write(tempFile)
+                .head(newHeaders.stream().map(List::of).toList())
+                .sheet("错误数据")
+                .doWrite(dataRows);
+            log.info("错误文件生成成功: {}", tempFile.getAbsolutePath());
+            return tempFile;
+        } catch (Exception e) {
+            log.error("生成错误 Excel 失败", e);
+            throw new RuntimeException("生成错误文件失败", e);
+        }
+    }
+
+    private static @NonNull List<List<String>> buildErrorDataRows(List<ErrorRecord> errors, List<String> headers) {
         List<List<String>> dataRows = new ArrayList<>();
+
         for (ErrorRecord error : errors) {
             ArrayList<String> row = new ArrayList<>();
 
@@ -52,19 +71,7 @@ public class ErrorFileService {
 
             dataRows.add(row);
         }
-
-        try {
-            File tempFile = File.createTempFile("import_errors_", ".xlsx");
-            EasyExcel.write(tempFile)
-                .head(newHeaders.stream().map(List::of).toList())
-                .sheet("错误数据")
-                .doWrite(dataRows);
-            log.info("错误文件生成成功: {}", tempFile.getAbsolutePath());
-            return tempFile;
-        } catch (Exception e) {
-            log.error("生成错误 Excel 失败", e);
-            throw new RuntimeException("生成错误文件失败", e);
-        }
+        return dataRows;
     }
 
 }

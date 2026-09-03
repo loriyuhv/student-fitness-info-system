@@ -1,6 +1,6 @@
 package com.wsw.fitnesssystem.handle_excel.application;
 
-import com.alibaba.excel.EasyExcel;
+import cn.idev.excel.FastExcel;
 import com.wsw.fitnesssystem.handle_excel.core.model.ImportTemplate;
 import com.wsw.fitnesssystem.handle_excel.core.port.ImportTemplatePort;
 import com.wsw.fitnesssystem.shared.exception.BizException;
@@ -67,7 +67,7 @@ public class ImportTemplateAppService {
             List<List<String>> dataRows = template.getDataRows();
 
             // 2）生成Excel文件
-            EasyExcel.write(response.getOutputStream())
+            FastExcel.write(response.getOutputStream())
                 .head(headRows)
                 .sheet(template.getSheetName() != null ? template.getSheetName() : "模板")
                 .doWrite(dataRows);

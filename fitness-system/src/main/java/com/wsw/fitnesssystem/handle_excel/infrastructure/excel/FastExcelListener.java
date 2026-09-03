@@ -1,7 +1,7 @@
 package com.wsw.fitnesssystem.handle_excel.infrastructure.excel;
 
-import com.alibaba.excel.context.AnalysisContext;
-import com.alibaba.excel.event.AnalysisEventListener;
+import cn.idev.excel.context.AnalysisContext;
+import cn.idev.excel.event.AnalysisEventListener;
 import com.wsw.fitnesssystem.handle_excel.core.model.RowIndexAware;
 import lombok.extern.slf4j.Slf4j;
 
@@ -16,11 +16,11 @@ import java.util.List;
  * @since 1.0
  */
 @Slf4j
-public class EasyExcelListener<T> extends AnalysisEventListener<T> {
+public class FastExcelListener<T> extends AnalysisEventListener<T> {
 
     private final List<T> list;
 
-    public EasyExcelListener(List<T> list) {
+    public FastExcelListener(List<T> list) {
         this.list = list;
     }
 

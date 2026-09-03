@@ -1,7 +1,7 @@
 package com.wsw.fitnesssystem.handle_excel.application.dto;
 
-import com.alibaba.excel.annotation.ExcelIgnore;
-import com.alibaba.excel.annotation.ExcelProperty;
+import cn.idev.excel.annotation.ExcelIgnore;
+import cn.idev.excel.annotation.ExcelProperty;
 import com.wsw.fitnesssystem.handle_excel.core.model.RowIndexAware;
 import lombok.Data;
 

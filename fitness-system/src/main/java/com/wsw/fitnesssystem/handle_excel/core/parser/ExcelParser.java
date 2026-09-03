@@ -1,11 +1,11 @@
 package com.wsw.fitnesssystem.handle_excel.core.parser;
 
-import com.alibaba.excel.EasyExcel;
-import com.alibaba.excel.context.AnalysisContext;
-import com.alibaba.excel.read.listener.ReadListener;
+import cn.idev.excel.FastExcel;
+import cn.idev.excel.context.AnalysisContext;
+import cn.idev.excel.read.listener.ReadListener;
 import com.wsw.fitnesssystem.handle_excel.core.exception.ExcelException;
 import com.wsw.fitnesssystem.handle_excel.core.exception.ImportCancelledException;
-import com.wsw.fitnesssystem.handle_excel.infrastructure.excel.EasyExcelListener;
+import com.wsw.fitnesssystem.handle_excel.infrastructure.excel.FastExcelListener;
 import com.wsw.fitnesssystem.handle_excel.infrastructure.excel.StreamBatchListener;
 import com.wsw.fitnesssystem.shared.response.ResultCode;
 import lombok.extern.slf4j.Slf4j;
@@ -14,6 +14,7 @@ import org.springframework.stereotype.Component;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 
@@ -45,7 +46,7 @@ public class ExcelParser {
         List<T> list = new ArrayList<>();
 
         try {
-            EasyExcel.read(file, dtoClass, new EasyExcelListener<>(list)).sheet().doRead();
+            FastExcel.read(file, dtoClass, new FastExcelListener<>(list)).sheet().doRead();
         } catch (ImportCancelledException e) {
             // 取消异常直接原样抛出
             throw e;
@@ -77,7 +78,7 @@ public class ExcelParser {
             File file, Class<T> dtoClass, int batchSize, Consumer<List<T>> consumer) {
 
         try {
-            EasyExcel.read(file, dtoClass, new StreamBatchListener<>(consumer, batchSize))
+            FastExcel.read(file, dtoClass, new StreamBatchListener<>(consumer, batchSize))
                 .sheet().doRead();
         } catch (ImportCancelledException e) {
             // 取消异常直接原样抛出，不包装
@@ -101,9 +102,9 @@ public class ExcelParser {
         AtomicInteger count = new AtomicInteger(0);
 
         try {
-            EasyExcel.read(file, new ReadListener<>() {
+            FastExcel.read(file, new ReadListener<Map<Integer, String>>() {
                 @Override
-                public void invoke(Object data, AnalysisContext context) {
+                public void invoke(Map<Integer, String> data, AnalysisContext context) {
                     count.incrementAndGet();
                 }
                 @Override
