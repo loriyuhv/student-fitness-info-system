@@ -2,7 +2,7 @@ package com.wsw.fitnesssystem.auth.authentication.infrastructure.adapter;
 
 import com.wsw.fitnesssystem.auth.authentication.application.dto.port.AuthUserCredential;
 import com.wsw.fitnesssystem.auth.authentication.application.port.AuthUserDataProvider;
-import com.wsw.fitnesssystem.user.application.service.UserAuthQueryService;
+import com.wsw.fitnesssystem.user.application.service.impl.UserAuthQueryService;
 import com.wsw.fitnesssystem.user.application.dto.port.UserAuthData;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

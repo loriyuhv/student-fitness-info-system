@@ -4,7 +4,7 @@ import com.wsw.fitnesssystem.shared.context.RequestContextHolder;
 import com.wsw.fitnesssystem.shared.domain.valueobject.Operator;
 import com.wsw.fitnesssystem.shared.response.ApiResult;
 import com.wsw.fitnesssystem.user.application.dto.result.UserInfoResult;
-import com.wsw.fitnesssystem.user.application.service.UserInfoQueryService;
+import com.wsw.fitnesssystem.user.application.service.impl.UserInfoQueryService;
 import com.wsw.fitnesssystem.user.interfaces.web.dto.UserInfoResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

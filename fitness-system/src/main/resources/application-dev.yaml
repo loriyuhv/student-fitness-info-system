@@ -27,8 +27,8 @@ thread-pool:
     thread-pool-name: "computeExecutor"
     thread-name-prefix: "compute-"
     queue-capacity: 50
-    cpu-factor: 0.25
-    extra-cores: 2
+    cpu-factor: 0.5
+    extra-cores: 4
     await-termination-seconds: 120
   system:
     thread-pool-name: "systemExecutor"

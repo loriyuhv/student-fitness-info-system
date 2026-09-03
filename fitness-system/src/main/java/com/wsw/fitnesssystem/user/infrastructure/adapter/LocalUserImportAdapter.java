@@ -4,7 +4,7 @@ import com.wsw.fitnesssystem.handle_excel.core.model.UserImportData;
 import com.wsw.fitnesssystem.handle_excel.core.model.UserImportResult;
 import com.wsw.fitnesssystem.handle_excel.core.port.UserImportPort;
 import com.wsw.fitnesssystem.shared.exception.BizException;
-import com.wsw.fitnesssystem.user.application.service.UserRegistrationAppService;
+import com.wsw.fitnesssystem.user.application.service.impl.UserRegistrationAppService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;

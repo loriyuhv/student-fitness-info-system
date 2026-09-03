@@ -33,7 +33,7 @@ auth:
     permit-all-patterns:
       - /auth/login
       - /auth/refresh
-    bcrypt-strength: 6
+    bcrypt-strength: 10
   session:
     session-expire: 604800
     max-online-sessions: 3

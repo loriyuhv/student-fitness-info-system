@@ -3,6 +3,7 @@ package com.wsw.fitnesssystem.handle_excel.core.model;
 import com.wsw.fitnesssystem.handle_excel.core.port.UserImportPort;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.Setter;
 import lombok.ToString;
 
 /**
@@ -35,6 +36,7 @@ public class UserImportData {
     private String username;
 
     /** 密码（必填，明文，由 user 模块负责加密） */
+    @Setter
     private String password;
 
     /** 昵称（选填，为空时默认使用 username） */

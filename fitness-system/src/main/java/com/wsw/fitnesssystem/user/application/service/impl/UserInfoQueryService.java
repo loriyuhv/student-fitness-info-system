@@ -1,4 +1,4 @@
-package com.wsw.fitnesssystem.user.application.service;
+package com.wsw.fitnesssystem.user.application.service.impl;
 
 import com.wsw.fitnesssystem.shared.domain.valueobject.Operator;
 import com.wsw.fitnesssystem.shared.exception.BizException;
