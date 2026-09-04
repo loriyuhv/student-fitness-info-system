@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wsw.fitnesssystem.health.infrastructure.persistence.mapper.FitnessBonusRuleMapper">
+
+    <select id="selectBonus" resultType="java.lang.Integer">
+        SELECT bonus_value FROM fitness_bonus_detail
+        WHERE bonus_rule_id = (
+        SELECT bonus_id FROM fitness_bonus_rule
+        WHERE rule_set_id = #{ruleSetId}
+        AND item_code = #{itemCode}
+        AND gender = #{gender}
+        AND status = 1
+        AND deleted = 0
+        )
+        AND (
+        <choose>
+            <when test="isReverse">
+                #{rawValue} &lt;= min_count
+            </when>
+            <otherwise>
+                #{rawValue} &gt;= min_count
+            </otherwise>
+        </choose>
+        )
+        AND status = 1
+        AND deleted = 0
+        ORDER BY bonus_value DESC
+        LIMIT 1
+    </select>
+
+</mapper>

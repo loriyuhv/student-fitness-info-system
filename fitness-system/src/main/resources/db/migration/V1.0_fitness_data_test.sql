@@ -164,8 +164,9 @@ FROM fitness_score_rule
 WHERE rule_set_id = 1
   AND item_code = 'RUN_1000_800'
   AND gender = 1
-  AND 197 > min_value
-  AND 197 <= max_value;
+  AND 197 >= min_value
+  AND 197 < max_value;
+
 
 -- 大一男生 198s(3'18") → 95分
 SELECT '2.6.2 大一男生 1000米跑 198s' AS test_case, score AS expected_95

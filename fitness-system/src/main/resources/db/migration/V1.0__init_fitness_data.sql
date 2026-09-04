@@ -102,7 +102,7 @@ CREATE TABLE fitness_score_level_rule
 
 -- 所有年级、性别通用（官网标准）
 INSERT INTO fitness_score_level_rule (rule_set_id, gender, min_score, max_score, level_code, level_name, status)
-VALUES (1, 0, 90, 100, 'EXCELLENT', '优秀', 1),
+VALUES (1, 0, 90, 121, 'EXCELLENT', '优秀', 1),
        (1, 0, 80, 90, 'GOOD', '良好', 1),
        (1, 0, 60, 80, 'PASS', '及格', 1),
        (1, 0, 0, 60, 'FAIL', '不及格', 1);
