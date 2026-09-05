@@ -258,7 +258,7 @@ public class AuthAppService {
             log.debug("Risk result {}", result);
 
             if (result.locked()) {
-                throw new BizException(ResultCode.AUTH_ACCOUNT_LOCKED);
+                throw new BizException(ResultCode.RISK_ACCOUNT_LOCKED);
             }
 
             throw new BizException(ResultCode.AUTH_USER_LOGIN_ERROR, e);

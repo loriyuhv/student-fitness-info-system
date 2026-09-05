@@ -62,7 +62,7 @@ public class AuthUser {
     public void verifyPassword(String rawPassword, PasswordEncryptor passwordEncryptor) {
         // 1. 检查账号状态
         if (!isEnabled()) {
-            throw new BizException(ResultCode.AUTH_ACCOUNT_DISABLED);
+            throw new BizException(ResultCode.RISK_ACCOUNT_DISABLED);
         }
 
         // 2. 密码比对

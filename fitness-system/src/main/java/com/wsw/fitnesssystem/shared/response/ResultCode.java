@@ -4,19 +4,26 @@ import lombok.Getter;
 import org.springframework.http.HttpStatus;
 
 /**
- * 接口统一返回状态码
- * 规则：
- *  - code：业务状态码（前端识别）
- *  - httpStatus：HTTP 状态
- *  - message：默认提示信息
- * 编码规范：
- *  200xxx  成功
- *  400xxx  参数 / 请求错误
- *  401xxx  认证 / Token
- *  403xxx  权限
- *  404xxx  数据不存在
- *  500xxx  系统错误
- *  600xxx  外部 / 内部接口调用
+ * <p>接口统一返回状态码</p>
+ * <p>规则：</p>
+ * <ul>
+ *     <li>code：业务状态码（前端识别）</li>
+ *     <li>httpStatus：HTTP 状态</li>
+ *     <li>message：默认提示信息</li>
+ * </ul>
+ *
+ *  <p>编码规范（code 前缀 = HTTP 语义大类，第4位为模块标识）：</p>
+ *  <ul>
+ *      <li>200xxx 成功（登录/登出/踢人/解锁等）</li>
+ *      <li>400xxx 参数 / 请求错误 4002xx 会话-请求错误</li>
+ *      <li>401xxx 认证 / Token 4011xx Token / 4012xx 会话认证</li>
+ *      <li>403xxx 权限 / 账号状态   4030xx 权限不足 / 4031xx 风控锁定</li>
+ *      <li>404xxx 数据不存在        4041xx 体测 / 4042xx 会话</li>
+ *      <li>409xxx 业务冲突</li>
+ *      <li>422xxx 业务规则处理失败（体测计分/导入导出）</li>
+ *      <li>500xxx 系统错误</li>
+ *      <li>600xxx 内部 / 外部接口调用</li>
+ *  </ul>
  *
  * @author loriyuhv
  * @version 1.0 2026/1/14 18:12
@@ -25,30 +32,25 @@ import org.springframework.http.HttpStatus;
 @Getter
 public enum ResultCode {
 
-    /* ================= 成功 ================= */
+    /* ================= 成功（仅允许真正的成功语义） ================= */
     SUCCESS(200000, HttpStatus.OK, "操作成功"),
     LOGOUT_SUCCESS(200101, HttpStatus.OK, "用户登出成功"),
     KICKOUT_SUCCESS(200102, HttpStatus.OK, "用户被踢出成功"),
+    ACCOUNT_UNLOCKED(200103, HttpStatus.OK, "账号已解锁"),
 
     /* ===================================================================================== */
     /* ============================ AUTH 模块 xxx001~xxx099        ========================== */
     /* ===================================================================================== */
 
-    AUTH_USER_LOGIN_ERROR(200001, HttpStatus.OK, "账号或密码错误"),
-
     /* ==============================  认证 / 登录 401xxx ============================= */
-
+    // 对外统一"账号或密码错误"，不暴露账号是否存在（防枚举）；细分码仅供审计/日志
     AUTH_ACCOUNT_NOT_EXIST(401001, HttpStatus.UNAUTHORIZED, "认证用户账号不存在"),
     AUTH_PASSWORD_ERROR(401002, HttpStatus.UNAUTHORIZED, "认证用户密码错误"),
     AUTH_USER_NOT_LOGIN(401003, HttpStatus.UNAUTHORIZED, "认证用户未登录"),
     AUTH_CREDENTIAL_INVALID(401004, HttpStatus.UNAUTHORIZED, "认证用户登录凭证无效"),
-    AUTH_CREDENTIAL_EXPIRED(401004, HttpStatus.UNAUTHORIZED, "认证用户登录凭证过期"),
     AUTH_USER_NOT_FOUND(401005, HttpStatus.UNAUTHORIZED, "认证用户不存在"),
-
-    /* ============================== 权限 / 访问控制 403xxx  ============================= */
-
-    AUTH_ACCOUNT_DISABLED(403001, HttpStatus.FORBIDDEN, "认证账号已被禁用"),
-    AUTH_ACCOUNT_LOCKED(403002, HttpStatus.FORBIDDEN, "认证账号已被锁定"),
+    AUTH_CREDENTIAL_EXPIRED(401006, HttpStatus.UNAUTHORIZED, "认证用户登录凭证过期"),
+    AUTH_USER_LOGIN_ERROR(401007, HttpStatus.UNAUTHORIZED, "账号或密码错误"),
 
     /* =========================== 业务冲突 / 状态异常 409xxx  ============================= */
 
@@ -57,8 +59,6 @@ public enum ResultCode {
     /* ===================================================================================== */
     /* ==============================   TOKEN 模块 401101~401199  ========================== */
     /* ===================================================================================== */
-
-    /* ==============================  认证 / 登录 401xxx ============================= */
 
     TOKEN_INVALID(401101, HttpStatus.UNAUTHORIZED, "Token无效"),
     TOKEN_EXPIRED(401102, HttpStatus.UNAUTHORIZED, "Token已过期"),
@@ -73,14 +73,10 @@ public enum ResultCode {
     /* ==============================  SESSION 模块 401201~401299 ========================== */
     /* ===================================================================================== */
 
-    /* ==============================  认证 / 登录 401xxx ============================= */
-
-    SESSION_NOT_FOUND(401201, HttpStatus.NOT_FOUND, "会话不存在"),
-    SESSION_ALREADY_OFFLINE(401202, HttpStatus.BAD_REQUEST, "会话已下线"),
-    SESSION_TOKEN_INVALID(401203, HttpStatus.UNAUTHORIZED, "会话Token无效"),
-    SESSION_MAX_DEVICES_EXCEEDED(401204, HttpStatus.FORBIDDEN, "超过最大登录设备数"),
-    SESSION_LOGOUT_FAILED(401205, HttpStatus.INTERNAL_SERVER_ERROR, "用户登出失败"),
-    SESSION_KICKOUT_FAILED(401206, HttpStatus.INTERNAL_SERVER_ERROR, "用户被踢出失败"),
+    SESSION_ALREADY_OFFLINE(400201, HttpStatus.BAD_REQUEST, "会话已下线"),
+    SESSION_NOT_FOUND(404201, HttpStatus.NOT_FOUND, "会话不存在"),
+    SESSION_TOKEN_INVALID(401201, HttpStatus.UNAUTHORIZED, "会话Token无效"),
+    SESSION_MAX_DEVICES_EXCEEDED(403201, HttpStatus.FORBIDDEN, "超过最大登录设备数"),
 
     /* ===================================================================================== */
     /* ============================== PERM 模块 403001~403099   ============================ */
@@ -97,7 +93,6 @@ public enum ResultCode {
     RISK_ACCOUNT_LOCKED(403101, HttpStatus.FORBIDDEN, "账号已被锁定"),
     RISK_ACCOUNT_DISABLED(403102, HttpStatus.FORBIDDEN, "账号已被禁用"),
     RISK_FAIL_THRESHOLD_EXCEEDED(403103, HttpStatus.FORBIDDEN, "失败次数已达上限"),
-    RISK_ACCOUNT_UNLOCKED(403104, HttpStatus.OK, "账号已解锁"),
     RISK_CHECK_FAILED(403105, HttpStatus.FORBIDDEN, "风控检查不通过"),
 
     /* ===================================================================================== */
@@ -105,7 +100,7 @@ public enum ResultCode {
     /* ===================================================================================== */
 
     USER_NOT_FOUND(404001, HttpStatus.NOT_FOUND, "用户不存在"),
-    USER_ALREADY_EXIST(404002, HttpStatus.CONFLICT, "用户已存在"),
+    USER_ALREADY_EXIST(409003, HttpStatus.CONFLICT, "用户已存在"),
 
     /* ===================================================================================== */
     /* ================================== 参数/请求错误 400xxx =============================== */

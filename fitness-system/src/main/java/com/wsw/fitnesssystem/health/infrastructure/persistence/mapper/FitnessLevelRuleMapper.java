@@ -16,7 +16,7 @@ import java.math.BigDecimal;
 public interface FitnessLevelRuleMapper {
 
     @Select("""
-        SELECT level_code, level_name FROM fitness_score_level_rule
+        SELECT level_code AS code, level_name AS name FROM fitness_score_level_rule
         WHERE rule_set_id = #{ruleSetId}
           AND (gender = #{gender} OR gender = 0)
           AND #{totalScore} >= min_score

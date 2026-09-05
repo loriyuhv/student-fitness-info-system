@@ -14,7 +14,7 @@ import org.apache.ibatis.annotations.Select;
 public interface FitnessWeightLevelMapper {
 
     @Select("""
-            SELECT score, level_code, level_name
+            SELECT score, level_code AS levelCode, level_name AS levelName
             FROM fitness_weight_level_rule
             WHERE gender = #{gender}
               AND #{bmi} >= min_bmi
