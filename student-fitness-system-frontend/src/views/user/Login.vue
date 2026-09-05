@@ -97,7 +97,6 @@
 </template>
 
 <script setup lang="ts">
-import { ElMessage } from 'element-plus'
 import type { FormRules } from 'element-plus'
 import { User, Lock } from '@element-plus/icons-vue'
 import type { LoginForm } from '@/types'

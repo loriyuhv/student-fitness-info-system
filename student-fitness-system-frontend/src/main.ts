@@ -1,7 +1,7 @@
 import { createApp } from 'vue'
 
 import App from './App.vue'
-import 'element-plus/dist/index.css'
+// Element Plus 采用按需引入：组件/API 样式由 unplugin 自动注入，无需全量 CSS
 import '@/assets/styles/main.scss'
 import setupPlugins from '@/plugins'
 

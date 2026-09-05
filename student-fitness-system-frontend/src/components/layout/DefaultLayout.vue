@@ -66,8 +66,8 @@
 </template>
 
 <script setup lang="ts">
-import { ElMessage, ElMessageBox } from 'element-plus'
 import type { BreadcrumbItem } from '@/types'
+import { Monitor, ArrowDown, User, Lock, SwitchButton } from '@element-plus/icons-vue'
 import Breadcrumb from '@/components/common/Breadcrumb.vue'
 import { useUserStore } from '@/store'
 import { logout } from '@/api/auth'

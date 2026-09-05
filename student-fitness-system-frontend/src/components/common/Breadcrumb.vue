@@ -12,6 +12,7 @@
 
 <script setup lang="ts" name="Breadcrumb">
 import type { BreadcrumbItem } from '@/types'
+import { HomeFilled } from '@element-plus/icons-vue'
 
 defineProps<{
   breadcrumb: BreadcrumbItem[]

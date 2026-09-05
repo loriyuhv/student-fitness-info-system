@@ -1,5 +1,4 @@
 import router from '@/router'
-import { ElMessage } from 'element-plus'
 import type { ApiResponse } from '@/types'
 import { clearAuth, getAccessToken, getRefreshToken, setTokens } from '@/utils/auth'
 import { TOKEN_ERROR_CODES, ResultCode } from '@/types/result-code'
