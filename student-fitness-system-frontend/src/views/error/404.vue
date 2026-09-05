@@ -23,10 +23,8 @@
 </template>
 
 <script setup lang="ts">
-import { useRouter } from 'vue-router'
 import { useUserStore } from '@/store'
-import { ElButton, ElIcon } from 'element-plus'
-import { getHomePath } from '@/utils/router-helper.ts'
+import { getHomePath } from '@/utils/router-helper'
 import { CircleClose, ArrowLeft, House } from '@element-plus/icons-vue'
 
 const router = useRouter()

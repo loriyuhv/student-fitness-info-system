@@ -66,6 +66,8 @@ export interface BreadcrumbItem {
 export interface RouteMeta {
   title?: string
   requiresAuth?: boolean
+  requiresGuest?: boolean
+  roles?: Role[]
   permissions?: string[]
   [key: PropertyKey]: unknown
 }
@@ -82,5 +84,5 @@ export type {
   LoginResponse,
 } from './user'
 
-// 状态码相关
-export type { ResultCode, TOKEN_ERROR_CODES } from './result-code'
+// 状态码相关（ResultCode 是 enum、TOKEN_ERROR_CODES 是数组，必须按值导出）
+export { ResultCode, TOKEN_ERROR_CODES } from './result-code'

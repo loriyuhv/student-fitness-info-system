@@ -97,8 +97,6 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import type { FormRules } from 'element-plus'
 import { User, Lock } from '@element-plus/icons-vue'
@@ -184,7 +182,7 @@ async function handleLogin(): Promise<void> {
         await router.replace(homePath)
       }
     } catch (error) {
-      ElMessage.error('登录失败，' + (error as Error).message)
+      ElMessage.error((error as Error).message || '登录失败')
     } finally {
       loading.value = false
     }
@@ -215,10 +213,6 @@ async function copyContactInfo(): Promise<void> {
 
   forgetDialogVisible.value = false
 }
-
-// 初始化
-onMounted(() => {
-})
 </script>
 
 <style lang="scss" scoped>

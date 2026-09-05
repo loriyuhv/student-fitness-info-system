@@ -66,47 +66,34 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
-// import { getUserInfo, clearAuth } from '@/utils/auth'
-import type { UserInfo, BreadcrumbItem } from '@/types'
+import type { BreadcrumbItem } from '@/types'
 import Breadcrumb from '@/components/common/Breadcrumb.vue'
-import { clearAuth } from '@/utils/auth.ts'
+import { useUserStore } from '@/store'
+import { logout } from '@/api/auth'
 
 const route = useRoute()
 const router = useRouter()
 
-// 用户信息
-const userInfo = ref<UserInfo | null>(null)
+// 用户信息从 Pinia 读取（持久化 + 响应式）
+const userStore = useUserStore()
+const { userInfo } = storeToRefs(userStore)
 
 // 是否显示头部（登录页不显示）
-const showHeader = computed(() => {
-  return route.name !== 'Login'
-})
+const showHeader = computed(() => route.name !== 'Login')
 
 // 面包屑数据
 const breadcrumb = ref<BreadcrumbItem[]>([])
-
-/**
- * 加载用户信息
- */
-function loadUserInfo(): void {
-  if (showHeader.value) {
-    // userInfo.value = getUserInfo()
-  }
-}
 
 /**
  * 更新面包屑
  */
 function updateBreadcrumb(): void {
   const matched = route.matched.filter((r) => r.meta && r.meta.title)
-  // breadcrumb.value = matched.slice(1) // 去掉首页
   breadcrumb.value = matched.slice(1).map((item) => ({
     path: item.path,
     meta: {
-      title: (item.meta?.title as string) || '默认标题', // 显式提取 title
+      title: (item.meta?.title as string) || '默认标题',
     },
   }))
 }
@@ -114,7 +101,7 @@ function updateBreadcrumb(): void {
 /**
  * 处理下拉菜单命令
  */
-function handleCommand(command: string): void {
+async function handleCommand(command: string): Promise<void> {
   switch (command) {
     case 'profile':
       ElMessage.info('个人中心功能开发中...')
@@ -123,52 +110,33 @@ function handleCommand(command: string): void {
       ElMessage.info('修改密码功能开发中...')
       break
     case 'logout':
-      handleLogout()
+      await handleLogout()
       break
   }
 }
 
 /**
- * 处理退出登录
+ * 处理退出登录：调后端 + 清除本地凭证 + 跳登录页
  */
-function handleLogout(): void {
-  ElMessageBox.confirm('确定要退出登录吗？', '提示', {
-    confirmButtonText: '确定',
-    cancelButtonText: '取消',
-    type: 'warning',
-    center: true,
-  })
-    .then(() => {
-      // 清除认证信息
-      clearAuth()
-
-      // 显示成功消息
-      ElMessage({
-        message: '退出登录成功',
-        type: 'success',
-        duration: 1000,
-      })
-
-      // 跳转到登录页
-      setTimeout(() => {
-        router.push('/auth/login')
-      }, 500)
+async function handleLogout(): Promise<void> {
+  try {
+    await ElMessageBox.confirm('确定要退出登录吗？', '提示', {
+      confirmButtonText: '确定',
+      cancelButtonText: '取消',
+      type: 'warning',
+      center: true,
     })
-    .catch(() => {
-      // 用户取消
-      ElMessage.info('已取消退出')
-    })
+  } catch {
+    return // 用户取消
+  }
+
+  await logout()
+  ElMessage.success('退出登录成功')
+  await router.replace('/auth/login')
 }
 
-// 监听路由变化
-watch(
-  () => route.path,
-  () => {
-    updateBreadcrumb()
-    loadUserInfo()
-  },
-  { immediate: true },
-)
+// 监听路由变化，刷新面包屑
+watch(() => route.path, () => updateBreadcrumb(), { immediate: true })
 </script>
 
 <style lang="scss" scoped>

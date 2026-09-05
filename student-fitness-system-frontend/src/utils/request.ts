@@ -1,68 +1,144 @@
 import router from '@/router'
 import { ElMessage } from 'element-plus'
 import type { ApiResponse } from '@/types'
-import { clearAuth, getAuthHeader } from '@/utils/auth.ts'
+import { clearAuth, getAccessToken, getRefreshToken, setTokens } from '@/utils/auth'
 import { TOKEN_ERROR_CODES, ResultCode } from '@/types/result-code'
-import axios, { type AxiosError, type AxiosResponse, type AxiosRequestConfig } from 'axios'
+import axios, { AxiosError, type AxiosRequestConfig, type InternalAxiosRequestConfig } from 'axios'
 
 /* ==================== 配置 ==================== */
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api'
 
-/* 1. 创建 axios 实例 */
+/** 业务错误（非全局拦截错误），由调用方决定是否提示 */
+export class ApiError extends Error {
+  readonly bizCode: number
+  constructor(bizCode: number, message: string) {
+    super(message)
+    this.name = 'ApiError'
+    this.bizCode = bizCode
+  }
+}
+
 const axiosInstance = axios.create({
   baseURL: API_BASE_URL,
-  timeout: 5000,
+  timeout: 10000,
   headers: {
     'Content-Type': 'application/json;charset=utf-8',
   },
 })
 
-const handleAuthFailure = async (redirect = true) => {
-  clearAuth()
-  const path = redirect
-    ? `/auth/login?redirect=${encodeURIComponent(window.location.pathname + window.location.search)}`
-    : '/auth/login'
-  await router.push(path)
+/** 标记重放请求，避免无限刷新循环 */
+interface RetryableConfig extends InternalAxiosRequestConfig {
+  _retry?: boolean
 }
 
-/* 2. 请求拦截器：添加 Token */
-axiosInstance.interceptors.request.use(
-  (config) => {
-    const authValue = getAuthHeader()
-    if (authValue) {
-      config.headers.Authorization = authValue
-    }
-    return config
-  },
-  (error: AxiosError) => Promise.reject(error),
-)
+/* ==================== Token 静默刷新（single-flight） ==================== */
+let refreshPromise: Promise<string | null> | null = null
 
-/* 3. 响应拦截器：只处理全局跳转类错误 */
+function refreshAccessToken(): Promise<string | null> {
+  const refreshToken = getRefreshToken()
+  if (!refreshToken) return Promise.resolve(null)
+
+  if (!refreshPromise) {
+    refreshPromise = (async () => {
+      try {
+        // 用裸 axios 绕过本实例拦截器，避免刷新请求再次触发 401 造成死循环
+        const { data } = await axios.post<
+          ApiResponse<{ access_token: string; refresh_token: string; expires_in: number }>
+        >(`${API_BASE_URL}/auth/refresh`, { refreshToken }, { timeout: 10000 })
+
+        const payload = data?.data
+        if (data?.bizCode === ResultCode.SUCCESS && payload?.access_token) {
+          setTokens(payload.access_token, payload.refresh_token)
+          return payload.access_token
+        }
+        return null
+      } catch {
+        return null
+      } finally {
+        refreshPromise = null
+      }
+    })()
+  }
+  return refreshPromise
+}
+
+function isTokenError(code: number): boolean {
+  return TOKEN_ERROR_CODES.includes(code)
+}
+
+/** 凭证彻底失效：清空本地状态并跳登录页 */
+async function redirectToLogin(): Promise<never> {
+  clearAuth()
+  const redirect = encodeURIComponent(window.location.pathname + window.location.search)
+  await router.replace(`/auth/login?redirect=${redirect}`)
+  return Promise.reject(new Error('登录状态已失效'))
+}
+
+/* ==================== 请求拦截器：注入 Token ==================== */
+axiosInstance.interceptors.request.use((config) => {
+  const token = getAccessToken()
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`
+  }
+  return config
+})
+
+/* ==================== 响应拦截器 ==================== */
 axiosInstance.interceptors.response.use(
-  async (response: AxiosResponse<ApiResponse<unknown>>) => {
-    const res = response.data
+  // 成功分支：处理 bizCode 层面的 token 失效 / 无权限
+  async (response) => {
+    const res = response.data as ApiResponse<unknown>
+    const config = response.config as RetryableConfig
 
-    // Token 失效：强制跳转登录页
-    if (TOKEN_ERROR_CODES.includes(res.bizCode)) {
+    // 1. Token 失效：尝试静默刷新后重放原请求（仅重试一次）
+    if (isTokenError(res.bizCode)) {
+      if (!config._retry) {
+        const newToken = await refreshAccessToken()
+        if (newToken) {
+          config._retry = true
+          config.headers.Authorization = `Bearer ${newToken}`
+          return axiosInstance(config)
+        }
+      }
       ElMessage.error('登录状态已失效，请重新登录')
-      await handleAuthFailure()
-      return Promise.reject(new Error(res.message || '登录已过期'))
+      return redirectToLogin()
     }
 
-    // 权限不足：跳转 401 页面
-    if (res.bizCode === ResultCode.AUTH_CREDENTIAL_INVALID) {
-      ElMessage.error('您没有权限访问此资源')
-      await router.push('/401')
-      return Promise.reject(new Error(res.message || '无访问权限'))
+    // 2. 无权限：跳转 403 页
+    if (res.bizCode === ResultCode.PERMISSION_DENIED) {
+      await router.replace('/403')
+      return Promise.reject(new ApiError(res.bizCode, res.message || '无访问权限'))
     }
 
-    // 其他错误（包括业务失败）返回原始 response，由 httpRequest 处理
+    // 其他业务错误交由 httpRequest 统一抛 ApiError
     return response
   },
-  // HTTP 层错误（网络、超时、网关等）
-  async (error: AxiosError): Promise<never> => {
-    console.error('HTTP 响应错误:', error)
+  // 失败分支：HTTP 层错误
+  async (error: AxiosError) => {
+    const config = error.config as RetryableConfig | undefined
 
+    // 1. HTTP 401：同样尝试刷新重放
+    if (error.response?.status === 401) {
+      if (config && !config._retry) {
+        const newToken = await refreshAccessToken()
+        if (newToken) {
+          config._retry = true
+          config.headers.Authorization = `Bearer ${newToken}`
+          return axiosInstance(config)
+        }
+      }
+      ElMessage.error('认证失败，请重新登录')
+      return redirectToLogin()
+    }
+
+    // 2. HTTP 403
+    if (error.response?.status === 403) {
+      ElMessage.error('访问被拒绝')
+      await router.replace('/403')
+      return Promise.reject(error)
+    }
+
+    // 3. 其他网络 / 服务端错误
     if (error.code === 'ECONNABORTED') {
       ElMessage.error('请求超时，请稍后重试')
     } else if (!error.response) {
@@ -72,13 +148,6 @@ axiosInstance.interceptors.response.use(
       switch (status) {
         case 400:
           ElMessage.error('参数错误')
-          break
-        case 401:
-          ElMessage.error('认证失败，请重新登录')
-          await handleAuthFailure()
-          break
-        case 403:
-          ElMessage.error('访问被拒绝')
           break
         case 404:
           ElMessage.error('请求的资源不存在')
@@ -98,21 +167,18 @@ axiosInstance.interceptors.response.use(
   },
 )
 
-/* 4. 类型安全的泛型方法 */
+/* ==================== 类型安全泛型方法 ==================== */
 export async function httpRequest<T>(config: AxiosRequestConfig): Promise<T> {
-  return axiosInstance<ApiResponse<T>>(config).then((response) => {
-    const apiRes = response.data // ApiResponse<T>
+  const response = await axiosInstance<ApiResponse<T>>(config)
+  const res = response.data
 
-    // 检查业务状态码（拦截器已处理 Token/权限错误）
-    if (apiRes.bizCode !== ResultCode.SUCCESS) {
-      ElMessage.error(apiRes.message || '请求失败')
-      return Promise.reject(new Error(apiRes.message || 'Error'))
-    }
+  if (res.bizCode !== ResultCode.SUCCESS) {
+    // 业务错误：不在此处弹提示，抛给调用方处理（避免双重弹窗）
+    throw new ApiError(res.bizCode, res.message || '请求失败')
+  }
 
-    // 成功，返回类型安全的业务数据
-    return apiRes.data
-  })
+  return res.data
 }
 
-/* 5. 保持向后兼容 */
+/* ==================== 保持向后兼容 ==================== */
 export default axiosInstance

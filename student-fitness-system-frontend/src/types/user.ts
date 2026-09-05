@@ -1,36 +1,59 @@
 // types/user.ts
 import type { UserType } from '@/types/index'
 
-/* 表单请求类型设计 */
-// 登录表单类型
+/* ==================== 表单请求类型 ==================== */
+
 export interface LoginForm {
-  username: string // 用户账户
-  password: string // 用户密码
-  deviceType: string // 设备类型
-  deviceId?: string // 设备ID
-  rememberMe?: boolean // 记住密码（可选）
-  captcha?: string // 验证码（可选）
-  imgCode?: string // 图形验证码（可选）
+  username: string
+  password: string
+  deviceType: string
+  deviceId?: string
+  rememberMe?: boolean
+  captcha?: string
+  imgCode?: string
 }
 
-/* 用户信息类型设计 */
-// 基础用户信息（登录后返回的最小集合）
+/* ==================== 前端内部类型（统一 camelCase） ==================== */
+
+/** 用户信息（前端内部统一 camelCase） */
 export interface UserInfo {
-  userId: number // 用户ID
-  campusId: number // 学校ID
-  username: number | string // 用户账户
-  nickname: string // 用户昵称
-  userType: UserType // 用户类型
-  phoneNumber?: string // 手机号
-  email?: string // 邮箱
-  remark?: string // 备注
-  permissions: string[] // 权限列表
+  userId: number
+  campusId: number
+  username: string
+  nickname: string
+  userType: UserType
+  phoneNumber?: string
+  email?: string
+  remark?: string
+  avatar?: string
+  permissions: string[]
 }
 
-/* 用户登录响应类型设计 */
-// 登录响应数据
+/** 登录响应（前端内部统一 camelCase） */
 export interface LoginResponse {
-  access_token: string // JWT令牌
-  refresh_token: string // 刷新令牌
-  expires_in: number // 过期时间（秒）
+  accessToken: string
+  refreshToken: string
+  expiresIn: number
+}
+
+/* ==================== 后端蛇形原始响应（仅供 API 适配层使用） ==================== */
+
+/** 后端 /user/info 原始返回（snake_case） */
+export interface UserInfoRaw {
+  user_id: number
+  campus_id: number
+  username: string
+  nickname: string
+  user_type: number
+  phone_number?: string
+  email?: string
+  remark?: string
+  permissions: string[]
+}
+
+/** 后端 /auth/login 原始返回（snake_case） */
+export interface LoginResponseRaw {
+  access_token: string
+  refresh_token: string
+  expires_in: number
 }

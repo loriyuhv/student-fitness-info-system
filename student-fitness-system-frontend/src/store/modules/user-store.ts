@@ -20,4 +20,6 @@ export const useUserStore = defineStore('user', () => {
   })
 
   return { userInfo, setUserInfo, clearUserInfo, hasUserInfo }
+}, {
+  persist: true, // 持久化用户信息，刷新后可直接用于首页路由判断
 })

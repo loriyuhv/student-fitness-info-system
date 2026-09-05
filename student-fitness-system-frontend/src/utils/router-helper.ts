@@ -1,17 +1,12 @@
+// utils/router-helper.ts
 import type { UserInfo } from '@/types'
+import { UserType } from '@/types'
 
-export function getHomePath(userInfo: UserInfo | null) {
-  if (!userInfo) {
-    return '/auth/login'
-  }
-
-  if (userInfo.permissions.includes('fitness:record:view')) {
-    return '/fitness-record/dashboard'
-  }
-
-  if (userInfo.permissions.includes('fitness:record:self:view')) {
-    return '/student/center'
-  }
-
-  return '/401'
+/**
+ * 根据用户类型返回首页路径
+ * 学生 → 个人体测中心；管理员 / 教师 → 体测信息管理页
+ */
+export function getHomePath(userInfo: UserInfo | null): string {
+  if (!userInfo) return '/auth/login'
+  return userInfo.userType === UserType.STUDENT ? '/student/center' : '/fitness-record/dashboard'
 }

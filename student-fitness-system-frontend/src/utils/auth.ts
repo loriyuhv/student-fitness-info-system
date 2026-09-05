@@ -1,120 +1,108 @@
 // utils/auth.ts
-// 负责：认证业务流程
+// 负责：认证业务流程（登录凭证、用户信息加载、登出）
 
 import authApi from '@/api/auth'
 import type { LoginForm, UserInfo } from '@/types/user'
 import { useUserStore, useTokenStore } from '@/store'
 
-// 正在执行的用户信息请求
+// 正在执行的用户信息请求（single-flight）
 let userInfoPromise: null | Promise<UserInfo> = null
 
-export function loadUserInfo(force = false) {
+/**
+ * 加载用户信息（带缓存 + 单飞去重）
+ */
+export function loadUserInfo(force = false): Promise<UserInfo> {
   const userStore = useUserStore()
 
-  // 1. 已经存在用户信息，不需要重复请求
+  // 1. 已有用户信息，直接复用
   if (!force && userStore.hasUserInfo) {
-    return Promise.resolve(userStore.userInfo)
+    return Promise.resolve(userStore.userInfo as UserInfo)
   }
 
-  // 2. 如果已经有人正在请求
+  // 2. 已有在途请求，复用
   if (userInfoPromise) {
     return userInfoPromise
   }
 
-  // 3. 第一次请求
+  // 3. 首次请求
   userInfoPromise = authApi
     .getUserInfo()
     .then((res) => {
-      // 保存用户信息
       userStore.setUserInfo(res)
       return res
     })
     .finally(() => {
-      // 请求结束以后释放
       userInfoPromise = null
     })
   return userInfoPromise
 }
 
-/**
- * 判断是否存在登录凭证
- */
-export function hasToken() {
-  const tokenStore = useTokenStore()
-  return !!tokenStore.accessToken
+/* ==================== 凭证读取 ==================== */
+
+export function hasToken(): boolean {
+  return !!useTokenStore().accessToken
 }
 
-/**
- * 获取accessToken
- */
-export function getAccessToken() {
-  const tokenStore = useTokenStore()
-  return tokenStore.accessToken
+export function getAccessToken(): string {
+  return useTokenStore().accessToken
 }
 
-/**
- * 清除登录信息
- */
-export function clearAuth() {
-  const tokenStore = useTokenStore()
-  const userStore = useUserStore()
-
-  // 清token
-  tokenStore.clearTokens()
-  // 清用户信息
-  userStore.clearUserInfo()
+export function getRefreshToken(): string {
+  return useTokenStore().refreshToken
 }
 
-/**
- * 判断用户是否认证
- */
-export async function checkAuth() {
-  const tokenStore = useTokenStore()
-  if (!tokenStore.accessToken) {
-    return false
-  }
+export function setTokens(access: string, refresh: string): void {
+  useTokenStore().setTokens(access, refresh)
+}
+
+/* ==================== 登出 / 清空 ==================== */
+
+export function clearAuth(): void {
+  useTokenStore().clearTokens()
+  useUserStore().clearUserInfo()
+  // 丢弃可能残留的在途请求，避免旧请求回填脏数据
+  userInfoPromise = null
+}
+
+/* ==================== 认证判断 ==================== */
+
+export async function checkAuth(): Promise<boolean> {
+  if (!hasToken()) return false
   try {
     await loadUserInfo()
     return true
   } catch (e) {
-    console.error('认证失败！！！', e)
+    console.error('认证失败：', e)
     clearAuth()
     return false
   }
 }
 
-/**
- * 用户登录
- * @param loginForm
- */
-export async function login(loginForm: LoginForm) {
-  const tokenStore = useTokenStore()
-  userInfoPromise = null // 强制丢弃可能进行中的旧请求
+/* ==================== 登录 ==================== */
+
+export async function login(loginForm: LoginForm): Promise<void> {
+  userInfoPromise = null // 丢弃可能进行中的旧请求
+
   const res = await authApi.login(loginForm)
 
-  if (!res.access_token || !res.refresh_token) {
+  if (!res.accessToken || !res.refreshToken) {
     throw new Error('登录凭证不存在')
   }
 
-  // 保存token
   try {
-    tokenStore.setTokens(res.access_token, res.refresh_token)
+    setTokens(res.accessToken, res.refreshToken)
     await loadUserInfo()
-    return res
   } catch (e) {
     // 加载用户信息失败时回滚，避免半登录状态
     clearAuth()
-    userInfoPromise = null // 同时重置 userInfoPromise，避免残留
     const msg = e instanceof Error ? e.message : String(e)
     throw new Error(`登录成功但获取用户信息失败，请重试: ${msg}`)
   }
 }
 
-/**
- * 获取 Authorization 请求头完整值 Bearer token
- */
-export function getAuthHeader() {
+/* ==================== 请求头 ==================== */
+
+export function getAuthHeader(): string | null {
   const token = getAccessToken()
-  if (!token) return null
-  return `Bearer ${token}`
+  return token ? `Bearer ${token}` : null
 }
