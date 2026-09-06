@@ -16,9 +16,14 @@ src/main/resources/db/migration/
 │   ├── V1.0.03__init_user_schema.sql   	# user_profile, class_info, teacher...
 │   └── V1.0.04__init_user_data.sql     	# 初始化班级、测试教师学生（可选）
 │
+├── handle_excel/                        	# Excel导入导出模块
+│   ├── V1.0.07__init_excel_template_config_schema.sql   	# 导入Excel模板
+│   └── V1.0.08_init_excel_template_config_data.sql     	# 初始化模板
+│
 └── fitness/                         			# 体测业务模块
     ├── V1.0.05__init_fitness_schema.sql
     └── V1.0.06__init_fitness_data.sql
+    
     
 ```
 
