@@ -2,12 +2,16 @@
 // 全局类型定义
 // ============================================
 
-// 用户角色
+// 用户角色 用于路由配置和类型约束
 export enum Role {
   ADMIN = 'ADMIN',
   STUDENT = 'STUDENT',
   TEACHER = 'TEACHER',
 }
+
+
+// 用户角色类型别名，用于守卫中的类型声明
+export type RoleString = `${Role}` // 等同于 'ADMIN' | 'TEACHER' | 'STUDENT'
 
 // 用户身份
 export enum UserType {

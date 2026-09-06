@@ -1,5 +1,5 @@
 // types/user.ts
-import type { UserType } from '@/types/index'
+import { type RoleString, type UserType } from '@/types/index'
 
 /* ==================== 表单请求类型 ==================== */
 
@@ -26,6 +26,7 @@ export interface UserInfo {
   email?: string
   remark?: string
   avatar?: string
+  roles: RoleString[]
   permissions: string[]
 }
 
@@ -48,6 +49,7 @@ export interface UserInfoRaw {
   phone_number?: string
   email?: string
   remark?: string
+  roles: RoleString[]
   permissions: string[]
 }
 

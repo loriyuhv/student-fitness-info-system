@@ -32,6 +32,7 @@ function mapUserInfo(raw: UserInfoRaw): UserInfo {
     phoneNumber: raw.phone_number,
     email: raw.email,
     remark: raw.remark,
+    roles: raw.roles ?? [],
     permissions: raw.permissions ?? [],
   }
 }

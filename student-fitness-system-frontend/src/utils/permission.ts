@@ -1,44 +1,46 @@
 // utils/permission.ts
-import type { UserInfo } from '@/types'
-import { Role, UserType } from '@/types'
+import { Role, type UserInfo } from '@/types'
 
 /**
- * 由用户类型（后端 userType：0-管理员 1-教师 2-学生）推导角色集合。
- * 后端当前只返回 userType，不返回角色码，因此这里做一次映射。
+ * 安全的角色判断（默认拒绝）
+ *
+ * @param userInfo 用户信息
+ * @param roles 路由要求的角色列表（undefined=公开，[]=无角色可访问，['ADMIN']=需要特定角色）
+ * @returns boolean true=有权限，false=无权限
  */
-export function getRoles(userInfo: UserInfo | null): Role[] {
-  if (!userInfo) return []
-  switch (userInfo.userType) {
-    case UserType.ADMIN:
-      return [Role.ADMIN]
-    case UserType.TEACHER:
-      return [Role.TEACHER]
-    case UserType.STUDENT:
-      return [Role.STUDENT]
-    default:
-      return []
-  }
+export function hasRole(userInfo: UserInfo | null, roles: Role[] | undefined): boolean {
+  // 1. 未配置角色（undefined），视为公开页面，放行
+  if (roles === undefined || roles === null) return true
+
+  // 2. 配置了空数组（[]），表示“任何角色都不允许”，拦截（安全底线）
+  if (roles.length === 0) return false
+
+  // 3. 用户没有角色信息，拦截
+  if (!userInfo?.roles || userInfo.roles.length === 0) return false
+
+  // 4. 检查用户角色是否命中任一要求
+  return roles.some(r => userInfo.roles.includes(r))
 }
 
 /**
- * 角色判断：roles 为空视为不限制；命中任一角色即通过。
- */
-export function hasRole(userInfo: UserInfo | null, roles: Role[]): boolean {
-  if (!roles || roles.length === 0) return true
-  const userRoles = getRoles(userInfo)
-  return roles.some((r) => userRoles.includes(r))
-}
-
-/**
- * 权限判断：permissions 为空视为不限制。
+ * 安全的权限判断（默认拒绝）
+ *
+ * @param userInfo 用户信息
+ * @param permissions 路由要求的权限列表（undefined=公开，[]=无权限访问，['xx']=需要权限）
  * @param mode OR：命中任一；AND：必须全部命中
  */
 export function hasPermission(
   userInfo: UserInfo | null,
-  permissions: string[],
+  permissions: string[] | undefined,
   mode: 'AND' | 'OR' = 'OR',
 ): boolean {
-  if (!permissions || permissions.length === 0) return true
+  // 1. 如果未配置权限字段（undefined），视为公开页面，直接放行
+  if (permissions === undefined || permissions === null) return true
+
+  // 2. 如果配置了空数组（[]），表示“无权限可见”，直接拦截（安全底线）
+  if (permissions.length === 0) return false
+
+  // 3. 检查用户是否有权限
   if (!userInfo?.permissions) return false
 
   return mode === 'AND'

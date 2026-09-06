@@ -17,8 +17,10 @@ import { getHomePath } from '@/utils/router-helper'
 import { createRouter, createWebHistory, type RouteRecordRaw } from 'vue-router'
 
 // 常量统一权限编码，杜绝字符写错
+// 注意：学生、教师、管理员共用 'fitness:record:view' 权限，
+// 但通过角色绑定的 data_scope 字段控制数据可见范围
 const PERM = {
-  STUDENT_CENTER: 'fitness:record:self:view',
+  STUDENT_CENTER: 'fitness:record:view',
   MANAGE_PAGE: 'fitness:record:view',
 }
 
