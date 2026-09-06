@@ -1,4 +1,4 @@
--- 参考：https://fdty.fudan.edu.cn/b0/31/c29222a307249/page.htm
+-- 业务记录表建表：
 
 -- 体测记录主表：某学生的一次体测
 DROP TABLE IF EXISTS student_fitness_record;
@@ -40,19 +40,6 @@ CREATE TABLE student_fitness_record
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8mb4 COMMENT ='学生体测记录表';
 
--- 项目-性别适用表：男测什么、女测什么
-DROP TABLE IF EXISTS fitness_item_gender;
-CREATE TABLE fitness_item_gender
-(
-    id          BIGINT PRIMARY KEY AUTO_INCREMENT COMMENT 'ID',
-    item_id     BIGINT           NOT NULL COMMENT '体测项目ID',
-    gender      TINYINT UNSIGNED NOT NULL COMMENT '性别：1-男 2-女',
-    deleted     TINYINT  DEFAULT 0 COMMENT '逻辑删除',
-    create_time DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-    update_time DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
-    UNIQUE KEY uk_item_gender (item_id, gender, deleted)
-) ENGINE = InnoDB
-  DEFAULT CHARSET = utf8mb4 COMMENT ='体测项目性别适用表';
 
 -- 体测项目明细表：这次体测，具体每个项目的值
 DROP TABLE IF EXISTS student_fitness_record_item;
@@ -70,45 +57,7 @@ CREATE TABLE student_fitness_record_item
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8mb4 COMMENT ='体测记录项目明细表';
 
--- K 值规则表
-DROP TABLE IF EXISTS fitness_k_rule;
-CREATE TABLE fitness_k_rule
-(
-    k_value            TINYINT     NOT NULL COMMENT 'K值（聚类编号）',
-    model_id           BIGINT      NOT NULL COMMENT '模型ID（逻辑外键）',
 
-    physique_type      VARCHAR(20) NOT NULL COMMENT '体质类型',
-    sport_prescription VARCHAR(50) NOT NULL COMMENT '运动处方',
-
-    description        VARCHAR(200) COMMENT '规则说明',
-
-    status             TINYINT  DEFAULT 1 COMMENT '状态：0-停用 1-启用',
-    deleted            TINYINT  DEFAULT 0 COMMENT '逻辑删除',
-    create_time        DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-    update_time        DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
-
-    PRIMARY KEY (model_id, k_value)
-) ENGINE = InnoDB
-  DEFAULT CHARSET = utf8mb4 COMMENT ='K值-体质规则表';
-
--- 聚类模型表
-DROP TABLE IF EXISTS fitness_cluster_model;
-CREATE TABLE fitness_cluster_model
-(
-    model_id        BIGINT PRIMARY KEY AUTO_INCREMENT,
-    gender          TINYINT NOT NULL COMMENT '性别：1-男 2-女',
-    grade_group     TINYINT NOT NULL COMMENT '年级分组：1-低年级 2-高年级',
-
-    feature_desc    VARCHAR(200) COMMENT '特征说明',
-    cluster_count   TINYINT NOT NULL,
-
-    scaler_params   JSON COMMENT '标准化参数',
-    cluster_centers JSON COMMENT '簇中心',
-
-    status          TINYINT  DEFAULT 1,
-    create_time     DATETIME DEFAULT CURRENT_TIMESTAMP
-) ENGINE = InnoDB
-  DEFAULT CHARSET = utf8mb4 COMMENT ='体质聚类模型表';
 
 -- 学生体测汇总表
 DROP TABLE IF EXISTS student_fitness_summary;

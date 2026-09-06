@@ -1,54 +1,9 @@
--- 2. 规则集（年级分组）
-/*复旦标准的关键特征：
-1）按年级分：大一和大二、大三和大四
-2）按性别分：男、女
-3）按项目分：7 个项目
-4）分段计分：每个项目有多个分数段（如肺活量：100分、95分、90分……）
- */
--- 评分规则集表
-DROP TABLE IF EXISTS fitness_score_rule_set;
-CREATE TABLE fitness_score_rule_set
-(
-    rule_set_id   BIGINT PRIMARY KEY AUTO_INCREMENT COMMENT '评分规则集ID',
-    rule_set_code VARCHAR(50)  NOT NULL COMMENT '规则集编码',
-    rule_set_name VARCHAR(100) NOT NULL COMMENT '规则集名称',
-    grade_min     TINYINT      NOT NULL COMMENT '最小年级',
-    grade_max     TINYINT      NOT NULL COMMENT '最大年级',
-    status        TINYINT DEFAULT 1 COMMENT '状态：0-停用 1-启用',
-    deleted       TINYINT DEFAULT 0 COMMENT '逻辑删除',
-    UNIQUE KEY uk_rule_set_code (rule_set_code, deleted)
-) ENGINE = InnoDB
-  DEFAULT CHARSET = utf8mb4 COMMENT ='体测评分规则集表';
+-- ============================================================
+-- 规则参考：https://fdty.fudan.edu.cn/b0/31/c29222a307249/page.htm
+-- 规则配置表初始化数据：
+-- ============================================================
 
--- 年级分组：大一大二（合并）、大三大四（合并）
-INSERT INTO fitness_score_rule_set (rule_set_id, rule_set_code, rule_set_name, grade_min, grade_max, status)
-VALUES (1, 'FRESHMAN_SOPHOMORE', '大一大二标准', 1, 2, 1),
-       (2, 'JUNIOR_SENIOR', '大三大四标准', 3, 4, 1);
-
--- 3. 评分规则（按年级/性别分）
-
--- 体测评分规则表
-DROP TABLE IF EXISTS fitness_score_rule;
-CREATE TABLE fitness_score_rule
-(
-    rule_id     BIGINT PRIMARY KEY AUTO_INCREMENT COMMENT '评分规则ID',
-    rule_set_id BIGINT           NOT NULL COMMENT '评分规则集ID（逻辑外键：fitness_score_rule_set.rule_set_id）',
-    item_id     BIGINT           NOT NULL COMMENT '体测项目ID（逻辑外键：fitness_item.item_id）',
-    item_code   VARCHAR(50)      NOT NULL COMMENT '项目编码',
-    gender      TINYINT UNSIGNED NOT NULL COMMENT '性别：1-男 2-女',
-    min_value   DECIMAL(10, 2) COMMENT '最小值（含）',
-    max_value   DECIMAL(10, 2) COMMENT '最大值（不含）',
-    score       DECIMAL(5, 2)    NOT NULL COMMENT '该区间对应得分',
-    status      TINYINT  DEFAULT 1 COMMENT '状态：0-停用 1-启用',
-    deleted     TINYINT  DEFAULT 0 COMMENT '逻辑删除',
-    sort_order  INT      DEFAULT 0 COMMENT '规则排序',
-    create_time DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-    update_time DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
-    UNIQUE KEY uk_rule_set_item_gender_range (rule_set_id, item_code, gender, min_value, max_value),
-    KEY idx_rule_lookup (rule_set_id, item_code, gender)
-) ENGINE = InnoDB
-  DEFAULT CHARSET = utf8mb4 COMMENT ='体测评分规则表';
-
+-- 一、体测评分规则表初始化数据
 -- ============================================================
 -- 规则集：大一大二 (rule_set_id = 1)
 -- ============================================================
@@ -625,40 +580,6 @@ VALUES (2, 7, 'RUN_1000_800', 2, 0, 197, 100, 1),
        (2, 7, 'RUN_1000_800', 2, 353, 373, 10, 1),
        (2, 7, 'RUN_1000_800', 2, 373, 999999, 0, 1);
 
--- ============================================================
--- 加分规则（fitness_bonus_rule）
--- ============================================================
-
--- 体测加分评分规则表
-DROP TABLE IF EXISTS fitness_bonus_rule;
-CREATE TABLE fitness_bonus_rule
-(
-    bonus_id    BIGINT PRIMARY KEY AUTO_INCREMENT,
-    rule_set_id BIGINT           NOT NULL,
-    item_code   VARCHAR(50)      NOT NULL,
-    gender      TINYINT UNSIGNED NOT NULL,
-    status      TINYINT  DEFAULT 1,
-    deleted     TINYINT  DEFAULT 0,
-    create_time DATETIME DEFAULT CURRENT_TIMESTAMP,
-    update_time DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    UNIQUE KEY uk_bonus_rule (rule_set_id, item_code, gender, deleted)
-);
-
--- 体测加分明细表
-DROP TABLE IF EXISTS fitness_bonus_detail;
-CREATE TABLE fitness_bonus_detail
-(
-    detail_id     BIGINT PRIMARY KEY AUTO_INCREMENT,
-    bonus_rule_id BIGINT  NOT NULL COMMENT '关联 fitness_bonus_rule.bonus_id',
-    bonus_value   TINYINT NOT NULL COMMENT '加分数值 1-10',
-    min_count     INT     NOT NULL COMMENT '达到此次数/成绩获得对应加分',
-    status        TINYINT  DEFAULT 1,
-    deleted       TINYINT  DEFAULT 0,
-    create_time   DATETIME DEFAULT CURRENT_TIMESTAMP,
-    update_time   DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    UNIQUE KEY uk_rule_bonus (bonus_rule_id, bonus_value, deleted)
-) ENGINE = InnoDB
-  DEFAULT CHARSET = utf8mb4 COMMENT ='体测加分明细表';
 
 -- ============================================================
 -- 1. 插入加分规则主表
@@ -791,3 +712,35 @@ VALUES (8, 1, 191, 1), -- 3'11"
        (8, 8, 156, 1), -- 2'36"
        (8, 9, 151, 1), -- 2'31"
        (8, 10, 146, 1); -- 2'26"
+
+-- ============================================================
+-- 3. BMI 等级标准 初始化数据
+-- ============================================================
+
+-- 男生 BMI（来自复旦官网）
+INSERT INTO fitness_weight_level_rule (rule_set_id, gender, min_bmi, max_bmi, level_code, level_name, score, status)
+VALUES (1, 1, 17.9, 23.9, 'NORMAL', '正常', 100, 1),
+       (1, 1, 15.9, 17.9, 'LOW', '低体重', 80, 1),
+       (1, 1, 23.9, 27.9, 'OVERWEIGHT', '超重', 80, 1),
+       (1, 1, 10, 15.9, 'UNDERWEIGHT', '体重过低', 60, 1),
+       (1, 1, 27.9, 50, 'OBESE', '肥胖', 60, 1);
+
+-- 女生 BMI
+INSERT INTO fitness_weight_level_rule (rule_set_id, gender, min_bmi, max_bmi, level_code, level_name, score, status)
+VALUES (1, 2, 17.2, 23.9, 'NORMAL', '正常', 100, 1),
+       (1, 2, 15.7, 17.2, 'LOW', '低体重', 80, 1),
+       (1, 2, 23.9, 27.9, 'OVERWEIGHT', '超重', 80, 1),
+       (1, 2, 10, 15.7, 'UNDERWEIGHT', '体重过低', 60, 1),
+       (1, 2, 27.9, 50, 'OBESE', '肥胖', 60, 1);
+
+-- ============================================================
+-- 4. 等级评定标准（总分 → 等级） 初始化数据
+-- ============================================================
+
+-- 所有年级、性别通用（官网标准）
+INSERT INTO fitness_score_level_rule (rule_set_id, gender, min_score, max_score, level_code, level_name, status)
+VALUES (1, 0, 90, 121, 'EXCELLENT', '优秀', 1),
+       (1, 0, 80, 90, 'GOOD', '良好', 1),
+       (1, 0, 60, 80, 'PASS', '及格', 1),
+       (1, 0, 0, 60, 'FAIL', '不及格', 1);
+
