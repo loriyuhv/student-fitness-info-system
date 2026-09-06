@@ -8,5 +8,5 @@ import { UserType } from '@/types'
  */
 export function getHomePath(userInfo: UserInfo | null): string {
   if (!userInfo) return '/auth/login'
-  return userInfo.userType === UserType.STUDENT ? '/student/center' : '/fitness-record/dashboard'
+  return userInfo.userType === UserType.STUDENT ? '/student/dashboard' : '/fitness-record/dashboard'
 }

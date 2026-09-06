@@ -10,7 +10,7 @@
   </el-breadcrumb>
 </template>
 
-<script setup lang="ts" name="Breadcrumb">
+<script setup lang="ts">
 import type { BreadcrumbItem } from '@/types'
 import { HomeFilled } from '@element-plus/icons-vue'
 

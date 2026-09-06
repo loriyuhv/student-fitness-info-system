@@ -48,3 +48,17 @@ export type {
 
 // 状态码相关（ResultCode 是 enum、TOKEN_ERROR_CODES 是数组，必须按值导出）
 export { ResultCode, TOKEN_ERROR_CODES } from './result-code'
+
+// 学生端（C 端）相关
+export type {
+  StudentInfo,
+  TestRecord,
+  TestDetail,
+  TestLevel,
+  StudentDashboard,
+  DashboardIndicators,
+  FitnessItemScore,
+  DiagnosisSummary,
+  HealthRisk,
+  DiagnosisReport,
+} from './student'

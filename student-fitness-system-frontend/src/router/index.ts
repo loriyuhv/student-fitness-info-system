@@ -48,21 +48,42 @@ const routes: RouteRecordRaw[] = [
       },
     ],
   },
-  // 学生端路由
+  // 学生端路由（只读 C 端）
   {
     path: '/student',
     component: DefaultLayout,
-    meta: { requiresAuth: true } as RouteMeta,
+    // 学生端整组：需登录 + 仅 STUDENT 角色 + 本人数据查看权限
+    meta: {
+      requiresAuth: true,
+      roles: [Role.STUDENT],
+      permissions: [PERM.STUDENT_CENTER],
+    } as RouteMeta,
     children: [
+      // /student → 默认跳仪表盘
+      { path: '', redirect: { name: 'StudentDashboard' } },
       {
-        path: 'center',
-        name: 'StudentCenter',
+        path: 'dashboard',
+        name: 'StudentDashboard',
         component: () => import('@/views/student/Dashboard.vue'),
-        meta: {
-          title: '学生体测信息个人详情',
-          roles: [Role.STUDENT],
-          permissions: [PERM.STUDENT_CENTER],
-        } as RouteMeta,
+        meta: { title: '我的体测中心' } as RouteMeta,
+      },
+      {
+        path: 'history',
+        name: 'StudentHistory',
+        component: () => import('@/views/student/HistoryList.vue'),
+        meta: { title: '体测历史记录' } as RouteMeta,
+      },
+      {
+        path: 'history/:id',
+        name: 'StudentHistoryDetail',
+        component: () => import('@/views/student/HistoryDetail.vue'),
+        meta: { title: '体测详情' } as RouteMeta,
+      },
+      {
+        path: 'diagnosis',
+        name: 'StudentDiagnosis',
+        component: () => import('@/views/student/DiagnosisReport.vue'),
+        meta: { title: '诊断报告与运动处方' } as RouteMeta,
       },
     ],
   },
