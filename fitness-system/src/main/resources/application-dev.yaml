@@ -4,18 +4,31 @@ spring:
     driver-class-name: com.mysql.cj.jdbc.Driver
     url: jdbc:mysql://127.0.0.1:3306/student_fitness_info_db?rewriteBatchedStatements=true
     username: root
-    password: "0420"
+    password: ${DB_PASSWORD}
   data:
     redis:
       host: 127.0.0.1
       port: 6379
-      password: "0420"
+      password: ${REDIS_PASSWORD}
       lettuce:
         pool:
           max-active: 16
           max-idle: 8
           min-idle: 5
           max-wait: 2000ms
+  servlet:
+    multipart:
+      max-file-size: 100MB
+      max-request-size: 100MB
+mybatis-plus:
+  configuration:
+    map-underscore-to-camel-case: true
+    call-setters-on-nulls: true
+  global-config:
+    db-config:
+      id-type: auto
+      logic-delete-value: 1
+      logic-not-delete-value: 0
 thread-pool:
   business:
     thread-pool-name: "businessExecutor"
@@ -36,3 +49,25 @@ thread-pool:
     core-pool-size: 2
     max-pool-size: 4
     queue-capacity: 500
+auth:
+  jwt:
+    access-secret: ${JWT_ACCESS_SECRET}
+    refresh-secret: ${JWT_REFRESH_SECRET}
+    min-length: 32
+    expire: 900
+    refresh-expire: 604800
+    issuer: "student-fitness"
+    audience: "web-client"
+  security:
+    permit-all-patterns:
+      - /auth/login
+      - /auth/refresh
+    bcrypt-strength: 10
+  session:
+    session-expire: 604800
+    max-online-sessions: 3
+    blacklist-expire: 900
+  risk:
+    max-fail-count: 3
+    lock-duration-seconds: 900
+    count-window-seconds: 900

@@ -7,38 +7,3 @@ spring:
     name: "fitness-system"
   profiles:
     active: dev
-  servlet:
-    multipart:
-      max-file-size: 100MB
-      max-request-size: 100MB
-mybatis-plus:
-  configuration:
-    map-underscore-to-camel-case: true
-    call-setters-on-nulls: true
-  global-config:
-    db-config:
-      id-type: auto
-      logic-delete-value: 1
-      logic-not-delete-value: 0
-auth:
-  jwt:
-    access-secret: "84hQeGado6JIMKBNDJudeQuogatipj9xluip2moqvp3qLozvz043hDDTWcSuF8Fn"
-    refresh-secret: "2ySXSQB9puHMYGOmMnykDH4fscjo7NIqNIpiG2SUWcxlvAfLv6WiCUWv590JeuE2"
-    min-length: 32
-    expire: 900
-    refresh-expire: 604800
-    issuer: "student-fitness"
-    audience: "web-client"
-  security:
-    permit-all-patterns:
-      - /auth/login
-      - /auth/refresh
-    bcrypt-strength: 10
-  session:
-    session-expire: 604800
-    max-online-sessions: 3
-    blacklist-expire: 900
-  risk:
-    max-fail-count: 3
-    lock-duration-seconds: 900
-    count-window-seconds: 900

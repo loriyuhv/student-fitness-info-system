@@ -111,4 +111,8 @@ buildNumber.properties
 # JDT-specific (Eclipse Java Development Tools)
 .classpath
 
+# 本地私有配置，不提交版本库
+**/application-local.yml
+**/application-local.yaml
+
 # End of https://www.toptal.com/developers/gitignore/api/java,maven,intellij
