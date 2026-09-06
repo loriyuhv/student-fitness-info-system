@@ -8,7 +8,7 @@ import com.wsw.fitnesssystem.auth.authentication.application.dto.result.RefreshR
 import com.wsw.fitnesssystem.auth.authentication.interfaces.web.dto.response.LoginResponse;
 import com.wsw.fitnesssystem.auth.authentication.interfaces.web.dto.request.RefreshRequest;
 import com.wsw.fitnesssystem.auth.authentication.interfaces.web.dto.response.RefreshResponse;
-import com.wsw.fitnesssystem.auth.shared.utils.WebUtils;
+import com.wsw.fitnesssystem.shared.util.WebUtils;
 import com.wsw.fitnesssystem.shared.context.RequestContextHolder;
 import com.wsw.fitnesssystem.shared.domain.valueobject.Operator;
 import com.wsw.fitnesssystem.shared.response.ApiResult;

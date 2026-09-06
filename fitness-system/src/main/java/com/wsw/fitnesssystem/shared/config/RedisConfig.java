@@ -1,4 +1,4 @@
-package com.wsw.fitnesssystem.auth.shared.config;
+package com.wsw.fitnesssystem.shared.config;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.ObjectMapper;

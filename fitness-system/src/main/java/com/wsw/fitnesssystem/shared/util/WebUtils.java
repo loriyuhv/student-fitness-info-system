@@ -1,4 +1,4 @@
-package com.wsw.fitnesssystem.auth.shared.utils;
+package com.wsw.fitnesssystem.shared.util;
 
 import jakarta.servlet.http.HttpServletRequest;
 

@@ -6,7 +6,7 @@ import com.wsw.fitnesssystem.auth.risk.domain.valueobject.AccountIdentifier;
 import com.wsw.fitnesssystem.auth.risk.domain.valueobject.AccountLock;
 import com.wsw.fitnesssystem.auth.risk.domain.valueobject.RiskFailResult;
 import com.wsw.fitnesssystem.auth.risk.domain.valueobject.RiskPolicy;
-import com.wsw.fitnesssystem.auth.shared.infrastructure.redis.AuthRedisKeys;
+import com.wsw.fitnesssystem.shared.config.properties.AuthRedisKeys;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.script.DefaultRedisScript;

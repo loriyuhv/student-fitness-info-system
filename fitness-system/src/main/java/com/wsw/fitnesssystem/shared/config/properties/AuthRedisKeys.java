@@ -1,4 +1,4 @@
-package com.wsw.fitnesssystem.auth.shared.infrastructure.redis;
+package com.wsw.fitnesssystem.shared.config.properties;
 
 /**
  * 认证授权Redis Key规范
