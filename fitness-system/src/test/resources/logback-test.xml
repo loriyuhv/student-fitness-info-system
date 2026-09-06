@@ -14,7 +14,7 @@
     <logger name="com.wsw.fitnesssystem" level="DEBUG"/>
 
     <!-- MyBatis Mapper SQL 打印（测试时很有用） -->
-    <logger name="com.wsw.fitnesssystem.auth.audit.infrastructure.persistence.db.mapper" level="DEBUG"/>
+    <logger name="com.wsw.fitnesssystem.iam.audit.infrastructure.persistence.db.mapper" level="DEBUG"/>
 
     <!-- Testcontainers 日志调低 -->
     <logger name="org.testcontainers" level="WARN"/>

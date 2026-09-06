@@ -23,7 +23,7 @@
         <logger name="com.wsw.fitnesssystem" level="INFO"/>
 
         <!-- auth 上下文 mapper -->
-        <logger name="com.wsw.fitnesssystem.auth.infrastructure.persistence.db.mapper"
+        <logger name="com.wsw.fitnesssystem.iam.infrastructure.persistence.db.mapper"
                 level="INFO" additivity="false">
                 <!-- level="DEBUG" additivity="false"> -->
             <appender-ref ref="CONSOLE"/>
