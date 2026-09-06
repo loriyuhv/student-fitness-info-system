@@ -9,10 +9,10 @@ import com.wsw.fitnesssystem.handle_excel.core.model.UserImportResult;
 import com.wsw.fitnesssystem.handle_excel.core.port.UserImportPort;
 import com.wsw.fitnesssystem.handle_excel.domain.enums.ExcelBizTypeEnum;
 import com.wsw.fitnesssystem.handle_excel.infrastructure.config.ExcelConstants;
+import com.wsw.fitnesssystem.shared.util.ValidationUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.validator.routines.EmailValidator;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -143,8 +143,8 @@ public class UserImportAdapter implements ImportAdapter<UserExcelDTO, UserImport
             String email = Objects.toString(dto.getEmail(), "").trim().toLowerCase();
             dto.setEmail(email);
 
-            boolean isEmail = EmailValidator.getInstance().isValid(email);
-            if (!email.isEmpty() && !isEmail) {
+            boolean isEmail = ValidationUtils.isEmail(email);
+            if (!isEmail) {
                 collector.addError(
                     rowIndex,
                     buildRowData(dto),

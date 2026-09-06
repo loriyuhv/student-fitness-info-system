@@ -22,7 +22,7 @@
         <!-- 业务包开启DEBUG：自己代码log.debug()可以输出 -->
         <logger name="com.wsw.fitnesssystem" level="INFO"/>
 
-        <!-- auth 上下文 mapper -->
+        <!-- iam 上下文 mapper -->
         <logger name="com.wsw.fitnesssystem.iam.infrastructure.persistence.db.mapper"
                 level="INFO" additivity="false">
                 <!-- level="DEBUG" additivity="false"> -->
