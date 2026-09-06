@@ -166,8 +166,6 @@ VALUES
  '删除体测记录（通常保留不删，仅在数据严重错误时由管理员操作），建议使用逻辑删除或状态标记替代物理删除'),
 ('fitness:record:export', '导出体测记录',
  '将体测数据导出为 Excel 或 PDF 格式，支持按班级/年级/项目范围导出，用于归档、打印或向上级报送纸质报告'),
-('fitness:record:self:view', '学生查看本人体测记录',
- '学生专用权限：仅可查看自己的体测记录，配合 data_scope=1（仅本人）实现强制数据隔离，不可查看或操作他人数据'),
 
 -- 2.2 体测汇总分析（fitness:summary:*）
 --    功能：提供体测数据的统计分析能力，支持多维度汇总与可视化展示
@@ -357,7 +355,6 @@ INSERT INTO sys_role_permission (role_id, perm_id)
 SELECT r.role_id, p.perm_id
 FROM sys_role r
 JOIN sys_permission p ON p.perm_code IN (
-    'fitness:record:self:view',   -- 学生专用：仅查看本人体测记录
     'fitness:record:view',        -- 配合 data_scope=1，仅返回本人数据
     'fitness:summary:view'        -- 配合 data_scope=1，仅返回本人的汇总分析
 )

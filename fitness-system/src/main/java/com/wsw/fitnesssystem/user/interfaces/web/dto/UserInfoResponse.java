@@ -31,16 +31,20 @@ public class UserInfoResponse {
     private Long campusId;
 
     private String username;
+
     private String nickname;
 
     @JsonProperty("phone_number")
     private String phoneNumber;
 
     private String email;
+
     private String remark;
 
     @JsonProperty("user_type")
     private Integer userType;
+
+    private Set<String> roles;
 
     private Set<String> permissions;
 

@@ -56,6 +56,7 @@ public class UserController {
             .email(result.getEmail())
             .remark(result.getRemark())
             .userType(result.getUserType())
+            .roles(result.getRoles())
             .permissions(result.getPermissions())
             .build();
 

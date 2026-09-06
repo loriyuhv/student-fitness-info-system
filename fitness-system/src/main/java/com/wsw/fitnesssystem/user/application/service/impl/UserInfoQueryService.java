@@ -59,6 +59,7 @@ public class UserInfoQueryService {
             .email(user.getEmail())
             .remark(user.getRemark())
             .userType(user.getUserType().getCode())
+            .roles(authorizations.roles())
             .permissions(authorizations.permissions())
             .build();
     }

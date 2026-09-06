@@ -33,6 +33,7 @@ public class UserInfoResult {
     private String remark;
     /** 0-管理员, 1-教师, 2-学生 */
     private Integer userType;
+    private Set<String> roles;
     private Set<String> permissions;
 
 }
