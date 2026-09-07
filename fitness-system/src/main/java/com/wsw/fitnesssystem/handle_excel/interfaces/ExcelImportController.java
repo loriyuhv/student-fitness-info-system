@@ -3,7 +3,7 @@ package com.wsw.fitnesssystem.handle_excel.interfaces;
 import com.wsw.fitnesssystem.handle_excel.application.ExcelImportAppService;
 import com.wsw.fitnesssystem.handle_excel.application.ExcelImportProgressQueryAppService;
 import com.wsw.fitnesssystem.handle_excel.application.ImportTemplateAppService;
-import com.wsw.fitnesssystem.handle_excel.core.port.ImportProgressPort;
+import com.wsw.fitnesssystem.handle_excel.domain.repository.ImportTaskRepository;
 import com.wsw.fitnesssystem.handle_excel.domain.enums.ExcelBizTypeEnum;
 import com.wsw.fitnesssystem.handle_excel.domain.enums.ImportStatus;
 import com.wsw.fitnesssystem.handle_excel.interfaces.dto.ImportProgressDTO;
@@ -37,7 +37,7 @@ import java.util.List;
 @RequestMapping("/excel")
 public class ExcelImportController {
 
-    private final ImportProgressPort importProgressPort;
+    private final ImportTaskRepository importTaskRepository;
     private final ExcelImportAppService importAppService;
     private final ImportTemplateAppService importTemplateAppService;
     private final ExcelImportProgressQueryAppService importProgressQueryAppService;
@@ -93,7 +93,7 @@ public class ExcelImportController {
     @GetMapping("/import/errors/download")
     @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER')")
     public void downloadErrorFile(@RequestParam String taskId, HttpServletResponse response) {
-        String filePath = importProgressPort.getErrorFilePath(taskId);
+        String filePath = importTaskRepository.getErrorFilePath(taskId);
         if (filePath == null) {
             throw new BizException(ResultCode.FILE_NOT_FOUND, "暂无错误文件");
         }
@@ -122,7 +122,7 @@ public class ExcelImportController {
     @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER')")
     public ApiResult<String> cancelImport(@RequestParam String taskId) {
         // 1. 检查任务是否存在
-        ImportProgressDTO progress = importProgressPort.getProgress(taskId);
+        ImportProgressDTO progress = importTaskRepository.getProgress(taskId);
         if (progress.getStatus() == null || progress.getStatus() == ImportStatus.NOT_FOUND) {
             throw new BizException(ResultCode.IMPORT_TASK_NOT_FOUND, "Task not found: " + taskId);
         }
@@ -134,7 +134,7 @@ public class ExcelImportController {
         }
 
         // 3. 请求取消
-        importProgressPort.requestCancel(taskId);
+        importTaskRepository.requestCancel(taskId);
         log.info("User requested cancellation for task: {}", taskId);
 
         return ApiResult.success("Cancellation request submitted");

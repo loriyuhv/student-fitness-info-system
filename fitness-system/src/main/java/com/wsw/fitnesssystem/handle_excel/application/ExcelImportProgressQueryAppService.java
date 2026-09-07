@@ -1,7 +1,7 @@
 package com.wsw.fitnesssystem.handle_excel.application;
 
-import com.wsw.fitnesssystem.handle_excel.core.adapter.BusinessAdapterFactory;
-import com.wsw.fitnesssystem.handle_excel.core.port.ImportProgressPort;
+import com.wsw.fitnesssystem.handle_excel.application.plugin.ImportPluginRegistry;
+import com.wsw.fitnesssystem.handle_excel.domain.repository.ImportTaskRepository;
 import com.wsw.fitnesssystem.handle_excel.interfaces.dto.ImportProgressDTO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -20,8 +20,8 @@ import java.util.List;
 @RequiredArgsConstructor
 public class ExcelImportProgressQueryAppService {
 
-    private final BusinessAdapterFactory adapterFactory;
-    private final ImportProgressPort importProgressPort;
+    private final ImportPluginRegistry adapterFactory;
+    private final ImportTaskRepository importTaskRepository;
 
     /**
      * 查询Excel文件导入任务进度
@@ -29,7 +29,7 @@ public class ExcelImportProgressQueryAppService {
      * @return 导入进度状态DTO
      */
     public ImportProgressDTO getProgress(String taskId) {
-        return importProgressPort.getProgress(taskId);
+        return importTaskRepository.getProgress(taskId);
     }
 
     /**

@@ -1,8 +1,8 @@
 package com.wsw.fitnesssystem.handle_excel.application;
 
 import cn.idev.excel.FastExcel;
-import com.wsw.fitnesssystem.handle_excel.core.model.ImportTemplate;
-import com.wsw.fitnesssystem.handle_excel.core.port.ImportTemplatePort;
+import com.wsw.fitnesssystem.handle_excel.domain.model.ImportTemplate;
+import com.wsw.fitnesssystem.handle_excel.application.port.output.TemplateConfigPort;
 import com.wsw.fitnesssystem.shared.exception.BizException;
 import com.wsw.fitnesssystem.shared.response.ResultCode;
 import jakarta.servlet.http.HttpServletResponse;
@@ -28,7 +28,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class ImportTemplateAppService {
 
-    private final ImportTemplatePort importTemplatePort;
+    private final TemplateConfigPort templateConfigPort;
 
     /**
      * 下载 Excel 导入模板
@@ -38,12 +38,12 @@ public class ImportTemplateAppService {
      */
     public void downloadTemplate(String bizType, HttpServletResponse response) {
         // 1. 校验类型
-        boolean templateSupported = importTemplatePort.isTemplateSupported(bizType);
+        boolean templateSupported = templateConfigPort.isTemplateSupported(bizType);
         if (!templateSupported) {
             throw new BizException(ResultCode.PARAM_TYPE_ERROR, "模板不支持此类型");
         }
         // 2. 获取模板配置
-        ImportTemplate template = importTemplatePort.getTemplate(bizType);
+        ImportTemplate template = templateConfigPort.getTemplate(bizType);
 
         // 3. 兜底校验（虽然 Port 层已经校验，但双重保障）
         if (!template.isValid()) {

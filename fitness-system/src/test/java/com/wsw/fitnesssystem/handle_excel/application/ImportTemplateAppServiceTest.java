@@ -1,7 +1,7 @@
 package com.wsw.fitnesssystem.handle_excel.application;
 
-import com.wsw.fitnesssystem.handle_excel.core.model.ImportTemplate;
-import com.wsw.fitnesssystem.handle_excel.core.port.ImportTemplatePort;
+import com.wsw.fitnesssystem.handle_excel.domain.model.ImportTemplate;
+import com.wsw.fitnesssystem.handle_excel.application.port.output.TemplateConfigPort;
 import com.wsw.fitnesssystem.shared.exception.BizException;
 import com.wsw.fitnesssystem.shared.response.ResultCode;
 import jakarta.servlet.ServletOutputStream;
@@ -29,7 +29,7 @@ import static org.mockito.Mockito.*;
 class ImportTemplateAppServiceTest {
 
     @Mock
-    private ImportTemplatePort importTemplatePort;
+    private TemplateConfigPort templateConfigPort;
 
     @Mock
     private HttpServletResponse response;
@@ -43,8 +43,8 @@ class ImportTemplateAppServiceTest {
         // Given
         String bizType = "USER_IMPORT";
         ImportTemplate template = createValidTemplate();
-        when(importTemplatePort.isTemplateSupported(bizType)).thenReturn(true);
-        when(importTemplatePort.getTemplate(bizType)).thenReturn(template);
+        when(templateConfigPort.isTemplateSupported(bizType)).thenReturn(true);
+        when(templateConfigPort.getTemplate(bizType)).thenReturn(template);
 
         ServletOutputStream outputStream = mock(ServletOutputStream.class);
         when(response.getOutputStream()).thenReturn(outputStream);
@@ -53,8 +53,8 @@ class ImportTemplateAppServiceTest {
         service.downloadTemplate(bizType, response);
 
         // Then
-        verify(importTemplatePort, times(1)).isTemplateSupported(bizType);
-        verify(importTemplatePort, times(1)).getTemplate(bizType);
+        verify(templateConfigPort, times(1)).isTemplateSupported(bizType);
+        verify(templateConfigPort, times(1)).getTemplate(bizType);
         verify(response, times(1)).setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
         verify(response, times(1)).setHeader(anyString(), anyString());
     }
@@ -64,7 +64,7 @@ class ImportTemplateAppServiceTest {
     void shouldThrowException_whenTemplateNotSupported() {
         // Given
         String bizType = "NOT_SUPPORTED";
-        when(importTemplatePort.isTemplateSupported(bizType)).thenReturn(false);
+        when(templateConfigPort.isTemplateSupported(bizType)).thenReturn(false);
 
         // When & Then
         assertThatThrownBy(() -> service.downloadTemplate(bizType, response))
@@ -72,7 +72,7 @@ class ImportTemplateAppServiceTest {
             .extracting("resultCode")
             .isEqualTo(ResultCode.PARAM_TYPE_ERROR);
 
-        verify(importTemplatePort, never()).getTemplate(anyString());
+        verify(templateConfigPort, never()).getTemplate(anyString());
     }
 
     @Test
@@ -85,8 +85,8 @@ class ImportTemplateAppServiceTest {
         invalidTemplate.setRules(List.of("必填", "必填"));
         invalidTemplate.setFileName("test.xlsx");
 
-        when(importTemplatePort.isTemplateSupported(bizType)).thenReturn(true);
-        when(importTemplatePort.getTemplate(bizType)).thenReturn(invalidTemplate);
+        when(templateConfigPort.isTemplateSupported(bizType)).thenReturn(true);
+        when(templateConfigPort.getTemplate(bizType)).thenReturn(invalidTemplate);
 
         // When & Then
         assertThatThrownBy(() -> service.downloadTemplate(bizType, response))
@@ -94,7 +94,7 @@ class ImportTemplateAppServiceTest {
             .extracting("resultCode")
             .isEqualTo(ResultCode.SYSTEM_ERROR);
 
-        verify(importTemplatePort, times(1)).getTemplate(bizType);
+        verify(templateConfigPort, times(1)).getTemplate(bizType);
     }
 
     @Test
@@ -103,8 +103,8 @@ class ImportTemplateAppServiceTest {
         // Given
         String bizType = "USER_IMPORT";
         ImportTemplate template = createValidTemplate();
-        when(importTemplatePort.isTemplateSupported(bizType)).thenReturn(true);
-        when(importTemplatePort.getTemplate(bizType)).thenReturn(template);
+        when(templateConfigPort.isTemplateSupported(bizType)).thenReturn(true);
+        when(templateConfigPort.getTemplate(bizType)).thenReturn(template);
         when(response.getOutputStream()).thenThrow(new IOException("IO error"));
 
         // When & Then
@@ -113,8 +113,8 @@ class ImportTemplateAppServiceTest {
             .extracting("resultCode")
             .isEqualTo(ResultCode.FILE_DOWNLOAD_ERROR);
 
-        verify(importTemplatePort, times(1)).isTemplateSupported(bizType);
-        verify(importTemplatePort, times(1)).getTemplate(bizType);
+        verify(templateConfigPort, times(1)).isTemplateSupported(bizType);
+        verify(templateConfigPort, times(1)).getTemplate(bizType);
     }
 
     private ImportTemplate createValidTemplate() {

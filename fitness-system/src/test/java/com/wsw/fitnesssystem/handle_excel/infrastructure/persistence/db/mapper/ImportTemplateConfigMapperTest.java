@@ -1,7 +1,6 @@
 package com.wsw.fitnesssystem.handle_excel.infrastructure.persistence.db.mapper;
 
-import com.wsw.fitnesssystem.handle_excel.infrastructure.persistence.entity.ImportTemplateConfigEntity;
-import com.wsw.fitnesssystem.handle_excel.infrastructure.persistence.mapper.ImportTemplateConfigMapper;
+import com.wsw.fitnesssystem.handle_excel.infrastructure.persistence.db.entity.ImportTemplateConfigEntity;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

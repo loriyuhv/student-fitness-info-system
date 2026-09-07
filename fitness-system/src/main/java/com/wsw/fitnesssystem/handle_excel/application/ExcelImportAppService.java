@@ -1,11 +1,11 @@
 package com.wsw.fitnesssystem.handle_excel.application;
 
-import com.wsw.fitnesssystem.handle_excel.core.adapter.BusinessAdapterFactory;
-import com.wsw.fitnesssystem.handle_excel.core.adapter.ImportAdapter;
-import com.wsw.fitnesssystem.handle_excel.core.executor.ImportTaskExecutor;
-import com.wsw.fitnesssystem.handle_excel.core.port.ImportFileLockPort;
-import com.wsw.fitnesssystem.handle_excel.core.port.ImportRateLimitPort;
-import com.wsw.fitnesssystem.handle_excel.core.utils.FileCleanupUtils;
+import com.wsw.fitnesssystem.handle_excel.application.plugin.ImportPluginRegistry;
+import com.wsw.fitnesssystem.handle_excel.application.plugin.ImportPlugin;
+import com.wsw.fitnesssystem.handle_excel.application.scheduler.AsyncImportScheduler;
+import com.wsw.fitnesssystem.handle_excel.application.port.output.DistributedLockPort;
+import com.wsw.fitnesssystem.handle_excel.application.port.output.RateLimiterPort;
+import com.wsw.fitnesssystem.handle_excel.infrastructure.util.FileCleanupUtils;
 import com.wsw.fitnesssystem.handle_excel.domain.enums.ExcelBizTypeEnum;
 import com.wsw.fitnesssystem.handle_excel.infrastructure.config.ExcelConstants;
 import com.wsw.fitnesssystem.shared.exception.BizException;
@@ -35,10 +35,10 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class ExcelImportAppService {
 
-    private final BusinessAdapterFactory adapterFactory;
-    private final ImportTaskExecutor taskExecutor;
-    private final ImportRateLimitPort importRateLimitPort;
-    private final ImportFileLockPort importFileLockPort;
+    private final ImportPluginRegistry pluginRegistry;
+    private final AsyncImportScheduler taskExecutor;
+    private final RateLimiterPort rateLimiterPort;
+    private final DistributedLockPort distributedLockPort;
 
     /**
      * 统一导入入口
@@ -53,10 +53,10 @@ public class ExcelImportAppService {
         validateFile(file);
 
         // 2. 用户频率限制
-        importRateLimitPort.checkRateLimit(userId);
+        rateLimiterPort.checkRateLimit(userId);
 
         // 3. 校验 bizType 并获取适配器（提前校验，避免转存后才发现类型错误）
-        ImportAdapter<?, ?> adapter = adapterFactory.getImportAdapter(bizTypeEnum.getCode());
+        ImportPlugin<?, ?> adapter = pluginRegistry.getImportPlugin(bizTypeEnum.getCode());
 
         // 4. 转存临时文件（同步线程完成，解决 MultipartFile InputStream 异步关闭问题）
         String taskId = UUID.randomUUID().toString();
@@ -64,7 +64,7 @@ public class ExcelImportAppService {
 
         // 5. 计算文件 MD5 并防重检查
         String md5 = computeFileMd5(tempFile);
-        boolean locked = importFileLockPort.tryLock(md5, taskId);
+        boolean locked = distributedLockPort.tryLock(md5, taskId);
         if (!locked) {
             // 防重失败：清理已转存的临时文件，避免磁盘泄漏
             FileCleanupUtils.cleanup(tempFile);

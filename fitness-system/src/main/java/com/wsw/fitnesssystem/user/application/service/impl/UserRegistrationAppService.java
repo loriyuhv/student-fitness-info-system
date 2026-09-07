@@ -1,7 +1,7 @@
 package com.wsw.fitnesssystem.user.application.service.impl;
 
-import com.wsw.fitnesssystem.handle_excel.core.model.UserImportData;
-import com.wsw.fitnesssystem.handle_excel.core.model.UserImportResult;
+import com.wsw.fitnesssystem.handle_excel.application.plugin.UserImportData;
+import com.wsw.fitnesssystem.handle_excel.application.plugin.UserImportResult;
 import com.wsw.fitnesssystem.user.application.service.UserRegisterService;
 import com.wsw.fitnesssystem.user.domain.port.*;
 import lombok.extern.slf4j.Slf4j;
