@@ -17,7 +17,7 @@ public class ValidationUtils {
     );
 
     /** 手机号正则（中国大陆） */
-    private static final Pattern PHONE_PATTERN = Pattern.compile("^1[3-9]\\\\d{9}$");
+    private static final Pattern PHONE_PATTERN = Pattern.compile("^1[3-9]\\d{9}$");
 
     private ValidationUtils() {
     }
