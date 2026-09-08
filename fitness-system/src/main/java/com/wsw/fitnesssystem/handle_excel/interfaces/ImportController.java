@@ -14,9 +14,11 @@ import com.wsw.fitnesssystem.shared.exception.BizException;
 import com.wsw.fitnesssystem.shared.response.ApiResult;
 import com.wsw.fitnesssystem.shared.response.ResultCode;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.validation.constraints.NotBlank;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -35,6 +37,7 @@ import java.util.List;
  * @since 1.0
  */
 @Slf4j
+@Validated
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/import")
@@ -57,8 +60,8 @@ public class ImportController {
     @PostMapping("/submit")
     @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER')")
     public ApiResult<String> importExcel(
-            @RequestParam String bizType,
-            @RequestParam("file") MultipartFile file
+            @RequestParam @NotBlank(message = "业务类型不能为空") String bizType,
+            @RequestParam MultipartFile file
     ) {
         // 字符串转枚举，非法参数直接抛出异常
         ImportBizType bizTypeEnum = ImportBizType.getByCode(bizType);

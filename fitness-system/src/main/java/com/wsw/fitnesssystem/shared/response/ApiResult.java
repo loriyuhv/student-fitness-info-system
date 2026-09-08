@@ -4,7 +4,30 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
- * 接口统一返回对象
+ * 统一 API 响应对象。
+ * <p>
+ * <b>设计目标：</b>
+ * <ul>
+ *   <li>统一前后端交互协议，所有接口返回相同结构</li>
+ *   <li>区分 HTTP 状态码（传输层）与业务状态码（应用层）</li>
+ *   <li>包含时间戳，便于问题追踪与性能分析</li>
+ * </ul>
+ * <p>
+ * <b>字段说明：</b>
+ * <ul>
+ *   <li>{@code httpCode}：HTTP 状态码（200/400/401/403/500），用于网关/浏览器</li>
+ *   <li>{@code bizCode}：业务状态码（来自 {@link ResultCode}），供前端识别具体错误类型</li>
+ *   <li>{@code message}：面向用户的提示信息</li>
+ *   <li>{@code data}：业务数据（成功时返回）</li>
+ *   <li>{@code timestamp}：响应生成时间（毫秒时间戳）</li>
+ * </ul>
+ * <p>
+ * <b>使用方式：</b>
+ * <ul>
+ *   <li>成功响应：使用 {@link #success()} 或 {@link #success(Object)}</li>
+ *   <li>失败响应：使用 {@link #error(ResultCode)} 或 {@link #error(ResultCode, String)}</li>
+ *   <li>不建议直接实例化，统一使用静态工厂方法</li>
+ * </ul>
  *
  * @author loriyuhv
  * @version 1.0 2026/1/14 18:10
@@ -13,6 +36,7 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 public class ApiResult<T> {
+
     /** HTTP 状态码 */
     private Integer httpCode;
 
@@ -103,4 +127,5 @@ public class ApiResult<T> {
                 System.currentTimeMillis()
         );
     }
+
 }
