@@ -86,35 +86,28 @@ public class ImportOrchestrator {
      *
      * @param taskId 任务唯一标识，用于进度追踪与日志串联
      * @param file 已转存到磁盘的临时 Excel 文件（非 MultipartFile，避免 InputStream 异步关闭）
-     * @param adapter 业务适配器，封装了具体业务的校验/转换/持久化逻辑
+     * @param plugin 业务适配器，封装了具体业务的校验/转换/持久化逻辑
      * @param <T> Excel 解析对应的 DTO 类型
      * @param <E> 持久化对应的 Entity 类型
      */
-    public <T, E> void execute(String taskId, File file, ImportPlugin<T, E> adapter) {
+    public <T, E> void execute(String taskId, File file, ImportPlugin<T, E> plugin) {
 
         try {
             // ========== Step 1: 预估行数，决策解析模式 ==========
             int estimatedRows = excelFileReader.estimatedRowCount(file);
-            int batchSize = adapter.getBatchSize();
+            int batchSize = plugin.getBatchSize();
             if (estimatedRows < ImportConfig.STREAM_THRESHOLD) {
                 // 小文件：全量解析，代码简单，内存 = O(total)
                 log.info("[{}] Estimated {} rows, using full processing mode", taskId, estimatedRows);
-                doExecuteFull(taskId, file, adapter);
+                doExecuteFull(taskId, file, plugin);
             } else {
                 // 大文件：真流式解析，内存 = O(batchSize)，与文件大小无关
                 log.info("[{}] Estimated {} rows, using streaming processing mode, batchSize={}",
                     taskId, estimatedRows, batchSize);
-                doExecuteStream(taskId, file, adapter, batchSize, estimatedRows);
+                doExecuteStream(taskId, file, plugin, batchSize, estimatedRows);
             }
         } catch (ImportCancelledException e) {
-            // 用户主动取消：标记状态为 CANCELLED，不记录为错误
-            // 取消时，从仓储中加载任务，调用 cancel() 并保存
             log.warn("[{}] Task cancelled by user", taskId);
-            importTaskRepository.findById(taskId).ifPresent(task -> {
-                task.cancel();
-                importTaskRepository.save(task);
-            });
-            // 资源清理在 finally 中执行
         } catch (ExcelException e) {
             // Excel 模块已知异常（格式损坏、密码保护、解析失败等）
             String defaultMsg = e.getResultCode().getMessage();
@@ -161,7 +154,7 @@ public class ImportOrchestrator {
      * <ol>
      *   <li>一次性解析完整 Excel 到 List</li>
      *   <li>空文件校验：直接标记 FAILED 并返回</li>
-     *   <li>Redis 初始化进度（locked = PROCESSING）</li>
+     *   <li>创建聚合根并启动任务（状态存入 Redis）</li>
      *   <li>按 batchSize 分片为若干批次</li>
      *   <li>逐批调用 {@link #processBatch} 处理</li>
      *   <li>每批结束后更新 Redis 进度</li>
@@ -190,7 +183,7 @@ public class ImportOrchestrator {
             return;
         }
 
-        // 3. 初始化 Redis 进度：客户端可立即查询到 total 和 PROCESSING 状态
+        // 3. 创建聚合根并启动任务（状态存入 Redis）
         ImportTask task = new ImportTask(taskId);
         task.start(total);
         importTaskRepository.save(task);
@@ -216,7 +209,6 @@ public class ImportOrchestrator {
 
             // 6.3 实时上报进度：客户端轮询可感知到处理进展
             List<String> latestSummary = buildErrorSummary(collector);
-            // importTaskRepository.updateProgress(taskId, successCount, failCount, errorSummary);
             task.recordBatch(result.successIncrement, result.failIncrement, latestSummary);
             importTaskRepository.save(task);
         }
@@ -256,39 +248,35 @@ public class ImportOrchestrator {
      *
      * @param taskId 任务唯一标识
      * @param file 临时 Excel 文件
-     * @param adapter 业务适配器
+     * @param plugin 业务适配器
      * @param batchSize 每批处理条数（由适配器决定）
      * @param estimatedRows 预估总行数（用于初始化进度，实际以处理为准）
      * @param <T> Excel 解析对应的 DTO 类型
      * @param <E> 持久化对应的 Entity 类型
      */
     private <T, E> void doExecuteStream(
-        String taskId, File file, ImportPlugin<T, E> adapter, int batchSize, int estimatedRows) {
+        String taskId, File file, ImportPlugin<T, E> plugin, int batchSize, int estimatedRows) {
 
         ErrorCollectorHolder.remove();
         ErrorCollector collector = ErrorCollectorHolder.get();
 
-        // 1. 初始化进度：total 使用预估值，processed 会从 0 开始累加
+        // 1. 创建聚合根并启动任务（total 使用预估值）
         ImportTask task = new ImportTask(taskId);
         task.start(estimatedRows);
         importTaskRepository.save(task);
 
         // 2. 流式状态跟踪：使用原子类保证回调内的线程安全
-        AtomicInteger successCount = new AtomicInteger(0);
-        AtomicInteger failCount = new AtomicInteger(0);
         AtomicInteger batchIndex = new AtomicInteger(0);
 
         // 3. 启动流式解析：Consumer 回调中直接处理，不长期持有引用
-        excelFileReader.parseStream(file, adapter.getDtoClass(), batchSize, batch -> {
+        excelFileReader.parseStream(file, plugin.getDtoClass(), batchSize, batch -> {
             // 每批处理前检查取消
             checkCancelled(task, taskId);
 
             int currentBatch = batchIndex.incrementAndGet();
 
             // 3.1 处理当前批次
-            BatchResult result = processBatch(taskId, batch, adapter, currentBatch);
-            successCount.addAndGet(result.successIncrement);
-            failCount.addAndGet(result.failIncrement);
+            BatchResult result = processBatch(taskId, batch, plugin, currentBatch);
 
             List<String> latestSummary  = buildErrorSummary(collector);
             // 3.2 实时上报进度
@@ -298,7 +286,7 @@ public class ImportOrchestrator {
 
         // 4. 流式解析结束，汇总最终结果
         if (collector.hasErrors()) {
-            saveErrorFile(taskId, collector, adapter);
+            saveErrorFile(taskId, collector, plugin);
         }
 
         if (task.getFailCount() == 0) {
