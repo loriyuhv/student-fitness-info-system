@@ -1,11 +1,9 @@
-package com.wsw.fitnesssystem.handle_excel.infrastructure.persistence.redis;
+package com.wsw.fitnesssystem.handle_excel.infrastructure.cache;
 
 import com.wsw.fitnesssystem.handle_excel.domain.model.ImportTask;
 import com.wsw.fitnesssystem.handle_excel.domain.repository.ImportTaskRepository;
 import com.wsw.fitnesssystem.handle_excel.domain.enums.ImportStatus;
 import com.wsw.fitnesssystem.handle_excel.infrastructure.config.ImportConfig;
-import com.wsw.fitnesssystem.handle_excel.infrastructure.cache.ImportRedisKeys;
-import com.wsw.fitnesssystem.handle_excel.infrastructure.cache.ImportTaskField;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -16,7 +14,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 /**
- * 导入进度 Redis 实现
+ * 导入任务进度 Redis 实现
  * <p>基于 Redis Hash 存储任务进度，支持 24h 自动过期</p>
  * <p>Key 规范：excel:import:task:{taskId}</p>
  *

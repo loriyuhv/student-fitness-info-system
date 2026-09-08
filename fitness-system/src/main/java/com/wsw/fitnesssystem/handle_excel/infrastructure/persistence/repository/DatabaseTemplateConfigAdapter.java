@@ -1,8 +1,8 @@
-package com.wsw.fitnesssystem.handle_excel.infrastructure.persistence.db.repository;
+package com.wsw.fitnesssystem.handle_excel.infrastructure.persistence.repository;
 
 import com.wsw.fitnesssystem.handle_excel.domain.vo.ImportTemplate;
 import com.wsw.fitnesssystem.handle_excel.application.port.output.TemplateConfigPort;
-import com.wsw.fitnesssystem.handle_excel.infrastructure.persistence.db.entity.ImportTemplateConfigEntity;
+import com.wsw.fitnesssystem.handle_excel.infrastructure.persistence.entity.ImportTemplateConfigEntity;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 

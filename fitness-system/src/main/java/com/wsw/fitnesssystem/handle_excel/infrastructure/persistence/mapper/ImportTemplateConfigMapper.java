@@ -1,8 +1,8 @@
-package com.wsw.fitnesssystem.handle_excel.infrastructure.persistence.db.mapper;
+package com.wsw.fitnesssystem.handle_excel.infrastructure.persistence.mapper;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
-import com.wsw.fitnesssystem.handle_excel.infrastructure.persistence.db.entity.ImportTemplateConfigEntity;
+import com.wsw.fitnesssystem.handle_excel.infrastructure.persistence.entity.ImportTemplateConfigEntity;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 

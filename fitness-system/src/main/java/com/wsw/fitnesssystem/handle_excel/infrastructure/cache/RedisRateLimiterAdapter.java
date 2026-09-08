@@ -1,8 +1,7 @@
-package com.wsw.fitnesssystem.handle_excel.infrastructure.limiter;
+package com.wsw.fitnesssystem.handle_excel.infrastructure.cache;
 
 import com.wsw.fitnesssystem.handle_excel.application.port.output.RateLimiterPort;
 import com.wsw.fitnesssystem.handle_excel.infrastructure.config.ImportConfig;
-import com.wsw.fitnesssystem.handle_excel.infrastructure.cache.ImportRedisKeys;
 import com.wsw.fitnesssystem.shared.exception.BizException;
 import com.wsw.fitnesssystem.shared.response.ResultCode;
 import lombok.RequiredArgsConstructor;
@@ -14,6 +13,7 @@ import org.springframework.stereotype.Component;
 import java.util.Collections;
 
 /**
+ * 限流适配器
  * 导入频率限制 — Redis 固定窗口计数器实现
  * <p>使用 Lua 脚本保证 INCR + EXPIRE 原子性</p>
  *
@@ -24,7 +24,7 @@ import java.util.Collections;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class RedisRateLimiterRepository implements RateLimiterPort {
+public class RedisRateLimiterAdapter implements RateLimiterPort {
 
     private final StringRedisTemplate redis;
     private static final int RATE_LIMIT_WINDOW_SECONDS = ImportConfig.RATE_LIMIT_WINDOW_SECONDS;

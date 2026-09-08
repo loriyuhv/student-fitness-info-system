@@ -1,8 +1,8 @@
-package com.wsw.fitnesssystem.handle_excel.infrastructure.persistence.db.repository;
+package com.wsw.fitnesssystem.handle_excel.infrastructure.persistence.repository;
 
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
-import com.wsw.fitnesssystem.handle_excel.infrastructure.persistence.db.entity.ImportTemplateConfigEntity;
-import com.wsw.fitnesssystem.handle_excel.infrastructure.persistence.db.mapper.ImportTemplateConfigMapper;
+import com.wsw.fitnesssystem.handle_excel.infrastructure.persistence.entity.ImportTemplateConfigEntity;
+import com.wsw.fitnesssystem.handle_excel.infrastructure.persistence.mapper.ImportTemplateConfigMapper;
 import com.wsw.fitnesssystem.shared.exception.BizException;
 import com.wsw.fitnesssystem.shared.response.ResultCode;
 import lombok.RequiredArgsConstructor;

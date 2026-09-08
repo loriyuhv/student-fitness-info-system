@@ -1,8 +1,7 @@
-package com.wsw.fitnesssystem.handle_excel.infrastructure.lock;
+package com.wsw.fitnesssystem.handle_excel.infrastructure.cache;
 
 import com.wsw.fitnesssystem.handle_excel.application.port.output.DistributedLockPort;
 import com.wsw.fitnesssystem.handle_excel.infrastructure.config.ImportConfig;
-import com.wsw.fitnesssystem.handle_excel.infrastructure.cache.ImportRedisKeys;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -12,6 +11,7 @@ import org.springframework.util.StringUtils;
 import java.time.Duration;
 
 /**
+ * 分布式锁适配器
  * 文件导入防重锁 — Redis 实现
  *
  * @author loriyuhv
@@ -21,7 +21,7 @@ import java.time.Duration;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class RedisDistributedLockRepository implements DistributedLockPort {
+public class RedisDistributedLockAdapter implements DistributedLockPort {
 
     private final StringRedisTemplate redis;
 

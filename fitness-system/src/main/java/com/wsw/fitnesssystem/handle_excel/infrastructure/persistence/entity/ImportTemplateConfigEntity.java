@@ -1,4 +1,4 @@
-package com.wsw.fitnesssystem.handle_excel.infrastructure.persistence.db.entity;
+package com.wsw.fitnesssystem.handle_excel.infrastructure.persistence.entity;
 
 import com.baomidou.mybatisplus.annotation.*;
 import com.baomidou.mybatisplus.extension.handlers.JacksonTypeHandler;
