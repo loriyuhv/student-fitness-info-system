@@ -89,3 +89,7 @@ public class UserRepositoryImpl implements UserRepository {
 - Excel 导入导出专项规则：待建 `context_excel.md`（含模板校验、异步处理）。
 
 **AI 注意**：当被问到体测评分或 BMI 计算时，如果你尚未加载 `context_fitness.md`，请主动提示用户提供该文档。
+
+
+
+异常处理和log日志：异常处理message传中文，log打印日志显示英文。
