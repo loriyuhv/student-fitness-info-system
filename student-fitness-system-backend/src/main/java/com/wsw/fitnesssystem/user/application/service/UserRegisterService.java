@@ -1,7 +1,7 @@
 package com.wsw.fitnesssystem.user.application.service;
 
-import com.wsw.fitnesssystem.handle_excel.application.plugin.UserImportData;
-import com.wsw.fitnesssystem.handle_excel.application.plugin.UserImportResult;
+import com.wsw.fitnesssystem.data_exchange.application.plugin.UserImportData;
+import com.wsw.fitnesssystem.data_exchange.application.plugin.UserImportResult;
 
 import java.util.List;
 import java.util.Set;

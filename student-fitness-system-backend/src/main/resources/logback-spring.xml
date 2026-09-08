@@ -30,7 +30,7 @@
         </logger>
 
         <!-- handle_excel 上下文 mapper -->
-        <logger name="com.wsw.fitnesssystem.handle_excel.infrastructure.persistence.db.mapper"
+        <logger name="com.wsw.fitnesssystem.data_exchange.infrastructure.persistence.db.mapper"
                 level="INFO" additivity="false">
                 <!-- level="DEBUG" additivity="false"> -->
             <appender-ref ref="CONSOLE"/>

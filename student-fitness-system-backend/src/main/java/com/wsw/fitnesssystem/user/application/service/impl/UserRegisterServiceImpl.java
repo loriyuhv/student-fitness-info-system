@@ -1,7 +1,7 @@
 package com.wsw.fitnesssystem.user.application.service.impl;
 
-import com.wsw.fitnesssystem.handle_excel.application.plugin.UserImportData;
-import com.wsw.fitnesssystem.handle_excel.application.plugin.UserImportResult;
+import com.wsw.fitnesssystem.data_exchange.application.plugin.UserImportData;
+import com.wsw.fitnesssystem.data_exchange.application.plugin.UserImportResult;
 import com.wsw.fitnesssystem.user.application.service.UserRegisterService;
 import com.wsw.fitnesssystem.user.domain.model.StudentProfile;
 import com.wsw.fitnesssystem.user.domain.model.TeacherProfile;
