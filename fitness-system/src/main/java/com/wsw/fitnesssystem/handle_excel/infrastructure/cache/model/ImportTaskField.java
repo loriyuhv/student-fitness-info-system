@@ -6,6 +6,7 @@ import lombok.RequiredArgsConstructor;
 /**
  * Redis Hash Field 常量（导入任务）
  * <p>杜绝 "locked"、"total" 等字符串硬编码，享受 IDE 自动补全与编译期检查</p>
+ *
  * @author loriyuhv
  * @version 1.0 2026/8/22 11:38
  * @since 1.0
@@ -13,13 +14,15 @@ import lombok.RequiredArgsConstructor;
 @Getter
 @RequiredArgsConstructor
 public enum ImportTaskField {
+
     STATUS("locked"),
     TOTAL("total"),
     PROCESSED("processed"),
     SUCCESS_COUNT("successCount"),
     FAIL_COUNT("failCount"),
     ERROR_MSG("errorMsg"),
-    CANCELLED("cancelled");
+    CANCELLED("cancelled"),
+    ERROR_FILE_PATH("errorFilePath");
 
     private final String key;
 
@@ -27,4 +30,5 @@ public enum ImportTaskField {
     public String toString() {
         return key;
     }
+
 }

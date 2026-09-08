@@ -1,6 +1,8 @@
 package com.wsw.fitnesssystem.handle_excel.application;
 
 import com.wsw.fitnesssystem.handle_excel.application.plugin.ImportPluginRegistry;
+import com.wsw.fitnesssystem.handle_excel.domain.enums.ImportStatus;
+import com.wsw.fitnesssystem.handle_excel.domain.model.ImportTask;
 import com.wsw.fitnesssystem.handle_excel.domain.repository.ImportTaskRepository;
 import com.wsw.fitnesssystem.handle_excel.interfaces.dto.ImportProgressDTO;
 import lombok.RequiredArgsConstructor;
@@ -29,7 +31,13 @@ public class ExcelImportProgressQueryAppService {
      * @return 导入进度状态DTO
      */
     public ImportProgressDTO getProgress(String taskId) {
-        return importTaskRepository.getProgress(taskId);
+        return importTaskRepository.findById(taskId)
+            .map(this::toDTO)
+            .orElseGet(() -> {
+                ImportProgressDTO dto = new ImportProgressDTO();
+                dto.setStatus(ImportStatus.NOT_FOUND);
+                return dto;
+            });
     }
 
     /**
@@ -38,4 +46,17 @@ public class ExcelImportProgressQueryAppService {
     public List<String> getAllBizTypes() {
         return adapterFactory.getAllBizTypes();
     }
+
+    private ImportProgressDTO toDTO(ImportTask task) {
+        ImportProgressDTO dto = new ImportProgressDTO();
+        dto.setTotal(task.getTotal());
+        dto.setProcessed(task.getProcessed());
+        dto.setSuccessCount(task.getSuccessCount());
+        dto.setFailCount(task.getFailCount());
+        dto.setStatus(task.getStatus());
+        dto.setErrorMsg(task.getErrorSummary().isEmpty() ? "" : String.join(" | ", task.getErrorSummary()));
+        dto.setErrorFileExists(task.getErrorFilePath() != null);
+        return dto;
+    }
+
 }

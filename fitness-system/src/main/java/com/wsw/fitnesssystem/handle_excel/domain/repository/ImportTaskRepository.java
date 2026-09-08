@@ -1,12 +1,12 @@
 package com.wsw.fitnesssystem.handle_excel.domain.repository;
 
-import com.wsw.fitnesssystem.handle_excel.interfaces.dto.ImportProgressDTO;
+import com.wsw.fitnesssystem.handle_excel.domain.model.ImportTask;
 
-import java.util.List;
+import java.util.Optional;
 
 /**
- * 导入进度上报端口 — 核心层只声明契约，不关心 Redis/MySQL/本地内存
- * <p>符合 DDD Lite 的"依赖倒置"原则：core 层定义接口，infrastructure 层实现</p>
+ * 导入任务仓储接口（领域层出口）
+ * <p>职责：管理 {@link ImportTask} 聚合根的持久化与查询</p>
  *
  * @author loriyuhv
  * @version 1.0 2026/8/23 01:07
@@ -15,72 +15,29 @@ import java.util.List;
 public interface ImportTaskRepository {
 
     /**
-     * 初始化进度（解析完 Excel 后调用）
-     * @param taskId 任务ID
-     * @param total 总数据条数
+     * 保存或更新整个聚合根 （全量覆盖）
+     * @param task 聚合根对象
      */
-    void init(String taskId, int total);
+    void save(ImportTask task);
 
     /**
-     * 更新进度（每批处理完调用）
+     * 根据任务ID查询聚合根
      * @param taskId 任务ID
-     * @param successCount 成功数量
-     * @param failCount 失败数量
+     * @return 聚合根（可能为空）
      */
-    void updateProgress(String taskId, int successCount, int failCount, List<String> errorSummary);
+    Optional<ImportTask> findById(String taskId);
 
     /**
-     * 全部成功完成
+     * 请求取消任务（设置取消标记，供异步线程轮询）
      * @param taskId 任务ID
-     * @param successCount 成功数量
-     */
-    void finish(String taskId, int successCount);
-
-    /**
-     * 部分成功（有失败记录）
-     * @param taskId 任务ID
-     * @param successCount 成功数量
-     * @param failCount 失败数量
-     * @param errorMsgList 错误信息列表
-     */
-    void partial(String taskId, int successCount, int failCount, List<String> errorMsgList);
-
-    /**
-     * 任务失败
-     * @param taskId 任务ID
-     * @param errorMsg 错误信息
-     */
-    void fail(String taskId, String errorMsg);
-
-    /**
-     * 查询进度
-     * @param taskId 任务ID
-     * @return 进度 DTO
-     */
-    ImportProgressDTO getProgress(String taskId);
-
-    // 错误文件存储方法
-    void saveErrorFilePath(String taskId, String filePath);
-
-    String getErrorFilePath(String taskId);
-
-    /**
-     * 请求取消任务（设置取消标记）
      */
     void requestCancel(String taskId);
 
     /**
      * 检查任务是否已被取消
      * @param taskId 任务ID
-     * @return true 如果任务已被取消
+     * @return true 表示已被取消
      */
     boolean isCancelled(String taskId);
-
-    /**
-     * 标记任务为已取消状态（最终状态）
-     *
-     * @param taskId 任务ID
-     */
-    void markCancelled(String taskId);
 
 }

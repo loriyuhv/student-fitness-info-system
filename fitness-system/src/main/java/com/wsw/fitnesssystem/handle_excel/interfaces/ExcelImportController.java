@@ -3,6 +3,7 @@ package com.wsw.fitnesssystem.handle_excel.interfaces;
 import com.wsw.fitnesssystem.handle_excel.application.ExcelImportAppService;
 import com.wsw.fitnesssystem.handle_excel.application.ExcelImportProgressQueryAppService;
 import com.wsw.fitnesssystem.handle_excel.application.ImportTemplateAppService;
+import com.wsw.fitnesssystem.handle_excel.domain.model.ImportTask;
 import com.wsw.fitnesssystem.handle_excel.domain.repository.ImportTaskRepository;
 import com.wsw.fitnesssystem.handle_excel.domain.enums.ExcelBizTypeEnum;
 import com.wsw.fitnesssystem.handle_excel.domain.enums.ImportStatus;
@@ -22,6 +23,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Excel导入对外接口控制器
@@ -71,7 +73,13 @@ public class ExcelImportController {
     @GetMapping("/import/progress")
     @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER')")
     public ApiResult<ImportProgressDTO> getProgress(@RequestParam String taskId) {
-        return ApiResult.success(importProgressQueryAppService.getProgress(taskId));
+        Optional<ImportTask> optional = importTaskRepository.findById(taskId);
+        if (optional.isEmpty()) {
+            ImportProgressDTO empty = new ImportProgressDTO();
+            empty.setStatus(ImportStatus.NOT_FOUND);
+            return ApiResult.success(empty);
+        }
+        return ApiResult.success(toProgressDTO(optional.get()));
     }
 
     /**
@@ -93,11 +101,11 @@ public class ExcelImportController {
     @GetMapping("/import/errors/download")
     @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER')")
     public void downloadErrorFile(@RequestParam String taskId, HttpServletResponse response) {
-        String filePath = importTaskRepository.getErrorFilePath(taskId);
-        if (filePath == null) {
+        Optional<ImportTask> optional = importTaskRepository.findById(taskId);
+        if (optional.isEmpty() || optional.get().getErrorFilePath() == null) {
             throw new BizException(ResultCode.FILE_NOT_FOUND, "暂无错误文件");
         }
-        File file = new File(filePath);
+        File file = new File(optional.get().getErrorFilePath());
         if (!file.exists()) {
             throw new BizException(ResultCode.FILE_NOT_FOUND, "错误文件已过期或被清理");
         }
@@ -122,21 +130,17 @@ public class ExcelImportController {
     @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER')")
     public ApiResult<String> cancelImport(@RequestParam String taskId) {
         // 1. 检查任务是否存在
-        ImportProgressDTO progress = importTaskRepository.getProgress(taskId);
-        if (progress.getStatus() == null || progress.getStatus() == ImportStatus.NOT_FOUND) {
+        Optional<ImportTask> optional = importTaskRepository.findById(taskId);
+        if (optional.isEmpty()) {
             throw new BizException(ResultCode.IMPORT_TASK_NOT_FOUND, "Task not found: " + taskId);
         }
-
-        // 2. 只有正在运行的任务才能取消（INIT 或 PROCESSING）
-        if (!progress.isRunning()) {
-            throw new BizException(ResultCode.PARAM_INVALID,
-                "Task is not running, current status: " + progress.getStatus());
+        ImportTask task = optional.get();
+        if (!task.isRunning()) {
+            throw new BizException(ResultCode.PARAM_INVALID, "Task is not running");
         }
-
-        // 3. 请求取消
+        // 请求取消（设置 cancelled 标记，异步线程轮询时自动处理）
+        // 2. 只有正在运行的任务才能取消（INIT 或 PROCESSING）
         importTaskRepository.requestCancel(taskId);
-        log.info("User requested cancellation for task: {}", taskId);
-
         return ApiResult.success("Cancellation request submitted");
     }
 
@@ -153,6 +157,19 @@ public class ExcelImportController {
         ExcelBizTypeEnum.getByCode(bizType);
         // 调用应用服务生成并下载
         importTemplateAppService.downloadTemplate(bizType, response);
+    }
+
+    // ========== 工具转换方法 ==========
+    private ImportProgressDTO toProgressDTO(ImportTask task) {
+        ImportProgressDTO dto = new ImportProgressDTO();
+        dto.setTotal(task.getTotal());
+        dto.setProcessed(task.getProcessed());
+        dto.setSuccessCount(task.getSuccessCount());
+        dto.setFailCount(task.getFailCount());
+        dto.setStatus(task.getStatus());
+        dto.setErrorMsg(task.getErrorSummary().isEmpty() ? "" : String.join(" | ", task.getErrorSummary()));
+        dto.setErrorFileExists(task.getErrorFilePath() != null);
+        return dto;
     }
 
 }

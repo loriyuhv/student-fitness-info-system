@@ -4,6 +4,7 @@ import com.google.common.collect.Lists;
 import com.wsw.fitnesssystem.handle_excel.application.plugin.ImportPlugin;
 import com.wsw.fitnesssystem.handle_excel.application.collector.ErrorCollector;
 import com.wsw.fitnesssystem.handle_excel.application.collector.ErrorCollectorHolder;
+import com.wsw.fitnesssystem.handle_excel.domain.model.ImportTask;
 import com.wsw.fitnesssystem.handle_excel.infrastructure.exception.ExcelException;
 import com.wsw.fitnesssystem.handle_excel.domain.exception.ImportCancelledException;
 import com.wsw.fitnesssystem.handle_excel.domain.model.ErrorRecord;
@@ -105,8 +106,12 @@ public class ImportOrchestrator {
             }
         } catch (ImportCancelledException e) {
             // 用户主动取消：标记状态为 CANCELLED，不记录为错误
+            // 取消时，从仓储中加载任务，调用 cancel() 并保存
             log.warn("[{}] Task cancelled by user", taskId);
-            importTaskRepository.markCancelled(taskId);
+            importTaskRepository.findById(taskId).ifPresent(task -> {
+                task.cancel();
+                importTaskRepository.save(task);
+            });
             // 资源清理在 finally 中执行
         } catch (ExcelException e) {
             // Excel 模块已知异常（格式损坏、密码保护、解析失败等）
@@ -114,11 +119,30 @@ public class ImportOrchestrator {
             String customMsg = e.getMessage();
             String finalMsg = defaultMsg + "：" + customMsg;
             log.error("[{}] Business exception occurred: {}", taskId, finalMsg, e);
-            importTaskRepository.fail(taskId, finalMsg);
+            // 失败时创建新任务并标记失败（如果还没创建，或者直接标记已有任务）
+            importTaskRepository.findById(taskId)
+                .ifPresentOrElse(
+                    task -> { task.fail(finalMsg); importTaskRepository.save(task);},
+                    () -> {
+                        ImportTask task = new ImportTask(taskId);
+                        task.fail(finalMsg);
+                        importTaskRepository.save(task);
+                    }
+                );
         } catch (Exception e) {
             // 未知异常兜底：防止任何未捕获异常导致任务状态悬空
             log.error("[{}] Import task terminated abnormally", taskId, e);
-            importTaskRepository.fail(taskId, ResultCode.SERVER_TEMP_ERROR.getMessage());
+            importTaskRepository.findById(taskId)
+                .ifPresentOrElse(
+                    task -> {
+                        task.fail(ResultCode.SERVER_TEMP_ERROR.getMessage());
+                        importTaskRepository.save(task); },
+                    () -> {
+                        ImportTask task = new ImportTask(taskId);
+                        task.fail(ResultCode.SERVER_TEMP_ERROR.getMessage());
+                        importTaskRepository.save(task);
+                    }
+                );
         } finally {
             // ========== Step 5: 清理临时文件（强制兜底） ==========
             FileCleanupUtils.cleanup(file);
@@ -144,73 +168,71 @@ public class ImportOrchestrator {
      *
      * @param taskId 任务唯一标识
      * @param file 临时 Excel 文件
-     * @param adapter 业务适配器
+     * @param plugin 业务适配器
      * @param <T> Excel 解析对应的 DTO 类型
      * @param <E> 持久化对应的 Entity 类型
      */
     private <T, E> void doExecuteFull(
-            String taskId, File file, ImportPlugin<T, E> adapter) {
+            String taskId, File file, ImportPlugin<T, E> plugin) {
 
         // 1. 全量解析：一次性读入内存，适合小文件
-        List<T> list = excelFileReader.parseFull(file, adapter.getDtoClass(), taskId);
+        List<T> list = excelFileReader.parseFull(file, plugin.getDtoClass(), taskId);
         int total = list.size();
 
         // 2. 空文件防御：无可解析数据时直接失败，避免无意义轮询
         if (total == 0) {
             log.warn("[{}] Excel file is empty or no data to parse", taskId);
-            importTaskRepository.fail(taskId, "Excel file is empty or no data to parse");
+            ImportTask task = new ImportTask(taskId);
+            task.fail("Excel file is empty or no data to parse");
+            importTaskRepository.save(task);
             return;
         }
 
         // 3. 初始化 Redis 进度：客户端可立即查询到 total 和 PROCESSING 状态
-        importTaskRepository.init(taskId, total);
+        ImportTask task = new ImportTask(taskId);
+        task.start(total);
+        importTaskRepository.save(task);
 
         // 4. 初始化全局错误收集器（懒加载，自动创建）
         ErrorCollectorHolder.remove(); // 清理旧数据（防御性）
         ErrorCollector collector = ErrorCollectorHolder.get(); // 懒加载创建
 
         // 5. 分片：将全量 List 切分为固定大小的批次
-        int batchSize = adapter.getBatchSize();
+        int batchSize = plugin.getBatchSize();
         List<List<T>> batches = Lists.partition(list, batchSize);
         log.info("[{}] Sharding completed, {} batches, batch size: {} rows",
             taskId, batches.size(), batchSize);
 
         // 6. 逐批处理：累加成功/失败计数
-        int successCount = 0;
-        int failCount = 0;
-
         for (int i = 0; i < batches.size(); i++) {
             // 6.1 每批处理前检查取消
-            checkCancelled(taskId);
+            checkCancelled(task, taskId);
 
             // 6.2 处理单批：校验 → 转换 → 持久化
             List<T> batch = batches.get(i);
-            BatchResult result = processBatch(taskId, batch, adapter, i + 1);
-            successCount += result.successIncrement;
-            failCount += result.failIncrement;
+            BatchResult result = processBatch(taskId, batch, plugin, i + 1);
 
             // 6.3 实时上报进度：客户端轮询可感知到处理进展
-            List<String> errorSummary = buildErrorSummary(collector);
-            importTaskRepository.updateProgress(taskId, successCount, failCount, errorSummary);
+            List<String> latestSummary = buildErrorSummary(collector);
+            // importTaskRepository.updateProgress(taskId, successCount, failCount, errorSummary);
+            task.recordBatch(result.successIncrement, result.failIncrement, latestSummary);
+            importTaskRepository.save(task);
         }
 
         // 7. 最终状态判定 + 错误文件
         if (collector.hasErrors()) {
-            saveErrorFile(taskId, collector, adapter);
+            saveErrorFile(taskId, collector, plugin);
         }
 
-        if (failCount == 0) {
-            // 全部成功
-            importTaskRepository.finish(taskId, successCount);
-            log.info("[{}] Import task completed successfully, total={}, success={}",
-                taskId, total, successCount);
+        if (task.getFailCount() == 0) {
+            task.finishSuccess();
         } else {
-            // 部分成功（存在失败批次或校验过滤）
-            List<String> errorSummary = buildErrorSummary(collector);
-            importTaskRepository.partial(taskId, successCount, failCount, errorSummary);
-            log.info("[{}] Import task partially completed, total={}, success={}, fail={}",
-                taskId, total, successCount, failCount);
+            task.finishPartial();
         }
+        importTaskRepository.save(task);
+
+        log.info("[{}] Import completed, success={}, fail={}",
+            taskId, task.getSuccessCount(), task.getFailCount());
 
         // 8. 清理 ThreadLocal
         ErrorCollectorHolder.remove();
@@ -245,7 +267,9 @@ public class ImportOrchestrator {
         ErrorCollector collector = ErrorCollectorHolder.get();
 
         // 1. 初始化进度：total 使用预估值，processed 会从 0 开始累加
-        importTaskRepository.init(taskId, estimatedRows);
+        ImportTask task = new ImportTask(taskId);
+        task.start(estimatedRows);
+        importTaskRepository.save(task);
 
         // 2. 流式状态跟踪：使用原子类保证回调内的线程安全
         AtomicInteger successCount = new AtomicInteger(0);
@@ -255,7 +279,7 @@ public class ImportOrchestrator {
         // 3. 启动流式解析：Consumer 回调中直接处理，不长期持有引用
         excelFileReader.parseStream(file, adapter.getDtoClass(), batchSize, batch -> {
             // 每批处理前检查取消
-            checkCancelled(taskId);
+            checkCancelled(task, taskId);
 
             int currentBatch = batchIndex.incrementAndGet();
 
@@ -264,28 +288,26 @@ public class ImportOrchestrator {
             successCount.addAndGet(result.successIncrement);
             failCount.addAndGet(result.failIncrement);
 
-            List<String> errorSummary = buildErrorSummary(collector);
+            List<String> latestSummary  = buildErrorSummary(collector);
             // 3.2 实时上报进度
-            importTaskRepository.updateProgress(taskId, successCount.get(), failCount.get(), errorSummary);
+            task.recordBatch(result.successIncrement, result.failIncrement, latestSummary);
+            importTaskRepository.save(task);
         });
 
         // 4. 流式解析结束，汇总最终结果
-        int finalSuccess = successCount.get();
-        int finalFail = failCount.get();
-
         if (collector.hasErrors()) {
             saveErrorFile(taskId, collector, adapter);
         }
 
-        if (finalFail == 0) {
-            importTaskRepository.finish(taskId, finalSuccess);
-            log.info("[{}] Stream import completed successfully, success={}", taskId, finalSuccess);
+        if (task.getFailCount() == 0) {
+            task.finishSuccess();
         } else {
-            List<String> errorSummary = buildErrorSummary(collector);
-            importTaskRepository.partial(taskId, finalSuccess, finalFail, errorSummary);
-            log.info("[{}] Stream import partially completed, success={}, fail={}",
-                taskId, finalSuccess, finalFail);
+            task.finishPartial();
         }
+        importTaskRepository.save(task);
+
+        log.info("[{}] Stream import completed, success={}, fail={}",
+            taskId, task.getSuccessCount(), task.getFailCount());
 
         ErrorCollectorHolder.remove();
     }
@@ -298,21 +320,21 @@ public class ImportOrchestrator {
      *
      * @param taskId 任务 ID，用于日志串联
      * @param batch 当前批次原始数据（Excel 解析后的 DTO 列表）
-     * @param adapter 业务适配器，提供 validate / convert / persist 实现
+     * @param plugin 业务适配器，提供 validate / convert / persist 实现
      * @param batchNo 当前批次序号（从 1 开始），用于错误定位
      * @return 批次处理结果（成功增量、失败增量）
      * @param <T> Excel 解析对应的 DTO 类型
      * @param <E> 持久化对应的 Entity 类型
      */
     private <T, E> BatchResult processBatch(
-        String taskId, List<T> batch, ImportPlugin<T, E> adapter, int batchNo) {
+        String taskId, List<T> batch, ImportPlugin<T, E> plugin, int batchNo) {
 
         ErrorCollector collector = ErrorCollectorHolder.get();
         int batchSize = batch.size();
 
         try {
             // 1. 业务校验：适配器过滤非法/重复数据
-            List<T> validated = adapter.validate(batch);
+            List<T> validated = plugin.validate(batch);
             int filtered = batch.size() - validated.size();
 
             if (filtered > 0) {
@@ -327,10 +349,10 @@ public class ImportOrchestrator {
             }
 
             // 3. 数据转换：DTO → Domain → Entity（含密码加密、默认值填充等）
-            List<E> entities = adapter.convert(validated);
+            List<E> entities = plugin.convert(validated);
 
             // 4. 批量持久化：写入数据库（适配器内部可再分片，防止 SQL 过长）
-            int inserted = adapter.persist(entities);
+            int inserted = plugin.persist(entities);
 
             // 5. 计算失败数 = 总行数 - 成功数
             //    所有失败的行都已经在 collector 中有记录，计数只是为了统计和进度展示
@@ -358,10 +380,11 @@ public class ImportOrchestrator {
      *
      * @param taskId 任务ID
      */
-    private void checkCancelled(String taskId) {
+    private void checkCancelled(ImportTask task, String taskId) {
         if (importTaskRepository.isCancelled(taskId)) {
-            throw new ImportCancelledException(
-                ResultCode.TASK_CANCELLED, "Task " + taskId + " cancelled by user");
+            task.cancel();
+            importTaskRepository.save(task);
+            throw new ImportCancelledException(ResultCode.TASK_CANCELLED, "Task cancelled");
         }
     }
 
@@ -378,15 +401,18 @@ public class ImportOrchestrator {
      * 错误文件保存
      * @param taskId 任务ID
      * @param collector 错误信息收集器
-     * @param adapter 适配器
+     * @param plugin 适配器
      */
-    private void saveErrorFile(String taskId, ErrorCollector collector, ImportPlugin<?, ?> adapter) {
+    private void saveErrorFile(String taskId, ErrorCollector collector, ImportPlugin<?, ?> plugin) {
         try {
             File errorFile = errorFileGenerator.generateErrorFile(
                 collector.getErrors(),
-                adapter.getHeaders()
+                plugin.getHeaders()
             );
-            importTaskRepository.saveErrorFilePath(taskId, errorFile.getAbsolutePath());
+            importTaskRepository.findById(taskId).ifPresent(task -> {
+                task.setErrorFilePath(errorFile.getAbsolutePath());
+                importTaskRepository.save(task);
+            });
             log.info("[{}] Error file saved: {}", taskId, errorFile.getAbsolutePath());
         } catch (Exception e) {
             log.error("[{}] Failed to save error file", taskId, e);
