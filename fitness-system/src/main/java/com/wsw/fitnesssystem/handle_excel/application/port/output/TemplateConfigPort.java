@@ -1,6 +1,6 @@
 package com.wsw.fitnesssystem.handle_excel.application.port.output;
 
-import com.wsw.fitnesssystem.handle_excel.domain.model.ImportTemplate;
+import com.wsw.fitnesssystem.handle_excel.domain.vo.ImportTemplate;
 import com.wsw.fitnesssystem.shared.exception.BizException;
 
 /**

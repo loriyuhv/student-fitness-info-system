@@ -1,4 +1,4 @@
-package com.wsw.fitnesssystem.handle_excel.application;
+package com.wsw.fitnesssystem.handle_excel.application.service;
 
 import com.wsw.fitnesssystem.handle_excel.application.plugin.ImportPluginRegistry;
 import com.wsw.fitnesssystem.handle_excel.application.plugin.ImportPlugin;
@@ -6,7 +6,7 @@ import com.wsw.fitnesssystem.handle_excel.application.scheduler.AsyncImportSched
 import com.wsw.fitnesssystem.handle_excel.application.port.output.DistributedLockPort;
 import com.wsw.fitnesssystem.handle_excel.application.port.output.RateLimiterPort;
 import com.wsw.fitnesssystem.handle_excel.infrastructure.util.FileCleanupUtils;
-import com.wsw.fitnesssystem.handle_excel.domain.enums.ExcelBizTypeEnum;
+import com.wsw.fitnesssystem.handle_excel.application.enums.ImportBizType;
 import com.wsw.fitnesssystem.handle_excel.infrastructure.config.ExcelConstants;
 import com.wsw.fitnesssystem.shared.exception.BizException;
 import com.wsw.fitnesssystem.shared.response.ResultCode;
@@ -22,9 +22,14 @@ import java.io.IOException;
 import java.util.UUID;
 
 /**
- * Excel 导入应用服务
- * <p>统一入口：文件转存 → 限流校验 → 防重校验 → 提交线程池 → 返回 taskId</p>
- * <p>原则：只编排用例，不写业务逻辑，不碰 Redis/数据库</p>
+ * 导入提交应用服务。
+ * <p>
+ * 统一入口：文件转存 → 限流校验 → 防重校验 → 提交异步线程池 → 返回 taskId。
+ * </p>
+ * <p>
+ * <b>职责边界：</b>仅编排用例流程，不包含具体业务逻辑，不直接操作持久化层。
+ * 所有外部依赖通过端口（Port）调用，符合六边形架构的依赖倒置原则。
+ * </p>
  *
  * @author loriyuhv
  * @version 1.0 2026/8/21 14:29
@@ -33,10 +38,10 @@ import java.util.UUID;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class ExcelImportAppService {
+public class ImportSubmissionService {
 
     private final ImportPluginRegistry pluginRegistry;
-    private final AsyncImportScheduler taskExecutor;
+    private final AsyncImportScheduler importScheduler;
     private final RateLimiterPort rateLimiterPort;
     private final DistributedLockPort distributedLockPort;
 
@@ -48,7 +53,7 @@ public class ExcelImportAppService {
      * @param userId 当前登录用户ID（用于频率限制）
      * @return taskId 任务 ID，用于后续查询进度
      */
-    public String importExcel(ExcelBizTypeEnum bizTypeEnum, MultipartFile file, Long userId) {
+    public String importExcel(ImportBizType bizTypeEnum, MultipartFile file, Long userId) {
         // 1. 校验文件格式/大小
         validateFile(file);
 
@@ -76,7 +81,7 @@ public class ExcelImportAppService {
         }
 
         // 6. 提交异步任务（传文件路径 + 适配器）（携带 md5，任务完成后 finally 释放锁）
-        taskExecutor.submit(taskId, tempFile, adapter, md5);
+        importScheduler.submit(taskId, tempFile, adapter, md5);
         log.info("[{}] Import task submitted, bizType={}, userId={}, md5={}",
             taskId, bizTypeEnum.getCode(), userId, md5);
 

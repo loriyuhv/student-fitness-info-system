@@ -1,4 +1,4 @@
-package com.wsw.fitnesssystem.handle_excel.domain.enums;
+package com.wsw.fitnesssystem.handle_excel.application.enums;
 
 import com.wsw.fitnesssystem.shared.exception.BizException;
 import com.wsw.fitnesssystem.shared.response.ResultCode;
@@ -8,7 +8,7 @@ import lombok.Getter;
 import java.util.Arrays;
 
 /**
- * <p>Excel导入业务类型枚举</p>
+ * <p>导入业务类型枚举</p>
  * <p>用于区分不同导入业务：用户信息导入、体测记录导入等</p>
  *
  * @author loriyuhv
@@ -17,7 +17,7 @@ import java.util.Arrays;
  */
 @Getter
 @AllArgsConstructor
-public enum ExcelBizTypeEnum {
+public enum ImportBizType {
 
     USER_IMPORT("USER_IMPORT", "用户信息导入"),
     FITNESS_RECORD_IMPORT("FITNESS_RECORD_IMPORT", "体测记录导入");
@@ -30,7 +30,7 @@ public enum ExcelBizTypeEnum {
      * @param code 业务编码
      * @return 对应枚举
      */
-    public static ExcelBizTypeEnum getByCode(String code) {
+    public static ImportBizType getByCode(String code) {
         return Arrays
             .stream(values())
             .filter(item -> item.getCode().equals(code))

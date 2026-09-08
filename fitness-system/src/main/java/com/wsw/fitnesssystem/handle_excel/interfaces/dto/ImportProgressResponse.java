@@ -12,7 +12,7 @@ import lombok.Data;
  * @since 1.0
  */
 @Data
-public class ImportProgressDTO {
+public class ImportProgressResponse {
 
     /**
      * 总数据条数

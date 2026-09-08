@@ -1,6 +1,5 @@
 package com.wsw.fitnesssystem.handle_excel.application.collector;
 
-import com.wsw.fitnesssystem.handle_excel.domain.model.ErrorRecord;
 import lombok.Getter;
 
 import java.util.ArrayList;

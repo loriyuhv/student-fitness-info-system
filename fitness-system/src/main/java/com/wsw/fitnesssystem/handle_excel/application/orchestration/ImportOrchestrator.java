@@ -7,7 +7,7 @@ import com.wsw.fitnesssystem.handle_excel.application.collector.ErrorCollectorHo
 import com.wsw.fitnesssystem.handle_excel.domain.model.ImportTask;
 import com.wsw.fitnesssystem.handle_excel.infrastructure.exception.ExcelException;
 import com.wsw.fitnesssystem.handle_excel.domain.exception.ImportCancelledException;
-import com.wsw.fitnesssystem.handle_excel.domain.model.ErrorRecord;
+import com.wsw.fitnesssystem.handle_excel.application.collector.ErrorRecord;
 import com.wsw.fitnesssystem.handle_excel.infrastructure.parser.ExcelFileReader;
 import com.wsw.fitnesssystem.handle_excel.domain.repository.ImportTaskRepository;
 import com.wsw.fitnesssystem.handle_excel.application.generator.ErrorFileGenerator;

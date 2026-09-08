@@ -2,7 +2,7 @@ package com.wsw.fitnesssystem.handle_excel.application.plugin;
 
 import cn.idev.excel.annotation.ExcelIgnore;
 import cn.idev.excel.annotation.ExcelProperty;
-import com.wsw.fitnesssystem.handle_excel.domain.model.RowIndexAware;
+import com.wsw.fitnesssystem.handle_excel.infrastructure.parser.RowIndexAware;
 import lombok.Data;
 
 /**

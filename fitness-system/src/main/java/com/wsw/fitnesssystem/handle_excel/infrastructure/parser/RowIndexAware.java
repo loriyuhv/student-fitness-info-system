@@ -1,4 +1,4 @@
-package com.wsw.fitnesssystem.handle_excel.domain.model;
+package com.wsw.fitnesssystem.handle_excel.infrastructure.parser;
 
 /**
  * @author loriyuhv

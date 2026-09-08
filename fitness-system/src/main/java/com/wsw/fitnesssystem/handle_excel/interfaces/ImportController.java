@@ -1,13 +1,11 @@
 package com.wsw.fitnesssystem.handle_excel.interfaces;
 
-import com.wsw.fitnesssystem.handle_excel.application.ExcelImportAppService;
-import com.wsw.fitnesssystem.handle_excel.application.ExcelImportProgressQueryAppService;
+import com.wsw.fitnesssystem.handle_excel.application.service.ImportSubmissionService;
+import com.wsw.fitnesssystem.handle_excel.application.service.ImportProgressQueryService;
 import com.wsw.fitnesssystem.handle_excel.application.ImportTemplateAppService;
-import com.wsw.fitnesssystem.handle_excel.domain.model.ImportTask;
-import com.wsw.fitnesssystem.handle_excel.domain.repository.ImportTaskRepository;
-import com.wsw.fitnesssystem.handle_excel.domain.enums.ExcelBizTypeEnum;
+import com.wsw.fitnesssystem.handle_excel.application.enums.ImportBizType;
 import com.wsw.fitnesssystem.handle_excel.domain.enums.ImportStatus;
-import com.wsw.fitnesssystem.handle_excel.interfaces.dto.ImportProgressDTO;
+import com.wsw.fitnesssystem.handle_excel.interfaces.dto.ImportProgressResponse;
 import com.wsw.fitnesssystem.shared.context.RequestContextHolder;
 import com.wsw.fitnesssystem.shared.domain.valueobject.Operator;
 import com.wsw.fitnesssystem.shared.exception.BizException;
@@ -23,12 +21,13 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
-import java.util.Optional;
 
 /**
- * Excel导入对外接口控制器
- * <p>提供Excel文件异步导入、导入进度查询、支持导入业务类型查询接口</p>
- * <p>导入为异步任务，上传文件后返回任务ID，客户端通过taskId轮询获取导入进度与结果</p>
+ * 导入控制器。
+ * <p>
+ * 提供导入提交、进度查询、取消、模板下载等 REST 接口。
+ * </p>
+ *
  * @author loriyuhv
  * @version 1.0 2026/8/21 15:35
  * @since 1.0
@@ -37,15 +36,14 @@ import java.util.Optional;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/excel")
-public class ExcelImportController {
+public class ImportController {
 
-    private final ImportTaskRepository importTaskRepository;
-    private final ExcelImportAppService importAppService;
+    private final ImportSubmissionService importSubmissionService;
     private final ImportTemplateAppService importTemplateAppService;
-    private final ExcelImportProgressQueryAppService importProgressQueryAppService;
+    private final ImportProgressQueryService importProgressQueryService;
 
     /**
-     * Excel文件异步导入接口
+     * 提交导入任务。
      * <p>提交Excel文件，根据业务类型执行对应解析导入逻辑，任务后台异步执行，不会阻塞HTTP请求</p>
      *
      * @param bizType 业务类型，区分导入数据类型，例如：USER_IMPORT(用户导入)、FITNESS_RECORD_IMPORT(体测数据导入)
@@ -59,27 +57,25 @@ public class ExcelImportController {
             @RequestParam("file") MultipartFile file
     ) {
         // 字符串转枚举，非法参数直接抛出异常
-        ExcelBizTypeEnum bizTypeEnum = ExcelBizTypeEnum.getByCode(bizType);
+        ImportBizType bizTypeEnum = ImportBizType.getByCode(bizType);
         Operator operator = RequestContextHolder.getRequiredOperator();
-        String taskId = importAppService.importExcel(bizTypeEnum, file, operator.userId());
+        String taskId = importSubmissionService.importExcel(bizTypeEnum, file, operator.userId());
         return ApiResult.success(taskId);
     }
 
     /**
-     * 查询Excel导入任务进度
+     * 查询导入任务进度
      * @param taskId 异步导入任务编号，由{@link #importExcel(String, MultipartFile)}接口返回
-     * @return ApiResult<ImportProgressDTO> 返回任务进度DTO，包含总条数、成功数、失败数、错误信息、任务状态
+     * @return ApiResult<ImportProgressResponse> 返回任务进度DTO，包含总条数、成功数、失败数、错误信息、任务状态
      */
     @GetMapping("/import/progress")
     @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER')")
-    public ApiResult<ImportProgressDTO> getProgress(@RequestParam String taskId) {
-        Optional<ImportTask> optional = importTaskRepository.findById(taskId);
-        if (optional.isEmpty()) {
-            ImportProgressDTO empty = new ImportProgressDTO();
-            empty.setStatus(ImportStatus.NOT_FOUND);
-            return ApiResult.success(empty);
+    public ApiResult<ImportProgressResponse> getProgress(@RequestParam String taskId) {
+        ImportProgressResponse dto = importProgressQueryService.getProgress(taskId);
+        if (dto.getStatus() == ImportStatus.INIT) {
+            throw new BizException(ResultCode.IMPORT_TASK_NOT_FOUND, "Task not found" + taskId);
         }
-        return ApiResult.success(toProgressDTO(optional.get()));
+        return ApiResult.success(dto);
     }
 
     /**
@@ -90,7 +86,7 @@ public class ExcelImportController {
     @GetMapping("/import/types")
     @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER')")
     public ApiResult<List<String>> getImportTypes() {
-        return ApiResult.success(importProgressQueryAppService.getAllBizTypes());
+        return ApiResult.success(importProgressQueryService.getAllBizTypes());
     }
 
     /**
@@ -101,13 +97,13 @@ public class ExcelImportController {
     @GetMapping("/import/errors/download")
     @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER')")
     public void downloadErrorFile(@RequestParam String taskId, HttpServletResponse response) {
-        Optional<ImportTask> optional = importTaskRepository.findById(taskId);
-        if (optional.isEmpty() || optional.get().getErrorFilePath() == null) {
-            throw new BizException(ResultCode.FILE_NOT_FOUND, "暂无错误文件");
+        String filePath = importProgressQueryService.getErrorFilePath(taskId);
+        if (filePath == null) {
+            throw new BizException(ResultCode.FILE_NOT_FOUND, "No error file for this task");
         }
-        File file = new File(optional.get().getErrorFilePath());
+        File file = new File(filePath);
         if (!file.exists()) {
-            throw new BizException(ResultCode.FILE_NOT_FOUND, "错误文件已过期或被清理");
+            throw new BizException(ResultCode.FILE_NOT_FOUND, "Error file expired or removed");
         }
         try {
             response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
@@ -115,8 +111,8 @@ public class ExcelImportController {
             java.nio.file.Files.copy(file.toPath(), response.getOutputStream());
             response.flushBuffer();
         } catch (IOException e) {
-            log.error("下载错误文件失败", e);
-            throw new BizException(ResultCode.SYSTEM_ERROR, "下载失败");
+            log.error("Failed to download error file: taskId={}", taskId, e);
+            throw new BizException(ResultCode.SYSTEM_ERROR, "Error file download failed");
         }
     }
 
@@ -129,18 +125,7 @@ public class ExcelImportController {
     @PostMapping("/import/cancel")
     @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER')")
     public ApiResult<String> cancelImport(@RequestParam String taskId) {
-        // 1. 检查任务是否存在
-        Optional<ImportTask> optional = importTaskRepository.findById(taskId);
-        if (optional.isEmpty()) {
-            throw new BizException(ResultCode.IMPORT_TASK_NOT_FOUND, "Task not found: " + taskId);
-        }
-        ImportTask task = optional.get();
-        if (!task.isRunning()) {
-            throw new BizException(ResultCode.PARAM_INVALID, "Task is not running");
-        }
-        // 请求取消（设置 cancelled 标记，异步线程轮询时自动处理）
-        // 2. 只有正在运行的任务才能取消（INIT 或 PROCESSING）
-        importTaskRepository.requestCancel(taskId);
+        importProgressQueryService.cancelTask(taskId);
         return ApiResult.success("Cancellation request submitted");
     }
 
@@ -154,22 +139,9 @@ public class ExcelImportController {
     @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER')")
     public void downloadTemplate(@RequestParam String bizType, HttpServletResponse response) {
         // 校验 bizType 是否合法（利用枚举校验）
-        ExcelBizTypeEnum.getByCode(bizType);
+        ImportBizType.getByCode(bizType);
         // 调用应用服务生成并下载
         importTemplateAppService.downloadTemplate(bizType, response);
-    }
-
-    // ========== 工具转换方法 ==========
-    private ImportProgressDTO toProgressDTO(ImportTask task) {
-        ImportProgressDTO dto = new ImportProgressDTO();
-        dto.setTotal(task.getTotal());
-        dto.setProcessed(task.getProcessed());
-        dto.setSuccessCount(task.getSuccessCount());
-        dto.setFailCount(task.getFailCount());
-        dto.setStatus(task.getStatus());
-        dto.setErrorMsg(task.getErrorSummary().isEmpty() ? "" : String.join(" | ", task.getErrorSummary()));
-        dto.setErrorFileExists(task.getErrorFilePath() != null);
-        return dto;
     }
 
 }

@@ -1,7 +1,7 @@
 package com.wsw.fitnesssystem.handle_excel.application.generator;
 
 import cn.idev.excel.FastExcel;
-import com.wsw.fitnesssystem.handle_excel.domain.model.ErrorRecord;
+import com.wsw.fitnesssystem.handle_excel.application.collector.ErrorRecord;
 import lombok.extern.slf4j.Slf4j;
 import org.jspecify.annotations.NonNull;
 import org.springframework.stereotype.Service;

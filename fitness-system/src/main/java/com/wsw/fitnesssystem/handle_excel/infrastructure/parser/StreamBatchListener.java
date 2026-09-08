@@ -2,7 +2,6 @@ package com.wsw.fitnesssystem.handle_excel.infrastructure.parser;
 
 import cn.idev.excel.context.AnalysisContext;
 import cn.idev.excel.event.AnalysisEventListener;
-import com.wsw.fitnesssystem.handle_excel.domain.model.RowIndexAware;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.ArrayList;

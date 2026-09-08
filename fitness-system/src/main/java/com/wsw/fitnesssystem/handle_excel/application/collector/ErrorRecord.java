@@ -1,4 +1,4 @@
-package com.wsw.fitnesssystem.handle_excel.domain.model;
+package com.wsw.fitnesssystem.handle_excel.application.collector;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

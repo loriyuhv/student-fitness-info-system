@@ -3,7 +3,7 @@ package com.wsw.fitnesssystem.handle_excel.application.plugin;
 import com.wsw.fitnesssystem.handle_excel.application.collector.ErrorCollector;
 import com.wsw.fitnesssystem.handle_excel.application.collector.ErrorCollectorHolder;
 import com.wsw.fitnesssystem.handle_excel.application.port.output.UserProvisioningPort;
-import com.wsw.fitnesssystem.handle_excel.domain.enums.ExcelBizTypeEnum;
+import com.wsw.fitnesssystem.handle_excel.application.enums.ImportBizType;
 import com.wsw.fitnesssystem.handle_excel.infrastructure.config.ExcelConstants;
 import com.wsw.fitnesssystem.shared.util.ValidationUtils;
 import lombok.RequiredArgsConstructor;
@@ -46,7 +46,7 @@ public class UserImportPlugin implements ImportPlugin<UserExcelDTO, UserImportDa
 
     @Override
     public String getBizType() {
-        return ExcelBizTypeEnum.USER_IMPORT.getCode();
+        return ImportBizType.USER_IMPORT.getCode();
     }
 
     @Override
