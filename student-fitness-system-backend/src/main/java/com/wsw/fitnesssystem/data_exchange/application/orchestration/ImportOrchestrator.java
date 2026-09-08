@@ -52,7 +52,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  *
  * <p><b>标准流程：</b></p>
  * <ol>
- *     <li>预估行数，智能选择全量/流式解析 Excel（通用）</li>
+ *     <li>预估行数，智能选择全量/流式解析（通用）</li>
  *     <li>业务校验（插件实现）</li>
  *     <li>数据转换（插件实现）</li>
  *     <li>批量持久化（插件实现）</li>
@@ -86,7 +86,7 @@ public class ImportOrchestrator {
      *
      * @param taskId 任务唯一标识，用于进度追踪与日志串联
      * @param file 已转存到磁盘的临时 Excel 文件（非 MultipartFile，避免 InputStream 异步关闭）
-     * @param plugin 业务适配器，封装了具体业务的校验/转换/持久化逻辑
+     * @param plugin 业务插件，封装了具体业务的校验/转换/持久化逻辑
      * @param <T> Excel 解析对应的 DTO 类型
      * @param <E> 持久化对应的 Entity 类型
      */
@@ -110,17 +110,15 @@ public class ImportOrchestrator {
             log.warn("[{}] Task cancelled by user", taskId);
         } catch (ExcelException e) {
             // Excel 模块已知异常（格式损坏、密码保护、解析失败等）
-            String defaultMsg = e.getResultCode().getMessage();
             String customMsg = e.getMessage();
-            String finalMsg = defaultMsg + "：" + customMsg;
-            log.error("[{}] Business exception occurred: {}", taskId, finalMsg, e);
+            log.error("[{}] Excel processing failed: {}", taskId, customMsg, e);
             // 失败时创建新任务并标记失败（如果还没创建，或者直接标记已有任务）
             importTaskRepository.findById(taskId)
                 .ifPresentOrElse(
-                    task -> { task.fail(finalMsg); importTaskRepository.save(task);},
+                    task -> { task.fail(customMsg); importTaskRepository.save(task);},
                     () -> {
                         ImportTask task = new ImportTask(taskId);
-                        task.fail(finalMsg);
+                        task.fail(customMsg);
                         importTaskRepository.save(task);
                     }
                 );
@@ -152,7 +150,7 @@ public class ImportOrchestrator {
      *
      * <p><b>流程：</b></p>
      * <ol>
-     *   <li>一次性解析完整 Excel 到 List</li>
+     *   <li>一次性解析完整文件到 List</li>
      *   <li>空文件校验：直接标记 FAILED 并返回</li>
      *   <li>创建聚合根并启动任务（状态存入 Redis）</li>
      *   <li>按 batchSize 分片为若干批次</li>
@@ -163,7 +161,7 @@ public class ImportOrchestrator {
      *
      * @param taskId 任务唯一标识
      * @param file 临时 Excel 文件
-     * @param plugin 业务适配器
+     * @param plugin 业务插件
      * @param <T> Excel 解析对应的 DTO 类型
      * @param <E> 持久化对应的 Entity 类型
      */
@@ -178,7 +176,7 @@ public class ImportOrchestrator {
         if (total == 0) {
             log.warn("[{}] Excel file is empty or no data to parse", taskId);
             ImportTask task = new ImportTask(taskId);
-            task.fail("Excel file is empty or no data to parse");
+            task.fail("文件内容为空，无可解析的数据");
             importTaskRepository.save(task);
             return;
         }
@@ -239,8 +237,8 @@ public class ImportOrchestrator {
      *
      * <p><b>流程：</b></p>
      * <ol>
-     *   <li>Redis 初始化进度（此时 total 为预估值，非精确值）</li>
-     *   <li>启动流式解析：EasyExcel 每攒够 batchSize 条触发一次回调</li>
+     *   <li>创建聚合根并启动任务（total 使用预估值）</li>
+     *   <li>启动流式解析：每攒够 batchSize 条触发一次回调</li>
      *   <li>回调内直接完成：校验 → 转换 → 持久化 → 更新进度</li>
      *   <li>回调结束后该批次数据可被 GC，内存占用恒定</li>
      *   <li>全部解析完成后标记最终状态</li>
@@ -248,8 +246,8 @@ public class ImportOrchestrator {
      *
      * @param taskId 任务唯一标识
      * @param file 临时 Excel 文件
-     * @param plugin 业务适配器
-     * @param batchSize 每批处理条数（由适配器决定）
+     * @param plugin 业务插件
+     * @param batchSize 每批处理条数（由插件决定）
      * @param estimatedRows 预估总行数（用于初始化进度，实际以处理为准）
      * @param <T> Excel 解析对应的 DTO 类型
      * @param <E> 持久化对应的 Entity 类型
@@ -310,7 +308,7 @@ public class ImportOrchestrator {
      *
      * @param taskId 任务 ID，用于日志串联
      * @param batch 当前批次原始数据（Excel 解析后的 DTO 列表）
-     * @param plugin 业务适配器，提供 validate / convert / persist 实现
+     * @param plugin 业务插件，提供 validate / convert / persist 实现
      * @param batchNo 当前批次序号（从 1 开始），用于错误定位
      * @return 批次处理结果（成功增量、失败增量）
      * @param <T> Excel 解析对应的 DTO 类型
@@ -323,7 +321,7 @@ public class ImportOrchestrator {
         int batchSize = batch.size();
 
         try {
-            // 1. 业务校验：适配器过滤非法/重复数据
+            // 1. 业务校验：插件过滤非法/重复数据
             List<T> validated = plugin.validate(batch);
             int filtered = batch.size() - validated.size();
 
@@ -341,7 +339,7 @@ public class ImportOrchestrator {
             // 3. 数据转换：DTO → Domain → Entity（含密码加密、默认值填充等）
             List<E> entities = plugin.convert(validated);
 
-            // 4. 批量持久化：写入数据库（适配器内部可再分片，防止 SQL 过长）
+            // 4. 批量持久化：写入数据库（插件内部可再分片，防止 SQL 过长）
             int inserted = plugin.persist(entities);
 
             // 5. 计算失败数 = 总行数 - 成功数
@@ -366,9 +364,13 @@ public class ImportOrchestrator {
     // ==================== 辅助方法 ====================
 
     /**
-     * 检查任务是否被取消，如果被取消则抛出 ImportCancelledException
+     * 检查任务是否被取消。
+     * <p>
+     * 若已取消，则标记聚合根为 CANCELLED、持久化，并抛出 {@link ImportCancelledException}。
+     * </p>
      *
-     * @param taskId 任务ID
+     * @param task   当前任务聚合根
+     * @param taskId 任务 ID（用于查询取消标记）
      */
     private void checkCancelled(ImportTask task, String taskId) {
         if (importTaskRepository.isCancelled(taskId)) {
@@ -388,10 +390,11 @@ public class ImportOrchestrator {
     private record BatchResult(int successIncrement, int failIncrement) {}
 
     /**
-     * 错误文件保存
-     * @param taskId 任务ID
+     * 保存错误文件并记录路径到聚合根。
+     *
+     * @param taskId    任务 ID
      * @param collector 错误信息收集器
-     * @param plugin 适配器
+     * @param plugin    业务插件
      */
     private void saveErrorFile(String taskId, ErrorCollector collector, ImportPlugin<?, ?> plugin) {
         try {
