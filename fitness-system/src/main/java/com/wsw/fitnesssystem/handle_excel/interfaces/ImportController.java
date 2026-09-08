@@ -1,10 +1,12 @@
 package com.wsw.fitnesssystem.handle_excel.interfaces;
 
-import com.wsw.fitnesssystem.handle_excel.application.service.ImportSubmissionService;
-import com.wsw.fitnesssystem.handle_excel.application.service.ImportProgressQueryService;
+import com.wsw.fitnesssystem.handle_excel.application.dto.result.ImportProgressResult;
+import com.wsw.fitnesssystem.handle_excel.application.service.command.ImportSubmissionService;
 import com.wsw.fitnesssystem.handle_excel.application.ImportTemplateAppService;
 import com.wsw.fitnesssystem.handle_excel.application.enums.ImportBizType;
-import com.wsw.fitnesssystem.handle_excel.domain.enums.ImportStatus;
+import com.wsw.fitnesssystem.handle_excel.application.service.command.ImportTaskCommandService;
+import com.wsw.fitnesssystem.handle_excel.application.service.query.ImportTaskQueryService;
+import com.wsw.fitnesssystem.handle_excel.application.service.query.ImportTypeQueryService;
 import com.wsw.fitnesssystem.handle_excel.interfaces.dto.ImportProgressResponse;
 import com.wsw.fitnesssystem.shared.context.RequestContextHolder;
 import com.wsw.fitnesssystem.shared.domain.valueobject.Operator;
@@ -35,12 +37,14 @@ import java.util.List;
 @Slf4j
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/excel")
+@RequestMapping("/import")
 public class ImportController {
 
+    private final ImportTaskQueryService importTaskQueryService;
+    private final ImportTypeQueryService importTypeQueryService;
     private final ImportSubmissionService importSubmissionService;
+    private final ImportTaskCommandService importTaskCommandService;
     private final ImportTemplateAppService importTemplateAppService;
-    private final ImportProgressQueryService importProgressQueryService;
 
     /**
      * 提交导入任务。
@@ -50,7 +54,7 @@ public class ImportController {
      * @param file 待导入的Excel文件
      * @return ApiResult 返回异步任务taskId，用于后续查询导入进度
      */
-    @PostMapping("/import")
+    @PostMapping("/submit")
     @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER')")
     public ApiResult<String> importExcel(
             @RequestParam String bizType,
@@ -68,14 +72,11 @@ public class ImportController {
      * @param taskId 异步导入任务编号，由{@link #importExcel(String, MultipartFile)}接口返回
      * @return ApiResult<ImportProgressResponse> 返回任务进度DTO，包含总条数、成功数、失败数、错误信息、任务状态
      */
-    @GetMapping("/import/progress")
+    @GetMapping("/progress")
     @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER')")
     public ApiResult<ImportProgressResponse> getProgress(@RequestParam String taskId) {
-        ImportProgressResponse dto = importProgressQueryService.getProgress(taskId);
-        if (dto.getStatus() == ImportStatus.INIT) {
-            throw new BizException(ResultCode.IMPORT_TASK_NOT_FOUND, "Task not found" + taskId);
-        }
-        return ApiResult.success(dto);
+        ImportProgressResult result = importTaskQueryService.getProgress(taskId);
+        return ApiResult.success(buildResponse(result));
     }
 
     /**
@@ -83,10 +84,10 @@ public class ImportController {
      * <p>前端下拉框可直接使用该返回值，动态展示可导入选项</p>
      * @return ApiResult<List<String>> 支持的bizType业务类型集合
      */
-    @GetMapping("/import/types")
+    @GetMapping("/types")
     @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER')")
     public ApiResult<List<String>> getImportTypes() {
-        return ApiResult.success(importProgressQueryService.getAllBizTypes());
+        return ApiResult.success(importTypeQueryService.getAllBizTypes());
     }
 
     /**
@@ -94,10 +95,10 @@ public class ImportController {
      * @param taskId TokenID
      * @param response 响应
      */
-    @GetMapping("/import/errors/download")
+    @GetMapping("/errors/download")
     @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER')")
     public void downloadErrorFile(@RequestParam String taskId, HttpServletResponse response) {
-        String filePath = importProgressQueryService.getErrorFilePath(taskId);
+        String filePath = importTaskQueryService.getErrorFilePath(taskId);
         if (filePath == null) {
             throw new BizException(ResultCode.FILE_NOT_FOUND, "No error file for this task");
         }
@@ -122,10 +123,10 @@ public class ImportController {
      * @param taskId 任务ID
      * @return 操作结果
      */
-    @PostMapping("/import/cancel")
+    @PostMapping("/cancel")
     @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER')")
     public ApiResult<String> cancelImport(@RequestParam String taskId) {
-        importProgressQueryService.cancelTask(taskId);
+        importTaskCommandService.cancelTask(taskId);
         return ApiResult.success("Cancellation request submitted");
     }
 
@@ -135,13 +136,31 @@ public class ImportController {
      * @param bizType  业务类型（如 USER_IMPORT）
      * @param response HTTP 响应
      */
-    @GetMapping("/import/template")
+    @GetMapping("/template")
     @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER')")
     public void downloadTemplate(@RequestParam String bizType, HttpServletResponse response) {
         // 校验 bizType 是否合法（利用枚举校验）
         ImportBizType.getByCode(bizType);
         // 调用应用服务生成并下载
         importTemplateAppService.downloadTemplate(bizType, response);
+    }
+
+    // ======================= 辅助方法 ============================
+
+    private ImportProgressResponse buildResponse(ImportProgressResult result) {
+        return ImportProgressResponse.builder()
+            .total(result.getTotal())
+            .processed(result.getProcessed())
+            .successCount(result.getSuccessCount())
+            .failCount(result.getFailCount())
+            .status(result.getStatus().name())
+            .errorMsg(result.getErrorMsg())
+            .errorFileExists(result.isErrorFileExists())
+            .percent(result.getPercent())
+            .completed(result.isCompleted())
+            .running(result.isRunning())
+            .failed(result.isFailed())
+            .build();
     }
 
 }

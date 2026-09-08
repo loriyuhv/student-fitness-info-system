@@ -35,8 +35,4 @@ public class ErrorCollector {
         return !errors.isEmpty();
     }
 
-    public int getErrorCount() {
-        return errors.size();
-    }
-
 }

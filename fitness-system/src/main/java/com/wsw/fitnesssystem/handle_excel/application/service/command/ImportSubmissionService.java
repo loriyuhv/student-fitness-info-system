@@ -1,4 +1,4 @@
-package com.wsw.fitnesssystem.handle_excel.application.service;
+package com.wsw.fitnesssystem.handle_excel.application.service.command;
 
 import com.wsw.fitnesssystem.handle_excel.application.plugin.ImportPluginRegistry;
 import com.wsw.fitnesssystem.handle_excel.application.plugin.ImportPlugin;
