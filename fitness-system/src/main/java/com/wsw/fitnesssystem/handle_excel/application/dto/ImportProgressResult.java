@@ -1,4 +1,4 @@
-package com.wsw.fitnesssystem.handle_excel.application.dto.result;
+package com.wsw.fitnesssystem.handle_excel.application.dto;
 
 import com.wsw.fitnesssystem.handle_excel.domain.enums.ImportStatus;
 import lombok.Builder;

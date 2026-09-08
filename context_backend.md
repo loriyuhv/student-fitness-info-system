@@ -93,3 +93,60 @@ public class UserRepositoryImpl implements UserRepository {
 
 
 异常处理和log日志：异常处理message传中文，log打印日志显示英文。
+
+
+
+---
+
+## infrastructure 包结构规范
+
+### 1. 核心规则
+
+| 包                               | 技术栈 | 存放内容                                        |
+| :------------------------------- | :----- | :---------------------------------------------- |
+| **`infrastructure.cache`**       | Redis  | 所有 Redis 实现：Key/Field 常量、仓储、锁、限流 |
+| **`infrastructure.persistence`** | MySQL  | 所有 MySQL 实现：Entity、Mapper、Repository     |
+
+
+### 2. 完整包结构
+
+```
+infrastructure/
+├── cache/                           # Redis 所有实现
+│   ├── ImportRedisKeys.java         # Key 规范
+│   ├── ImportTaskField.java         # Field 常量
+│   ├── RedisImportTaskRepository.java
+│   ├── RedisDistributedLockAdapter.java
+│   └── RedisRateLimiterAdapter.java
+│
+├── persistence/                     # MySQL 所有实现
+│   └── db/
+│       ├── entity/
+│       ├── mapper/
+│       └── repository/
+│
+├── parser/                          # Excel/文件解析
+├── config/                          # 配置常量
+├── exception/                       # 基础设施异常
+└── util/                            # 通用工具
+```
+
+
+### 3. 判断规则
+
+**一句话：Redis 归 `cache`，MySQL 归 `persistence`，不交叉。**
+
+- `cache` 的数据特征：临时、有 TTL、可丢失
+- `persistence` 的数据特征：持久、无 TTL、不可丢失
+
+
+### 4. 常见类归属
+
+| 类                               | 归属          |
+| :------------------------------- | :------------ |
+| `RedisImportTaskRepository`      | `cache`       |
+| `RedisDistributedLockAdapter`    | `cache`       |
+| `RedisRateLimiterAdapter`        | `cache`       |
+| `ImportTemplateConfigRepository` | `persistence` |
+| `ImportTemplateConfigMapper`     | `persistence` |
+| `ImportTemplateConfigEntity`     | `persistence` |

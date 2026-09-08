@@ -1,6 +1,6 @@
 package com.wsw.fitnesssystem.handle_excel.interfaces;
 
-import com.wsw.fitnesssystem.handle_excel.application.dto.result.ImportProgressResult;
+import com.wsw.fitnesssystem.handle_excel.application.dto.ImportProgressResult;
 import com.wsw.fitnesssystem.handle_excel.application.service.command.ImportSubmissionService;
 import com.wsw.fitnesssystem.handle_excel.application.ImportTemplateAppService;
 import com.wsw.fitnesssystem.handle_excel.application.enums.ImportBizType;

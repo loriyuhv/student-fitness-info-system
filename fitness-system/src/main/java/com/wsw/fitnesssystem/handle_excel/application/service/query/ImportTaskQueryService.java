@@ -1,6 +1,6 @@
 package com.wsw.fitnesssystem.handle_excel.application.service.query;
 
-import com.wsw.fitnesssystem.handle_excel.application.dto.result.ImportProgressResult;
+import com.wsw.fitnesssystem.handle_excel.application.dto.ImportProgressResult;
 import com.wsw.fitnesssystem.handle_excel.domain.model.ImportTask;
 import com.wsw.fitnesssystem.handle_excel.domain.repository.ImportTaskRepository;
 import com.wsw.fitnesssystem.shared.exception.BizException;
