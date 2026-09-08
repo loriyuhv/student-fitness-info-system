@@ -60,7 +60,7 @@ public class ImportSubmissionService {
         rateLimiterPort.checkRateLimit(userId);
 
         // 3. 获取业务插件（提前校验，避免文件转存后才发现不支持）
-        ImportPlugin<?, ?> plugin = pluginRegistry.getImportPlugin(bizTypeEnum.getCode());
+        ImportPlugin<?, ?> plugin = pluginRegistry.getPlugin(bizTypeEnum.getCode());
 
         // 4. 转存临时文件（同步操作，避免异步线程读取时 MultipartFile 已关闭）
         String taskId = UUID.randomUUID().toString();
@@ -169,7 +169,7 @@ public class ImportSubmissionService {
         File tempFile = new File(tempDir, ImportConfig.TEMP_FILE_NAME);
         try {
             file.transferTo(tempFile);
-            log.info("[{}] File saved to temp location: {}", taskId, tempFile.getAbsolutePath());
+            log.debug("[{}] File saved to temp location: {}", taskId, tempFile.getAbsolutePath());
         } catch (IOException e) {
             log.error("[{}] Failed to save temp file", taskId, e);
             throw new BizException(ResultCode.FILE_UPLOAD_ERROR, "文件转存失败: " + e.getMessage());
