@@ -1,8 +1,8 @@
 package com.wsw.fitnesssystem.handle_excel.infrastructure.lock;
 
 import com.wsw.fitnesssystem.handle_excel.application.port.output.DistributedLockPort;
-import com.wsw.fitnesssystem.handle_excel.infrastructure.config.ExcelConstants;
-import com.wsw.fitnesssystem.handle_excel.infrastructure.cache.model.ExcelRedisKeys;
+import com.wsw.fitnesssystem.handle_excel.infrastructure.config.ImportConfig;
+import com.wsw.fitnesssystem.handle_excel.infrastructure.cache.ImportRedisKeys;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -31,9 +31,9 @@ public class RedisDistributedLockRepository implements DistributedLockPort {
             return true;
         }
 
-        String key = ExcelRedisKeys.lockImportKey(fileMd5);
+        String key = ImportRedisKeys.fileLockKey(fileMd5);
         Boolean success = redis.opsForValue()
-                .setIfAbsent(key, taskId, Duration.ofMinutes(ExcelConstants.FILE_LOCK_TTL_MINUTES));
+                .setIfAbsent(key, taskId, Duration.ofMinutes(ImportConfig.FILE_LOCK_TTL_MINUTES));
 
         if (Boolean.TRUE.equals(success)) {
             log.info("File lock acquired successfully, md5={}, taskId={}", fileMd5, taskId);
@@ -50,7 +50,7 @@ public class RedisDistributedLockRepository implements DistributedLockPort {
             return;
         }
 
-        String key = ExcelRedisKeys.lockImportKey(fileMd5);
+        String key = ImportRedisKeys.fileLockKey(fileMd5);
         Boolean deleted = redis.delete(key);
         log.info("File lock released, md5={}, result={}", fileMd5, deleted);
     }

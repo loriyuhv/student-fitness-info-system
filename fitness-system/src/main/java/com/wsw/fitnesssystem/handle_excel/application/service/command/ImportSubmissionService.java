@@ -7,7 +7,7 @@ import com.wsw.fitnesssystem.handle_excel.application.port.output.DistributedLoc
 import com.wsw.fitnesssystem.handle_excel.application.port.output.RateLimiterPort;
 import com.wsw.fitnesssystem.handle_excel.infrastructure.util.FileCleanupUtils;
 import com.wsw.fitnesssystem.handle_excel.application.enums.ImportBizType;
-import com.wsw.fitnesssystem.handle_excel.infrastructure.config.ExcelConstants;
+import com.wsw.fitnesssystem.handle_excel.infrastructure.config.ImportConfig;
 import com.wsw.fitnesssystem.shared.exception.BizException;
 import com.wsw.fitnesssystem.shared.response.ResultCode;
 import lombok.RequiredArgsConstructor;
@@ -110,7 +110,7 @@ public class ImportSubmissionService {
         // 3. 扩展名校验（取真实后缀，防止 file.xlsx.exe 绕过）
         String ext = extractExtension(originalFilename);
         boolean validExt = false;
-        for (String allowed : ExcelConstants.ALLOWED_EXTENSIONS) {
+        for (String allowed : ImportConfig.ALLOWED_EXTENSIONS) {
             if (allowed.equalsIgnoreCase(ext)) {
                 validExt = true;
                 break;
@@ -119,14 +119,14 @@ public class ImportSubmissionService {
         if (!validExt) {
             throw new BizException(
                 ResultCode.PARAM_TYPE_ERROR,
-                "不支持的文件格式，仅允许" + Arrays.toString(ExcelConstants.ALLOWED_EXTENSIONS)
+                "不支持的文件格式，仅允许" + Arrays.toString(ImportConfig.ALLOWED_EXTENSIONS)
             );
         }
 
         // 4. 大小校验（默认 200MB）
-        if (file.getSize() > ExcelConstants.MAX_FILE_SIZE) {
+        if (file.getSize() > ImportConfig.MAX_FILE_SIZE) {
             throw new BizException(ResultCode.PARAM_INVALID,
-                "文件大小超过限制（最大 " + (ExcelConstants.MAX_FILE_SIZE / 1024 / 1024) + "MB）"
+                "文件大小超过限制（最大 " + (ImportConfig.MAX_FILE_SIZE / 1024 / 1024) + "MB）"
             );
         }
     }
@@ -157,7 +157,7 @@ public class ImportSubmissionService {
         String dateDir = java.time.LocalDate.now().toString();
         File tempDir = new File(
             System.getProperty("java.io.tmpdir"),
-            ExcelConstants.TEMP_DIR_ROOT + "/" + dateDir + "/" + taskId
+            ImportConfig.TEMP_DIR_ROOT + "/" + dateDir + "/" + taskId
         );
 
         // 如果目录不存在且创建失败则抛异常
@@ -166,7 +166,7 @@ public class ImportSubmissionService {
             throw new BizException(ResultCode.SYSTEM_ERROR, "创建临时目录失败");
         }
 
-        File tempFile = new File(tempDir, ExcelConstants.TEMP_FILE_NAME);
+        File tempFile = new File(tempDir, ImportConfig.TEMP_FILE_NAME);
         try {
             file.transferTo(tempFile);
             log.info("[{}] File saved to temp location: {}", taskId, tempFile.getAbsolutePath());

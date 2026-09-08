@@ -12,7 +12,7 @@ import com.wsw.fitnesssystem.handle_excel.infrastructure.parser.ExcelFileReader;
 import com.wsw.fitnesssystem.handle_excel.domain.repository.ImportTaskRepository;
 import com.wsw.fitnesssystem.handle_excel.application.generator.ErrorFileGenerator;
 import com.wsw.fitnesssystem.handle_excel.infrastructure.util.FileCleanupUtils;
-import com.wsw.fitnesssystem.handle_excel.infrastructure.config.ExcelConstants;
+import com.wsw.fitnesssystem.handle_excel.infrastructure.config.ImportConfig;
 import com.wsw.fitnesssystem.shared.response.ResultCode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -94,7 +94,7 @@ public class ImportOrchestrator {
             // ========== Step 1: 预估行数，决策解析模式 ==========
             int estimatedRows = excelFileReader.estimatedRowCount(file);
             int batchSize = adapter.getBatchSize();
-            if (estimatedRows < ExcelConstants.STREAM_THRESHOLD) {
+            if (estimatedRows < ImportConfig.STREAM_THRESHOLD) {
                 // 小文件：全量解析，代码简单，内存 = O(total)
                 log.info("[{}] Estimated {} rows, using full processing mode", taskId, estimatedRows);
                 doExecuteFull(taskId, file, adapter);
@@ -436,7 +436,7 @@ public class ImportOrchestrator {
             String msg = (error.getRowIndex() > 0 ? "Row " + error.getRowIndex() : "Unknown row")
                 + ": " + error.getErrorReason();
             uniqueErrors.add(msg);
-            if (uniqueErrors.size() >= ExcelConstants.ERROR_MSG_MAX_COUNT) {
+            if (uniqueErrors.size() >= ImportConfig.ERROR_MSG_MAX_COUNT) {
                 break;
             }
         }

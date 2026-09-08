@@ -1,6 +1,6 @@
 package com.wsw.fitnesssystem.handle_excel.application.plugin;
 
-import com.wsw.fitnesssystem.handle_excel.infrastructure.config.ExcelConstants;
+import com.wsw.fitnesssystem.handle_excel.infrastructure.config.ImportConfig;
 
 import java.util.List;
 
@@ -36,7 +36,7 @@ public interface ImportPlugin<T, E> {
      * @return 每批处理数量
      */
     default int getBatchSize() {
-        return ExcelConstants.DEFAULT_BATCH_SIZE;
+        return ImportConfig.DEFAULT_BATCH_SIZE;
     }
 
     /**

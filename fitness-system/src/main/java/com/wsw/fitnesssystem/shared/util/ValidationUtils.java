@@ -16,6 +16,9 @@ public class ValidationUtils {
         "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$"
     );
 
+    /** 手机号正则（中国大陆） */
+    private static final Pattern PHONE_PATTERN = Pattern.compile("^1[3-9]\\\\d{9}$");
+
     private ValidationUtils() {
     }
 
@@ -30,6 +33,20 @@ public class ValidationUtils {
             return false;
         }
         return EMAIL_PATTERN.matcher(email).matches();
+    }
+
+    /**
+     * 校验手机号是否合法
+     *
+     * @param phone 待校验手机号
+     * @return true-合法，false-不合法（null 或空串也返回 false）
+     */
+    public static boolean isPhone(String phone) {
+        if (phone == null || phone.isBlank()) {
+            return false;
+        }
+
+        return PHONE_PATTERN.matcher(phone).matches();
     }
 
 }

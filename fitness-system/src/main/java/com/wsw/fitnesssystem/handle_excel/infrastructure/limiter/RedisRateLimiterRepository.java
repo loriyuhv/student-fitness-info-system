@@ -1,8 +1,8 @@
 package com.wsw.fitnesssystem.handle_excel.infrastructure.limiter;
 
 import com.wsw.fitnesssystem.handle_excel.application.port.output.RateLimiterPort;
-import com.wsw.fitnesssystem.handle_excel.infrastructure.config.ExcelConstants;
-import com.wsw.fitnesssystem.handle_excel.infrastructure.cache.model.ExcelRedisKeys;
+import com.wsw.fitnesssystem.handle_excel.infrastructure.config.ImportConfig;
+import com.wsw.fitnesssystem.handle_excel.infrastructure.cache.ImportRedisKeys;
 import com.wsw.fitnesssystem.shared.exception.BizException;
 import com.wsw.fitnesssystem.shared.response.ResultCode;
 import lombok.RequiredArgsConstructor;
@@ -27,8 +27,8 @@ import java.util.Collections;
 public class RedisRateLimiterRepository implements RateLimiterPort {
 
     private final StringRedisTemplate redis;
-    private static final int RATE_LIMIT_WINDOW_SECONDS = ExcelConstants.RATE_LIMIT_WINDOW_SECONDS;
-    private static final int RATE_LIMIT_MAX_COUNT = ExcelConstants.RATE_LIMIT_MAX_COUNT;
+    private static final int RATE_LIMIT_WINDOW_SECONDS = ImportConfig.RATE_LIMIT_WINDOW_SECONDS;
+    private static final int RATE_LIMIT_MAX_COUNT = ImportConfig.RATE_LIMIT_MAX_COUNT;
     private static final String LUA_SCRIPT = """
         local current = redis.call('incr', KEYS[1])
         
@@ -45,7 +45,7 @@ public class RedisRateLimiterRepository implements RateLimiterPort {
             return; // 未登录场景不做限制
         }
 
-        String key = ExcelRedisKeys.limitImportKey(userId);
+        String key = ImportRedisKeys.rateLimitKey(userId);
         Long current = redis.execute(new DefaultRedisScript<>(LUA_SCRIPT, Long.class),
                 Collections.singletonList(key), String.valueOf(RATE_LIMIT_WINDOW_SECONDS));
 

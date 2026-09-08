@@ -4,7 +4,7 @@ import com.wsw.fitnesssystem.handle_excel.application.collector.ErrorCollector;
 import com.wsw.fitnesssystem.handle_excel.application.collector.ErrorCollectorHolder;
 import com.wsw.fitnesssystem.handle_excel.application.port.output.UserProvisioningPort;
 import com.wsw.fitnesssystem.handle_excel.application.enums.ImportBizType;
-import com.wsw.fitnesssystem.handle_excel.infrastructure.config.ExcelConstants;
+import com.wsw.fitnesssystem.handle_excel.infrastructure.config.ImportConfig;
 import com.wsw.fitnesssystem.shared.util.ValidationUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -89,22 +89,22 @@ public class UserImportPlugin implements ImportPlugin<UserExcelDTO, UserImportDa
             String trimmedUsername = dto.getUsername().trim();
             dto.setUsername(trimmedUsername);
 
-            if (trimmedUsername.length() > ExcelConstants.USERNAME_MAX_LENGTH) {
+            if (trimmedUsername.length() > ImportConfig.USERNAME_MAX_LENGTH) {
                 collector.addError(
                     rowIndex,
                     buildRowData(dto),
-                    "用户账号长度超过限制（最大 " + ExcelConstants.USERNAME_MAX_LENGTH + " 个字符）"
+                    "用户账号长度超过限制（最大 " + ImportConfig.USERNAME_MAX_LENGTH + " 个字符）"
                 );
                 continue;
             }
 
             // ========== 3. 密码校验（必填） ==========
             if (StringUtils.isBlank(dto.getPassword())
-                || dto.getPassword().length() < ExcelConstants.PASSWORD_MIN_LENGTH) {
+                || dto.getPassword().length() < ImportConfig.PASSWORD_MIN_LENGTH) {
                 collector.addError(
                     rowIndex,
                     buildRowData(dto),
-                    "密码必须至少 " + ExcelConstants.PASSWORD_MIN_LENGTH + " 位字符"
+                    "密码必须至少 " + ImportConfig.PASSWORD_MIN_LENGTH + " 位字符"
                 );
                 continue;
             }
@@ -113,11 +113,11 @@ public class UserImportPlugin implements ImportPlugin<UserExcelDTO, UserImportDa
             String nickname = Objects.toString(dto.getNickname(), "").trim();
             dto.setNickname(nickname);
 
-            if (nickname.length() > ExcelConstants.NICKNAME_MAX_LENGTH) {
+            if (nickname.length() > ImportConfig.NICKNAME_MAX_LENGTH) {
                 collector.addError(
                     rowIndex,
                     buildRowData(dto),
-                    "昵称超过最大长度限制（最大 " + ExcelConstants.NICKNAME_MAX_LENGTH + " 个字符）"
+                    "昵称超过最大长度限制（最大 " + ImportConfig.NICKNAME_MAX_LENGTH + " 个字符）"
                 );
                 continue;
             }
@@ -126,7 +126,8 @@ public class UserImportPlugin implements ImportPlugin<UserExcelDTO, UserImportDa
             String phone = Objects.toString(dto.getPhoneNumber(), "").trim();
             dto.setPhoneNumber(phone);
 
-            if (!phone.isEmpty() && !phone.matches(ExcelConstants.PHONE_REGEX)) {
+            boolean isPhone = ValidationUtils.isPhone(phone);
+            if (!isPhone) {
                 collector.addError(
                     rowIndex,
                     buildRowData(dto),

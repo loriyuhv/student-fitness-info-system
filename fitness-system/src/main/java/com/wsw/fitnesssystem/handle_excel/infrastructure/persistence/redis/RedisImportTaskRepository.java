@@ -3,9 +3,9 @@ package com.wsw.fitnesssystem.handle_excel.infrastructure.persistence.redis;
 import com.wsw.fitnesssystem.handle_excel.domain.model.ImportTask;
 import com.wsw.fitnesssystem.handle_excel.domain.repository.ImportTaskRepository;
 import com.wsw.fitnesssystem.handle_excel.domain.enums.ImportStatus;
-import com.wsw.fitnesssystem.handle_excel.infrastructure.config.ExcelConstants;
-import com.wsw.fitnesssystem.handle_excel.infrastructure.cache.model.ExcelRedisKeys;
-import com.wsw.fitnesssystem.handle_excel.infrastructure.cache.model.ImportTaskField;
+import com.wsw.fitnesssystem.handle_excel.infrastructure.config.ImportConfig;
+import com.wsw.fitnesssystem.handle_excel.infrastructure.cache.ImportRedisKeys;
+import com.wsw.fitnesssystem.handle_excel.infrastructure.cache.ImportTaskField;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -35,7 +35,7 @@ public class RedisImportTaskRepository implements ImportTaskRepository {
 
     @Override
     public void save(ImportTask task) {
-        String key = ExcelRedisKeys.importTaskKey(task.getTaskId());
+        String key = ImportRedisKeys.taskKey(task.getTaskId());
         Map<String, String> map = new HashMap<>();
 
         // 使用 ImportTaskField 枚举，杜绝硬编码
@@ -57,7 +57,7 @@ public class RedisImportTaskRepository implements ImportTaskRepository {
 
         try {
             redis.opsForHash().putAll(key, map);
-            redis.expire(key, Duration.ofHours(ExcelConstants.IMPORT_TASK_TTL_HOURS));
+            redis.expire(key, Duration.ofHours(ImportConfig.IMPORT_TASK_TTL_HOURS));
             log.debug("[{}] ImportTask saved, status={}, processed={}/{}",
                 task.getTaskId(), task.getStatus(), task.getProcessed(), task.getTotal());
         } catch (Exception e) {
@@ -67,7 +67,7 @@ public class RedisImportTaskRepository implements ImportTaskRepository {
 
     @Override
     public Optional<ImportTask> findById(String taskId) {
-        String key = ExcelRedisKeys.importTaskKey(taskId);
+        String key = ImportRedisKeys.taskKey(taskId);
         try {
             Map<Object, Object> entries = redis.opsForHash().entries(key);
             if (entries.isEmpty()) {
@@ -98,14 +98,14 @@ public class RedisImportTaskRepository implements ImportTaskRepository {
 
     @Override
     public void requestCancel(String taskId) {
-        String key = ExcelRedisKeys.importTaskKey(taskId);
+        String key = ImportRedisKeys.taskKey(taskId);
         redis.opsForHash().put(key, ImportTaskField.CANCELLED.getKey(), "1");
         log.info("[{}] Cancellation requested", taskId);
     }
 
     @Override
     public boolean isCancelled(String taskId) {
-        String key = ExcelRedisKeys.importTaskKey(taskId);
+        String key = ImportRedisKeys.taskKey(taskId);
         Object val = redis.opsForHash().get(key, ImportTaskField.CANCELLED.getKey());
         return "1".equals(val);
     }
@@ -162,15 +162,15 @@ public class RedisImportTaskRepository implements ImportTaskRepository {
 
     private String formatErrors(List<?> errors) {
         if (errors == null || errors.isEmpty()) return "";
-        int limit = Math.min(errors.size(), ExcelConstants.ERROR_MSG_MAX_COUNT);
+        int limit = Math.min(errors.size(), ImportConfig.ERROR_MSG_MAX_COUNT);
         StringBuilder sb = new StringBuilder();
         for (int i = 0; i < limit; i++) {
             sb.append(errors.get(i));
             if (i < limit - 1) sb.append(" | ");
         }
         String result = sb.toString();
-        return result.length() > ExcelConstants.ERROR_MSG_MAX_LENGTH
-            ? result.substring(0, ExcelConstants.ERROR_MSG_MAX_LENGTH) + "..."
+        return result.length() > ImportConfig.ERROR_MSG_MAX_LENGTH
+            ? result.substring(0, ImportConfig.ERROR_MSG_MAX_LENGTH) + "..."
             : result;
     }
 
