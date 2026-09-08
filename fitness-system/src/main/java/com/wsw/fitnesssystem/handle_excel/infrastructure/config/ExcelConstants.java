@@ -14,9 +14,9 @@ import lombok.NoArgsConstructor;
 public class ExcelConstants {
     // ==================== 文件限制 ====================
     /**
-     * 单文件最大大小：50MB
+     * 单文件最大大小：200MB
      */
-    public static final long MAX_FILE_SIZE = 50 * 1024 * 1024L;
+    public static final long MAX_FILE_SIZE = 200 * 1024 * 1024L;
 
     /**
      * 支持的文件扩展名

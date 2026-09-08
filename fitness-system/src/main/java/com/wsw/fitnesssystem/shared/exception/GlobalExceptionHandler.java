@@ -242,7 +242,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(MaxUploadSizeExceededException.class)
     public ApiResult<Object> handleMaxUploadSizeExceeded(MaxUploadSizeExceededException e) {
         log.warn("文件大小超出限制：{}", e.getMessage());
-        return ApiResult.error(ResultCode.PARAM_INVALID, "文件大小超出限制，最大 100MB");
+        return ApiResult.error(ResultCode.PARAM_INVALID, "文件大小超出限制，最大 200MB");
     }
 
     /**
