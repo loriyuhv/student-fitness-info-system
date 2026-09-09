@@ -141,8 +141,7 @@ public class UserImportPlugin implements ImportPlugin<UserImportRecord, UserImpo
             String phone = Objects.toString(dto.getPhoneNumber(), "").trim();
             dto.setPhoneNumber(phone);
 
-            boolean isPhone = ValidationUtils.isPhone(phone);
-            if (!isPhone) {
+            if (!phone.isEmpty() && !ValidationUtils.isPhone(phone)) {
                 collector.addError(
                     rowIndex,
                     buildRowData(dto),
@@ -155,8 +154,7 @@ public class UserImportPlugin implements ImportPlugin<UserImportRecord, UserImpo
             String email = Objects.toString(dto.getEmail(), "").trim().toLowerCase();
             dto.setEmail(email);
 
-            boolean isEmail = ValidationUtils.isEmail(email);
-            if (!isEmail) {
+            if (!email.isEmpty() && !ValidationUtils.isEmail(email)) {
                 collector.addError(
                     rowIndex,
                     buildRowData(dto),
@@ -290,7 +288,7 @@ public class UserImportPlugin implements ImportPlugin<UserImportRecord, UserImpo
         return List.of(
             Objects.toString(dto.getCampusId(), ""),
             Objects.toString(dto.getUsername(), ""),
-            Objects.toString(dto.getPassword(), ""),
+            Objects.toString("******", ""),
             Objects.toString(dto.getNickname(), ""),
             Objects.toString(dto.getPhoneNumber(), ""),
             Objects.toString(dto.getEmail(), ""),
