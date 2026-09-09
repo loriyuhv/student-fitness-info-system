@@ -1,4 +1,4 @@
-package com.wsw.fitnesssystem.data_exchange.application.dto;
+package com.wsw.fitnesssystem.data_exchange.application.dto.record;
 
 import cn.idev.excel.annotation.ExcelIgnore;
 import cn.idev.excel.annotation.ExcelProperty;

@@ -3,7 +3,7 @@ package com.wsw.fitnesssystem.data_exchange.application.plugin;
 import com.wsw.fitnesssystem.data_exchange.application.collector.ErrorCollector;
 import com.wsw.fitnesssystem.data_exchange.application.collector.ErrorCollectorHolder;
 import com.wsw.fitnesssystem.data_exchange.application.config.ImportApplicationProperties;
-import com.wsw.fitnesssystem.data_exchange.application.dto.UserImportRecord;
+import com.wsw.fitnesssystem.data_exchange.application.dto.record.UserImportRecord;
 import com.wsw.fitnesssystem.data_exchange.application.dto.command.UserImportCommand;
 import com.wsw.fitnesssystem.data_exchange.application.dto.result.UserImportResult;
 import com.wsw.fitnesssystem.data_exchange.application.port.output.UserProvisioningPort;
