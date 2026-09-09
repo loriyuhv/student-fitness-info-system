@@ -19,8 +19,7 @@ import java.util.Arrays;
 @AllArgsConstructor
 public enum ImportBizType {
 
-    USER_IMPORT("USER_IMPORT", "用户信息导入"),
-    FITNESS_RECORD_IMPORT("FITNESS_RECORD_IMPORT", "体测记录导入");
+    USER_IMPORT("USER_IMPORT", "用户信息导入");
 
     private final String code;
     private final String desc;
@@ -36,7 +35,7 @@ public enum ImportBizType {
             .filter(item -> item.getCode().equals(code))
             .findFirst()
             .orElseThrow(
-                () -> new BizException(ResultCode.PARAM_INVALID, "Unsupported import type: " + code)
+                () -> new BizException(ResultCode.PARAM_INVALID, "不支持导入类型: " + code)
             );
     }
 

@@ -27,11 +27,11 @@ public class ImportTaskCommandService {
     public void cancelTask(String taskId) {
         Optional<ImportTask> optional = importTaskRepository.findById(taskId);
         if (optional.isEmpty()) {
-            throw new BizException(ResultCode.IMPORT_TASK_NOT_FOUND, "Task not found: " + taskId);
+            throw new BizException(ResultCode.IMPORT_TASK_NOT_FOUND, "任务未找到：" + taskId);
         }
         ImportTask task = optional.get();
         if (!task.isRunning()) {
-            throw new BizException(ResultCode.PARAM_INVALID, "Task is not running");
+            throw new BizException(ResultCode.PARAM_INVALID, "任务未在运行");
         }
         importTaskRepository.requestCancel(taskId);
         log.info("Cancellation requested for task: {}", taskId);

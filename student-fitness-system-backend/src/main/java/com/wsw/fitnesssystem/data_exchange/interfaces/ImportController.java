@@ -2,7 +2,7 @@ package com.wsw.fitnesssystem.data_exchange.interfaces;
 
 import com.wsw.fitnesssystem.data_exchange.application.dto.result.ImportProgressResult;
 import com.wsw.fitnesssystem.data_exchange.application.service.command.ImportSubmissionService;
-import com.wsw.fitnesssystem.data_exchange.application.ImportTemplateAppService;
+import com.wsw.fitnesssystem.data_exchange.application.service.query.ImportTemplateQueryService;
 import com.wsw.fitnesssystem.data_exchange.application.enums.ImportBizType;
 import com.wsw.fitnesssystem.data_exchange.application.service.command.ImportTaskCommandService;
 import com.wsw.fitnesssystem.data_exchange.application.service.query.ImportTaskQueryService;
@@ -45,7 +45,7 @@ public class ImportController {
     private final ImportTypeQueryService importTypeQueryService;
     private final ImportSubmissionService importSubmissionService;
     private final ImportTaskCommandService importTaskCommandService;
-    private final ImportTemplateAppService importTemplateAppService;
+    private final ImportTemplateQueryService importTemplateQueryService;
 
     /**
      * 提交导入任务。
@@ -106,11 +106,11 @@ public class ImportController {
     public void downloadErrorFile(@RequestParam String taskId, HttpServletResponse response) {
         String filePath = importTaskQueryService.getErrorFilePath(taskId);
         if (filePath == null) {
-            throw new BizException(ResultCode.FILE_NOT_FOUND, "No error file for this task");
+            throw new BizException(ResultCode.FILE_NOT_FOUND, "该任务没有错误文件");
         }
         File file = new File(filePath);
         if (!file.exists()) {
-            throw new BizException(ResultCode.FILE_NOT_FOUND, "Error file expired or removed");
+            throw new BizException(ResultCode.FILE_NOT_FOUND, "错误文件已过期或已被移除");
         }
         try {
             response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
@@ -119,7 +119,7 @@ public class ImportController {
             response.flushBuffer();
         } catch (IOException e) {
             log.error("Failed to download error file: taskId={}", taskId, e);
-            throw new BizException(ResultCode.SYSTEM_ERROR, "Error file download failed");
+            throw new BizException(ResultCode.SYSTEM_ERROR, "错误文件下载失败");
         }
     }
 
@@ -148,7 +148,7 @@ public class ImportController {
         // 校验 bizType 是否合法（利用枚举校验）
         ImportBizType.getByCode(bizType);
         // 调用应用服务生成并下载
-        importTemplateAppService.downloadTemplate(bizType, response);
+        importTemplateQueryService.downloadTemplate(bizType, response);
     }
 
     // ======================= 辅助方法 ============================

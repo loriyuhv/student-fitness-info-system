@@ -1,4 +1,4 @@
-package com.wsw.fitnesssystem.data_exchange.application;
+package com.wsw.fitnesssystem.data_exchange.application.service.query;
 
 import cn.idev.excel.FastExcel;
 import com.wsw.fitnesssystem.data_exchange.domain.vo.ImportTemplate;
@@ -16,7 +16,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 /**
- * Excel 模板应用服务
+ * 导入文件模板应用服务（读操作）
  * <p>负责模板的获取、生成和下载</p>
  *
  * @author loriyuhv
@@ -26,7 +26,7 @@ import java.util.List;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class ImportTemplateAppService {
+public class ImportTemplateQueryService {
 
     private final TemplateConfigPort templateConfigPort;
 

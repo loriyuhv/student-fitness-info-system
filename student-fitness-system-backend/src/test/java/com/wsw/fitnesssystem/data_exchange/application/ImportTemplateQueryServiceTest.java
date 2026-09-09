@@ -1,5 +1,6 @@
 package com.wsw.fitnesssystem.data_exchange.application;
 
+import com.wsw.fitnesssystem.data_exchange.application.service.query.ImportTemplateQueryService;
 import com.wsw.fitnesssystem.data_exchange.domain.vo.ImportTemplate;
 import com.wsw.fitnesssystem.data_exchange.application.port.output.TemplateConfigPort;
 import com.wsw.fitnesssystem.shared.exception.BizException;
@@ -25,8 +26,8 @@ import static org.mockito.Mockito.*;
  * @since 1.0
  */
 @ExtendWith(MockitoExtension.class)
-@DisplayName("ImportTemplateAppService 单元测试")
-class ImportTemplateAppServiceTest {
+@DisplayName("ImportTemplateQueryService 单元测试")
+class ImportTemplateQueryServiceTest {
 
     @Mock
     private TemplateConfigPort templateConfigPort;
@@ -35,7 +36,7 @@ class ImportTemplateAppServiceTest {
     private HttpServletResponse response;
 
     @InjectMocks
-    private ImportTemplateAppService service;
+    private ImportTemplateQueryService service;
 
     @Test
     @DisplayName("下载模板成功")

@@ -263,12 +263,12 @@ user（外部模块）→ data_exchange  ❌ 禁止反向依赖；
 ### 8\.1 RESTful 路径设计
 
 ```Plain Text
-POST   /import/submit         # 提交导入
-GET    /import/progress       # 查询进度
-GET    /import/types          # 业务类型列表
-GET    /import/error/download # 错误文件下载
-POST   /import/cancel         # 取消任务
-GET    /import/template       # 模板下载
+POST   /import/submit             # 提交导入
+GET    /import/progress           # 查询进度
+GET    /import/types              # 业务类型列表
+GET    /import/errors/download    # 错误文件下载
+POST   /import/cancel             # 取消任务
+GET    /import/template           # 模板下载
 ```
 
 ### 8\.2 路径命名原则

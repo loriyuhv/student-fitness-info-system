@@ -16,7 +16,7 @@ import java.util.stream.Collectors;
 /**
  * 导入任务进度 Redis 实现
  * <p>基于 Redis Hash 存储任务进度，支持 24h 自动过期</p>
- * <p>Key 规范：excel:import:task:{taskId}</p>
+ * <p>Key 规范：import:task:{taskId}</p>
  *
  * @author loriyuhv
  * @version 1.0 2026/8/21 14:17

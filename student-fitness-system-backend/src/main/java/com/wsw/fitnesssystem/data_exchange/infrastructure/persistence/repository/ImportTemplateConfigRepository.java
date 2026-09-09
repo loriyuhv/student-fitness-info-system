@@ -37,8 +37,7 @@ public class ImportTemplateConfigRepository {
         ImportTemplateConfigEntity entity = findByBizType(bizType);
         if (entity == null) {
             log.warn("Template config not found for bizType: {}", bizType);
-            throw new BizException(ResultCode.PARAM_INVALID,
-                "Template not configured for import type: " + bizType);
+            throw new BizException(ResultCode.PARAM_INVALID, "该导入类型未配置模板：" + bizType);
         }
         return entity;
     }

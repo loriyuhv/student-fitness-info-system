@@ -8,7 +8,7 @@ import lombok.ToString;
 
 /**
  * 用户导入数据传输对象
- * <p>由 handle_excel 模块定义，作为 {@link UserProvisioningPort} 的参数，
+ * <p>由 data_exchange 模块定义，作为 {@link UserProvisioningPort} 的参数，
  * 将 Excel 解析后的数据传递给 user 模块进行持久化。</p>
  *
  * <p>职责如下：</p>
