@@ -22,7 +22,7 @@ public interface DistributedLockPort {
      * 尝试获取文件锁。
      * <p>
      * 若文件未被锁定则获取成功，否则返回 {@code false}。
-     * 获取锁后需在任务完成时调用 {@link #releaseLock(String)} 释放。
+     * 获取锁后需在任务完成时调用 {@link #releaseLock(String, String)} 释放。
      *
      * @param fileMd5 文件 MD5（锁的唯一标识）
      * @param taskId  当前任务 ID（存入锁值，便于排查）
@@ -35,9 +35,14 @@ public interface DistributedLockPort {
      * <p>
      * 任务完成后（无论成功/失败）必须调用，避免死锁。
      * Redis TTL 作为兜底释放机制。
+     * </p>
+     * <p>
+     * <b>持有者校验：</b>仅当锁的持有者（value 中的 taskId）与 {@code taskId} 一致时才删除，
+     * 防止 TTL 过期后旧任务释放了被新任务重新获取的锁。
      *
      * @param fileMd5 文件 MD5
+     * @param taskId  持有锁的任务 ID（用于持有者校验，必须与加锁时一致）
      */
-    void releaseLock(String fileMd5);
+    void releaseLock(String fileMd5, String taskId);
 
 }

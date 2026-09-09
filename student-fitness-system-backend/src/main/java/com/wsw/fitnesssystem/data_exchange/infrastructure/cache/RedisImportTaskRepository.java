@@ -54,13 +54,32 @@ public class RedisImportTaskRepository implements ImportTaskRepository {
             map.put(ImportTaskField.CANCELLED.getKey(), "1");
         }
 
+        // 判断是否为"首次创建"：Redis 中尚无该任务记录。
+        // 首次创建（提交接口返回 taskId 后的第一条进度记录）失败必须上抛，
+        // 否则客户端拿到的 taskId 将永远查询不到进度（NOT_FOUND）；
+        // 后续进度更新失败则降级为 ERROR 日志告警，允许内存中的聚合根继续推进。
+        boolean isInitialCreate;
+        try {
+            isInitialCreate = !redis.hasKey(key);
+        } catch (Exception e) {
+            // 无法确认任务是否已存在（Redis 探测失败）：按"首次创建"从严处理，
+            // 宁可上抛让上层感知，也不静默丢失任务状态。
+            log.warn("[{}] Failed to check task existence, treated as initial create", task.getTaskId());
+            isInitialCreate = true;
+        }
         try {
             redis.opsForHash().putAll(key, map);
             redis.expire(key, Duration.ofHours(infraProperties.getRedis().getTaskTtlHours()));
             log.debug("[{}] ImportTask saved, status={}, processed={}/{}",
                 task.getTaskId(), task.getStatus(), task.getProcessed(), task.getTotal());
         } catch (Exception e) {
-            log.error("[{}] Failed to save ImportTask", task.getTaskId(), e);
+            if (isInitialCreate) {
+                log.error("[{}] Failed to create ImportTask in Redis", task.getTaskId(), e);
+                throw new IllegalStateException(
+                    "无法在 Redis 中创建导入任务进度记录，taskId=" + task.getTaskId(), e);
+            }
+            log.error("[{}] Failed to update ImportTask in Redis, task state kept in memory only",
+                task.getTaskId(), e);
         }
     }
 

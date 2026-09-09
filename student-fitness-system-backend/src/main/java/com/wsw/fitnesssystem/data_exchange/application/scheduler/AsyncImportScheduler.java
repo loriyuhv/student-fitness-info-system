@@ -78,9 +78,9 @@ public class AsyncImportScheduler {
         } finally {
             long elapsed = System.currentTimeMillis() - startTime; // ← 总耗时
             log.info("[{}] Async task finished, elapsed={}ms ({}s)", taskId, elapsed, elapsed / 1000);
-            // 释放文件锁（如果 MD5 有效）
+            // 释放文件锁（如果 MD5 有效）。携带 taskId 做持有者校验，防止误删他任务锁
             if (StringUtils.isNotBlank(md5)) {
-                distributedLockPort.releaseLock(md5);
+                distributedLockPort.releaseLock(md5, taskId);
                 log.debug("[{}] File lock released, md5={}", taskId, md5);
             }
         }

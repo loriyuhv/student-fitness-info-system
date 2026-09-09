@@ -145,44 +145,74 @@ public class ImportTask {
 
     /**
      * 全部成功完成，状态 → FINISHED。
+     * <p>终态时把 total 校正为实际处理行数（流式模式 total 为预估值），
+     * 避免出现"任务已完成但进度百分比不足 100%"。</p>
      *
      * @throws IllegalStateException 若非 PROCESSING 状态则抛出
      */
     public void finishSuccess() {
-        if (this.status != ImportStatus.PROCESSING) {
-            throw new IllegalStateException("任务未在处理中状态");
-        }
+        requireProcessing("标记全部成功");
+        this.total = this.processed;
         this.status = ImportStatus.FINISHED;
     }
 
     /**
      * 部分成功完成（存在失败记录），状态 → PARTIAL。
+     * <p>同上，终态时按实际处理行数校正 total。</p>
      *
      * @throws IllegalStateException 若非 PROCESSING 状态则抛出
      */
     public void finishPartial() {
-        if (this.status != ImportStatus.PROCESSING) {
-            throw new IllegalStateException("任务未在处理中状态");
-        }
+        requireProcessing("标记部分成功");
+        this.total = this.processed;
         this.status = ImportStatus.PARTIAL;
     }
 
     /**
      * 标记任务失败（系统级异常），状态 → FAILED，覆盖错误摘要。
+     * <p>仅在任务尚未进入终态（INIT / PROCESSING）时允许，防止终态被覆盖。</p>
      *
      * @param errorMsg 错误信息
+     * @throws IllegalStateException 若任务已处于终态则抛出
      */
     public void fail(String errorMsg) {
+        requireActive("标记失败");
         this.status = ImportStatus.FAILED;
         this.errorSummary = List.of(errorMsg);
     }
 
     /**
      * 用户主动取消任务，状态 → CANCELLED。
+     * <p>仅在任务尚未进入终态（INIT / PROCESSING）时允许。</p>
+     *
+     * @throws IllegalStateException 若任务已处于终态则抛出
      */
     public void cancel() {
+        requireActive("取消任务");
         this.status = ImportStatus.CANCELLED;
         this.errorSummary = List.of("Task cancelled by user");
+    }
+
+    /**
+     * 状态迁移统一前置守卫（PROCESSING 专属）。
+     * <p>finishSuccess / finishPartial 只能从 PROCESSING 迁出。</p>
+     */
+    private void requireProcessing(String action) {
+        if (this.status != ImportStatus.PROCESSING) {
+            throw new IllegalStateException("任务未在处理中状态，不能" + action);
+        }
+    }
+
+    /**
+     * 状态迁移统一前置守卫（INIT / PROCESSING 允许）。
+     * <p>fail / cancel 允许从新建（INIT，如"空文件直接失败"场景）或处理中迁出，
+     * 禁止从任意终态（FINISHED / PARTIAL / FAILED / CANCELLED）再次变更。</p>
+     */
+    private void requireActive(String action) {
+        if (!isRunning()) {
+            throw new IllegalStateException(
+                "任务当前状态为 " + status + "，已处于终态，不能" + action);
+        }
     }
 
     // ==================== 查询方法 ====================

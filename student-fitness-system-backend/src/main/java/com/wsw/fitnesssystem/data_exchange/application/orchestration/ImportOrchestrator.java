@@ -114,30 +114,12 @@ public class ImportOrchestrator {
             // 文件解析已知异常（格式损坏、密码保护、解析失败等）
             String customMsg = e.getMessage();
             log.error("[{}] File processing failed: {}", taskId, customMsg, e);
-            // 失败时创建新任务并标记失败（如果还没创建，或者直接标记已有任务）
-            importTaskRepository.findById(taskId)
-                .ifPresentOrElse(
-                    task -> { task.fail(customMsg); importTaskRepository.save(task);},
-                    () -> {
-                        ImportTask task = new ImportTask(taskId);
-                        task.fail(customMsg);
-                        importTaskRepository.save(task);
-                    }
-                );
+            // 失败时标记任务为 FAILED（任务已存在则迁移状态，未创建则新建后标记）
+            markTaskFailed(taskId, customMsg);
         } catch (Exception e) {
             // 未知异常兜底：防止任何未捕获异常导致任务状态悬空
             log.error("[{}] Import task terminated abnormally", taskId, e);
-            importTaskRepository.findById(taskId)
-                .ifPresentOrElse(
-                    task -> {
-                        task.fail(ResultCode.SERVER_TEMP_ERROR.getMessage());
-                        importTaskRepository.save(task); },
-                    () -> {
-                        ImportTask task = new ImportTask(taskId);
-                        task.fail(ResultCode.SERVER_TEMP_ERROR.getMessage());
-                        importTaskRepository.save(task);
-                    }
-                );
+            markTaskFailed(taskId, ResultCode.SERVER_TEMP_ERROR.getMessage());
         } finally {
             // ========== Step 5: 清理临时文件（强制兜底） ==========
             fileStoragePort.cleanup(file);
@@ -411,6 +393,37 @@ public class ImportOrchestrator {
             log.info("[{}] Error file saved: {}", taskId, errorFile.getAbsolutePath());
         } catch (Exception e) {
             log.error("[{}] Failed to save error file", taskId, e);
+        }
+    }
+
+    /**
+     * 标记任务失败并持久化（幂等，收口自 catch 块）。
+     * <p>
+     * 任务已存在则迁移到 FAILED；不存在（如初始创建失败）则新建后标记。
+     * 持久化本身失败（如 Redis 不可用，此时 {@link ImportTaskRepository#save}
+     * 会因首次创建而抛异常）只记录 ERROR 日志，不再向外抛出，避免掩盖原始异常
+     * 或在 catch 块内再次抛异常导致 finally 无法兜底。
+     * </p>
+     *
+     * @param taskId   任务 ID
+     * @param errorMsg 失败原因（面向客户的中文消息）
+     */
+    private void markTaskFailed(String taskId, String errorMsg) {
+        try {
+            importTaskRepository.findById(taskId)
+                .ifPresentOrElse(
+                    task -> {
+                        task.fail(errorMsg);
+                        importTaskRepository.save(task);
+                    },
+                    () -> {
+                        ImportTask task = new ImportTask(taskId);
+                        task.fail(errorMsg);
+                        importTaskRepository.save(task);
+                    }
+                );
+        } catch (Exception e) {
+            log.error("[{}] Failed to persist FAILED state: {}", taskId, e.getMessage(), e);
         }
     }
 
