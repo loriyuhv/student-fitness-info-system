@@ -5,14 +5,14 @@ import com.wsw.fitnesssystem.data_exchange.application.config.ImportApplicationP
 import com.wsw.fitnesssystem.data_exchange.application.plugin.ImportPlugin;
 import com.wsw.fitnesssystem.data_exchange.application.collector.ErrorCollector;
 import com.wsw.fitnesssystem.data_exchange.application.collector.ErrorCollectorHolder;
+import com.wsw.fitnesssystem.data_exchange.application.port.output.FileParsingPort;
 import com.wsw.fitnesssystem.data_exchange.application.port.output.FileStoragePort;
 import com.wsw.fitnesssystem.data_exchange.domain.model.ImportTask;
-import com.wsw.fitnesssystem.data_exchange.infrastructure.exception.ImportInfrastructureException;
 import com.wsw.fitnesssystem.data_exchange.domain.exception.ImportCancelledException;
 import com.wsw.fitnesssystem.data_exchange.application.collector.ErrorRecord;
-import com.wsw.fitnesssystem.data_exchange.infrastructure.parser.ExcelFileParser;
 import com.wsw.fitnesssystem.data_exchange.domain.repository.ImportTaskRepository;
 import com.wsw.fitnesssystem.data_exchange.application.generator.ErrorFileGenerator;
+import com.wsw.fitnesssystem.shared.exception.BizException;
 import com.wsw.fitnesssystem.shared.response.ResultCode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -70,7 +70,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class ImportOrchestrator {
 
     private final FileStoragePort fileStoragePort;
-    private final ExcelFileParser excelFileParser;
+    private final FileParsingPort fileParsingPort;
     private final ErrorFileGenerator errorFileGenerator;
     private final ImportTaskRepository importTaskRepository;
     private final ImportApplicationProperties appProperties;
@@ -96,7 +96,7 @@ public class ImportOrchestrator {
 
         try {
             // ========== Step 1: 预估行数，决策解析模式 ==========
-            int estimatedRows = excelFileParser.estimatedRowCount(file);
+            int estimatedRows = fileParsingPort.estimatedRowCount(file);
             int batchSize = plugin.getBatchSize();
             if (estimatedRows < appProperties.getBatch().getStreamThreshold()) {
                 // 小文件：全量解析，代码简单，内存 = O(total)
@@ -110,10 +110,10 @@ public class ImportOrchestrator {
             }
         } catch (ImportCancelledException e) {
             log.warn("[{}] Task cancelled by user", taskId);
-        } catch (ImportInfrastructureException e) {
+        } catch (BizException e) {
             // 文件解析已知异常（格式损坏、密码保护、解析失败等）
             String customMsg = e.getMessage();
-            log.error("[{}] Excel processing failed: {}", taskId, customMsg, e);
+            log.error("[{}] File processing failed: {}", taskId, customMsg, e);
             // 失败时创建新任务并标记失败（如果还没创建，或者直接标记已有任务）
             importTaskRepository.findById(taskId)
                 .ifPresentOrElse(
@@ -171,7 +171,7 @@ public class ImportOrchestrator {
             String taskId, File file, ImportPlugin<T, E> plugin) {
 
         // 1. 全量解析：一次性读入内存，适合小文件
-        List<T> list = excelFileParser.parseFull(file, plugin.getDtoClass(), taskId);
+        List<T> list = fileParsingPort.parseFull(file, plugin.getDtoClass(), taskId);
         int total = list.size();
 
         // 2. 空文件防御：无可解析数据时直接失败，避免无意义轮询
@@ -269,7 +269,7 @@ public class ImportOrchestrator {
         AtomicInteger batchIndex = new AtomicInteger(0);
 
         // 3. 启动流式解析：Consumer 回调中直接处理，不长期持有引用
-        excelFileParser.parseStream(file, plugin.getDtoClass(), batchSize, batch -> {
+        fileParsingPort.parseStream(file, plugin.getDtoClass(), batchSize, batch -> {
             // 每批处理前检查取消
             checkCancelled(task, taskId);
 
