@@ -4,7 +4,7 @@ import cn.idev.excel.annotation.ExcelIgnore;
 import cn.idev.excel.annotation.ExcelProperty;
 import com.wsw.fitnesssystem.data_exchange.application.dto.command.UserImportCommand;
 import com.wsw.fitnesssystem.data_exchange.application.plugin.UserImportPlugin;
-import com.wsw.fitnesssystem.data_exchange.infrastructure.parser.RowIndexAware;
+import com.wsw.fitnesssystem.data_exchange.application.dto.RowIndexAware;
 import lombok.Data;
 
 /**

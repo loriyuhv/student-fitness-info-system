@@ -2,6 +2,7 @@ package com.wsw.fitnesssystem.data_exchange.infrastructure.parser;
 
 import cn.idev.excel.context.AnalysisContext;
 import cn.idev.excel.event.AnalysisEventListener;
+import com.wsw.fitnesssystem.data_exchange.application.dto.RowIndexAware;
 
 import java.util.List;
 
