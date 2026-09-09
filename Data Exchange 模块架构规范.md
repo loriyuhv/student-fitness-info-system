@@ -219,16 +219,19 @@ Exception.class                  // 兜底
 ### 7\.1 模块间依赖方向
 
 ```Plain Text
-data-exchange（本模块） → user（外部模块）  ✅ 单向依赖
-user（外部模块） → data-exchange  ❌ 禁止反向依赖
+data_exchange（本模块）→ user（外部模块）  ✅ 单向依赖；
+业务模块（user / fitness 等）可以依赖 data_exchange 模块的 Port 接口和 DTO，这是依赖反转的正常体现；
+业务模块禁止直接依赖 data_exchange 模块的 domain 层或 infrastructure 层；
+data_exchange 模块不依赖任何具体业务模块；
+user（外部模块）→ data_exchange  ❌ 禁止反向依赖；
 ```
 
 ### 7\.2 跨模块调用方式
 
-|场景|实现方式|
-|---|---|
-|本地调用|本模块定义 Port 接口，外部模块实现 Adapter|
-|微服务拆分（未来）|本模块定义 Port 接口，外部模块提供 Feign 实现|
+|场景|实现方式|示例|
+|---|---|---|
+|本地调用|本模块定义 Port 接口，外部模块实现该接口（Adapter），完成本地方法调用。|示例：`UserProvisioningPort` 由 data\_exchange 定义，user 模块的 `LocalUserProvisioningAdapter` 实现。|
+|微服务拆分（未来）|本模块定义 Port 接口，本模块内部实现 Feign Adapter，通过 HTTP/RPC 远程调用外部模块的 API。外部模块只需暴露 REST API，不需要知道本模块的 Port。|示例：data\_exchange 模块的 `UserProvisioningFeignAdapter` 通过 FeignClient 远程调用 user 服务的 REST API。|
 
 ### 7\.3 端口实现类命名
 
@@ -236,6 +239,24 @@ user（外部模块） → data-exchange  ❌ 禁止反向依赖
 |---|---|---|
 |`UserProvisioningPort`|`UserProvisioningLocalAdapter`|`UserProvisioningFeignAdapter`|
 |`DistributedLockPort`|`RedisDistributedLockAdapter`|`ZookeeperDistributedLockAdapter`|
+
+### 7\.4 允许的依赖范围
+
+业务模块（如 user）依赖 data\_exchange 时，**仅限以下内容**：
+
+|允许依赖|示例|
+|---|---|
+|`application.port.output.*`|Port 接口|
+|`application.dto.command.*`|跨模块入参 DTO|
+|`application.dto.result.*`|跨模块出参 DTO|
+
+**禁止依赖**：
+
+|禁止依赖|示例|
+|---|---|
+|`domain.model.*`|聚合根|
+|`domain.repository.*`|仓储接口|
+|`infrastructure.*`|基础设施实现|
 
 ## 八、API 路径规范
 

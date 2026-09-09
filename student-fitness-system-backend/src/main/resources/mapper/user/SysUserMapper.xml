@@ -48,7 +48,7 @@
     说明：
       - 只查询未逻辑删除（deleted = 0）的用户
       - 返回已存在的用户名列表，与输入参数一一对应（或子集）
-      - 用于 UserRegistrationAppService 中批量查重，避免逐条查询数据库
+      - 用于 UserRegistrationService 中批量查重，避免逐条查询数据库
 
     参数：
       usernames - 待查重的用户名列表

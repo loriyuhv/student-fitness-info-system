@@ -23,14 +23,14 @@ import java.util.stream.Collectors;
  */
 @Slf4j
 @Service
-public class UserRegistrationAppService {
+public class UserRegistrationService {
 
     private final Executor computeExecutor;
     private final UserRepository userRepository;
     private final UserRegisterService userRegisterService;
     private final PasswordEncryptorPort passwordEncryptorPort;
 
-    public UserRegistrationAppService(
+    public UserRegistrationService(
         UserRepository userRepository,
         UserRegisterService userRegisterService,
         PasswordEncryptorPort passwordEncryptorPort,

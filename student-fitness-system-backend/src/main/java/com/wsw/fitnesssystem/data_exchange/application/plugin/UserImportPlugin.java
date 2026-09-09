@@ -229,7 +229,7 @@ public class UserImportPlugin implements ImportPlugin<UserImportRecord, UserImpo
 
         ErrorCollector collector = ErrorCollectorHolder.get();
 
-        // 调用 Port 接口（由 user 模块的 LocalUserProvisioningAdapter 实现）
+        // 调用 Port 接口（由 user 模块的 UserProvisioningLocalAdapter 实现）
         List<UserImportResult> results = userProvisioningPort.importUsers(entities);
 
         int successCount = 0;
