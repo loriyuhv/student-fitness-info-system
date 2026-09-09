@@ -1,4 +1,4 @@
-package com.wsw.fitnesssystem.data_exchange.application.plugin;
+package com.wsw.fitnesssystem.data_exchange.application.dto.result;
 
 import lombok.Builder;
 import lombok.Getter;
@@ -8,7 +8,7 @@ import java.util.List;
 
 /**
  * 用户导入结果对象
- * <p>由 user 模块返回，handle_excel 模块根据结果收集错误信息</p>
+ * <p>由 user 模块返回，data_exchange 模块根据结果收集错误信息</p>
  *
  * @author loriyuhv
  * @version 1.0 2026/9/1 12:47

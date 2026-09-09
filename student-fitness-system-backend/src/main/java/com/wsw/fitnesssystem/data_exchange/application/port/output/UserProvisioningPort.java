@@ -1,7 +1,7 @@
 package com.wsw.fitnesssystem.data_exchange.application.port.output;
 
-import com.wsw.fitnesssystem.data_exchange.application.plugin.UserImportData;
-import com.wsw.fitnesssystem.data_exchange.application.plugin.UserImportResult;
+import com.wsw.fitnesssystem.data_exchange.application.dto.command.UserImportCommand;
+import com.wsw.fitnesssystem.data_exchange.application.dto.result.UserImportResult;
 
 import java.util.List;
 
@@ -27,6 +27,6 @@ public interface UserProvisioningPort {
      * @param userDataList 用户导入数据列表
      * @return 每条数据的处理结果（成功/失败 + 错误原因 + 行号）
      */
-    List<UserImportResult> batchRegister(List<UserImportData> userDataList);
+    List<UserImportResult> batchRegister(List<UserImportCommand> userDataList);
 
 }

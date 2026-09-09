@@ -3,6 +3,9 @@ package com.wsw.fitnesssystem.data_exchange.application.plugin;
 import com.wsw.fitnesssystem.data_exchange.application.collector.ErrorCollector;
 import com.wsw.fitnesssystem.data_exchange.application.collector.ErrorCollectorHolder;
 import com.wsw.fitnesssystem.data_exchange.application.config.ImportApplicationProperties;
+import com.wsw.fitnesssystem.data_exchange.application.dto.UserImportRecord;
+import com.wsw.fitnesssystem.data_exchange.application.dto.command.UserImportCommand;
+import com.wsw.fitnesssystem.data_exchange.application.dto.result.UserImportResult;
 import com.wsw.fitnesssystem.data_exchange.application.port.output.UserProvisioningPort;
 import com.wsw.fitnesssystem.data_exchange.application.enums.ImportBizType;
 import com.wsw.fitnesssystem.shared.util.ValidationUtils;
@@ -22,14 +25,14 @@ import java.util.Objects;
  * <p>职责边界：</p>
  * <ul>
  *   <li>格式校验（validate）：必填、长度、格式（手机号/邮箱）</li>
- *   <li>数据转换（convert）：UserExcelDTO → UserImportData</li>
+ *   <li>数据转换（convert）：UserImportRecord → UserImportCommand</li>
  *   <li>调用导入端口（persist）：通过 UserProvisioningPort 将数据传递给 user 模块</li>
  * </ul>
  *
  * <p><b>模块解耦：</b></p>
  * <ul>
  *   <li>不依赖 user 模块的任何实体类（如 UserPo）</li>
- *   <li>只依赖自己定义的 DTO（UserImportData）和 Port 接口（UserProvisioningPort）</li>
+ *   <li>只依赖自己定义的 DTO（UserImportCommand）和 Port 接口（UserProvisioningPort）</li>
  *   <li>为微服务拆分预留零成本切换路径</li>
  * </ul>
  *
@@ -40,7 +43,7 @@ import java.util.Objects;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class UserImportPlugin implements ImportPlugin<UserExcelDTO, UserImportData> {
+public class UserImportPlugin implements ImportPlugin<UserImportRecord, UserImportCommand> {
 
     private final UserProvisioningPort userProvisioningPort;
     private final ImportApplicationProperties appProperties;
@@ -51,8 +54,8 @@ public class UserImportPlugin implements ImportPlugin<UserExcelDTO, UserImportDa
     }
 
     @Override
-    public Class<UserExcelDTO> getDtoClass() {
-        return UserExcelDTO.class;
+    public Class<UserImportRecord> getDtoClass() {
+        return UserImportRecord.class;
     }
 
     @Override
@@ -73,11 +76,11 @@ public class UserImportPlugin implements ImportPlugin<UserExcelDTO, UserImportDa
      * @return 格式校验通过的 DTO 列表
      */
     @Override
-    public List<UserExcelDTO> validate(List<UserExcelDTO> batch) {
+    public List<UserImportRecord> validate(List<UserImportRecord> batch) {
         ErrorCollector collector = ErrorCollectorHolder.get();
-        List<UserExcelDTO> validList = new ArrayList<>();
+        List<UserImportRecord> validList = new ArrayList<>();
 
-        for (UserExcelDTO dto : batch) {
+        for (UserImportRecord dto : batch) {
             int rowIndex = dto.getRowIndex() != null ? dto.getRowIndex() : -1;
 
             // ========== 1. 校区校验（必填） ==========
@@ -182,15 +185,15 @@ public class UserImportPlugin implements ImportPlugin<UserExcelDTO, UserImportDa
     }
 
     // ============================================================
-    // 2. 数据转换：UserExcelDTO → UserImportData
+    // 2. 数据转换：UserImportRecord → UserImportCommand
     // ============================================================
 
     @Override
-    public List<UserImportData> convert(List<UserExcelDTO> dtoList) {
-        List<UserImportData> dataList = new ArrayList<>();
+    public List<UserImportCommand> convert(List<UserImportRecord> dtoList) {
+        List<UserImportCommand> dataList = new ArrayList<>();
 
-        for (UserExcelDTO dto : dtoList) {
-            UserImportData data = UserImportData.builder()
+        for (UserImportRecord dto : dtoList) {
+            UserImportCommand data = UserImportCommand.builder()
                 .campusId(dto.getCampusId())
                 .username(dto.getUsername())
                 .password(dto.getPassword())
@@ -223,7 +226,7 @@ public class UserImportPlugin implements ImportPlugin<UserExcelDTO, UserImportDa
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public int persist(List<UserImportData> entities) {
+    public int persist(List<UserImportCommand> entities) {
         if (entities == null || entities.isEmpty()) return 0;
 
         ErrorCollector collector = ErrorCollectorHolder.get();
@@ -283,7 +286,7 @@ public class UserImportPlugin implements ImportPlugin<UserExcelDTO, UserImportDa
     /**
      * 构建行数据（用于错误 Excel）
      */
-    private List<String> buildRowData(UserExcelDTO dto) {
+    private List<String> buildRowData(UserImportRecord dto) {
         return List.of(
             Objects.toString(dto.getCampusId(), ""),
             Objects.toString(dto.getUsername(), ""),

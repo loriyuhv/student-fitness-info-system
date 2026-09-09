@@ -1,7 +1,7 @@
 package com.wsw.fitnesssystem.user.infrastructure.adapter;
 
-import com.wsw.fitnesssystem.data_exchange.application.plugin.UserImportData;
-import com.wsw.fitnesssystem.data_exchange.application.plugin.UserImportResult;
+import com.wsw.fitnesssystem.data_exchange.application.dto.command.UserImportCommand;
+import com.wsw.fitnesssystem.data_exchange.application.dto.result.UserImportResult;
 import com.wsw.fitnesssystem.data_exchange.application.port.output.UserProvisioningPort;
 import com.wsw.fitnesssystem.shared.exception.BizException;
 import com.wsw.fitnesssystem.user.application.service.impl.UserRegistrationAppService;
@@ -28,7 +28,7 @@ public class LocalUserProvisioningAdapter implements UserProvisioningPort {
     private final UserRegistrationAppService userRegistrationAppService;
 
     @Override
-    public List<UserImportResult> batchRegister(List<UserImportData> userDataList) {
+    public List<UserImportResult> batchRegister(List<UserImportCommand> userDataList) {
         log.info("Batch registering {} users via local adapter", userDataList.size());
         try {
             return userRegistrationAppService.batchRegister(userDataList);

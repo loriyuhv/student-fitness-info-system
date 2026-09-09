@@ -1,7 +1,7 @@
 package com.wsw.fitnesssystem.user.application.service;
 
-import com.wsw.fitnesssystem.data_exchange.application.plugin.UserImportData;
-import com.wsw.fitnesssystem.data_exchange.application.plugin.UserImportResult;
+import com.wsw.fitnesssystem.data_exchange.application.dto.command.UserImportCommand;
+import com.wsw.fitnesssystem.data_exchange.application.dto.result.UserImportResult;
 
 import java.util.List;
 import java.util.Set;
@@ -21,7 +21,7 @@ public interface UserRegisterService {
      * @param data 用户注册数据
      * @return 新生成的 userId
      */
-    Long registerSingle(UserImportData data);
+    Long registerSingle(UserImportCommand data);
 
     /**
      * 批量用户注册（事务内，逐行独立事务）
@@ -31,7 +31,7 @@ public interface UserRegisterService {
      * @return 每条数据的导入结果
      */
     List<UserImportResult> registerBatch(
-        List<UserImportData> dataList,
+        List<UserImportCommand> dataList,
         Set<String> duplicateInFile,
         Set<String> existingInDb
     );

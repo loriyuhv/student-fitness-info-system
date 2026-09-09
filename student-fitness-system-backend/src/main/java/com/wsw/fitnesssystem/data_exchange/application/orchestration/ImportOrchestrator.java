@@ -328,13 +328,13 @@ public class ImportOrchestrator {
             int filtered = batch.size() - validated.size();
 
             if (filtered > 0) {
-                log.info("[{}] Batch {} filtered {} invalid rows", taskId, batchNo, filtered);
+                log.debug("[{}] Batch {} filtered {} invalid rows", taskId, batchNo, filtered);
             }
 
             // 2. 防御：整批校验不通过时直接标记失败，跳过转换和持久化
             if (validated.isEmpty()) {
                 // 只添加当前批次特有的错误，不遍历collector
-                collector.addError(-1, "Batch " + batchNo + " all validation failed");
+                collector.addError(-1, "批次" + batchNo + "全部校验失败");
                 return new BatchResult(0, batch.size());
             }
 
@@ -355,7 +355,7 @@ public class ImportOrchestrator {
 
         } catch (Exception e) {
             // 故障隔离：单批失败只影响本批次，记录错误后继续处理下一批
-            log.error("[{}] Batch {} processing failed", taskId, batchNo, e);
+            log.warn("[{}] Batch {} processing failed", taskId, batchNo, e);
             collector.addError(-1,
                 "Batch " + batchNo + " processing exception: " + e.getMessage());
             return new BatchResult(0, batch.size());
@@ -428,8 +428,9 @@ public class ImportOrchestrator {
         Set<String> uniqueErrors = new LinkedHashSet<>();
 
         for (ErrorRecord error : collector.getErrors()) {
-            String msg = (error.getRowIndex() > 0 ? "Row " + error.getRowIndex() : "Unknown row")
-                + ": " + error.getErrorReason();
+            String msg = (error.getRowIndex() > 0
+                ? "第" + error.getRowIndex() + "行" : "未知行号")
+                + "：" + error.getErrorReason();
             uniqueErrors.add(msg);
             if (uniqueErrors.size() >= appProperties.getDisplay().getErrorMsgMaxCount()) {
                 break;

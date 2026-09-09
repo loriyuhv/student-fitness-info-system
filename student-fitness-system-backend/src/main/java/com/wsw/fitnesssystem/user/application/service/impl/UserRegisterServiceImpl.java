@@ -1,7 +1,7 @@
 package com.wsw.fitnesssystem.user.application.service.impl;
 
-import com.wsw.fitnesssystem.data_exchange.application.plugin.UserImportData;
-import com.wsw.fitnesssystem.data_exchange.application.plugin.UserImportResult;
+import com.wsw.fitnesssystem.data_exchange.application.dto.command.UserImportCommand;
+import com.wsw.fitnesssystem.data_exchange.application.dto.result.UserImportResult;
 import com.wsw.fitnesssystem.user.application.service.UserRegisterService;
 import com.wsw.fitnesssystem.user.domain.model.StudentProfile;
 import com.wsw.fitnesssystem.user.domain.model.TeacherProfile;
@@ -47,18 +47,18 @@ public class UserRegisterServiceImpl implements UserRegisterService {
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public Long registerSingle(UserImportData data) {
+    public Long registerSingle(UserImportCommand data) {
         return doRegisterSingleUser(data);
     }
 
     @Override
     @Transactional(rollbackFor = Exception.class)
     public List<UserImportResult> registerBatch(
-        List<UserImportData> dataList, Set<String> duplicateInFile, Set<String> existingInDb) {
+        List<UserImportCommand> dataList, Set<String> duplicateInFile, Set<String> existingInDb) {
 
         List<UserImportResult> results = new ArrayList<>(dataList.size());
 
-        for (UserImportData data : dataList) {
+        for (UserImportCommand data : dataList) {
             String username = data.getUsername();
 
             // 1. 文件中重复 → 直接失败，不查库
@@ -111,7 +111,7 @@ public class UserRegisterServiceImpl implements UserRegisterService {
      * @param data 数据
      * @return userId
      */
-    private Long doRegisterSingleUser(UserImportData data) {
+    private Long doRegisterSingleUser(UserImportCommand data) {
         // 1. 保存 User
         User user = User.builder()
             .campusId(data.getCampusId())
@@ -185,7 +185,7 @@ public class UserRegisterServiceImpl implements UserRegisterService {
     /**
      * 构建成功结果
      */
-    private UserImportResult successResult(UserImportData data, Long userId) {
+    private UserImportResult successResult(UserImportCommand data, Long userId) {
         return UserImportResult.builder()
             .rowIndex(data.getRowIndexOrDefault())
             .username(data.getUsername())
@@ -197,7 +197,7 @@ public class UserRegisterServiceImpl implements UserRegisterService {
     /**
      * 构建失败结果
      */
-    private UserImportResult failResult(UserImportData data, String reason) {
+    private UserImportResult failResult(UserImportCommand data, String reason) {
         return UserImportResult.builder()
             .rowIndex(data.getRowIndexOrDefault())
             .username(data.getUsername())
@@ -207,7 +207,7 @@ public class UserRegisterServiceImpl implements UserRegisterService {
             .build();
     }
 
-    private List<String> buildRowData(UserImportData data) {
+    private List<String> buildRowData(UserImportCommand data) {
         return List.of(
             Objects.toString(data.getCampusId(), ""),
             Objects.toString(data.getUsername(), ""),

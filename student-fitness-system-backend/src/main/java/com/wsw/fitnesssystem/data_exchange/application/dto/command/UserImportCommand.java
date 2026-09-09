@@ -1,4 +1,4 @@
-package com.wsw.fitnesssystem.data_exchange.application.plugin;
+package com.wsw.fitnesssystem.data_exchange.application.dto.command;
 
 import com.wsw.fitnesssystem.data_exchange.application.port.output.UserProvisioningPort;
 import lombok.Builder;
@@ -25,7 +25,7 @@ import lombok.ToString;
 @Getter
 @Builder
 @ToString
-public class UserImportData {
+public class UserImportCommand {
 
     // ==================== 用户核心字段 ====================
 

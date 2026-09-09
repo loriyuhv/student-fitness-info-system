@@ -1,7 +1,7 @@
 package com.wsw.fitnesssystem.user.application.service.impl;
 
-import com.wsw.fitnesssystem.data_exchange.application.plugin.UserImportData;
-import com.wsw.fitnesssystem.data_exchange.application.plugin.UserImportResult;
+import com.wsw.fitnesssystem.data_exchange.application.dto.command.UserImportCommand;
+import com.wsw.fitnesssystem.data_exchange.application.dto.result.UserImportResult;
 import com.wsw.fitnesssystem.user.application.service.UserRegisterService;
 import com.wsw.fitnesssystem.user.domain.port.*;
 import lombok.extern.slf4j.Slf4j;
@@ -55,7 +55,7 @@ public class UserRegistrationAppService {
      * @param dataList 用户导入数据列表
      * @return 每条数据的处理结果（含行号、成功/失败状态、错误原因）
      */
-    public List<UserImportResult> batchRegister(List<UserImportData> dataList) {
+    public List<UserImportResult> batchRegister(List<UserImportCommand> dataList) {
 
         if (dataList == null || dataList.isEmpty()) {
             return List.of();
@@ -63,16 +63,16 @@ public class UserRegistrationAppService {
 
         // ==================== 第一步：检测文件中重复的用户名 ====================
         // 按用户名分组，用于识别重复
-        Map<String, List<UserImportData>> groupedByUsername = dataList.stream()
-            .collect(Collectors.groupingBy(UserImportData::getUsername));
+        Map<String, List<UserImportCommand>> groupedByUsername = dataList.stream()
+            .collect(Collectors.groupingBy(UserImportCommand::getUsername));
 
         // 收集每个用户名第一次出现的数据（用于后续处理）
-        List<UserImportData> firstOccurrenceList = new ArrayList<>();
+        List<UserImportCommand> firstOccurrenceList = new ArrayList<>();
         // 记录文件中重复的用户名（仅保留除第一条外的其余行）
         Set<String> duplicateInFile = new HashSet<>();
 
-        for (Map.Entry<String, List<UserImportData>> entry : groupedByUsername.entrySet()) {
-            List<UserImportData> list = entry.getValue();
+        for (Map.Entry<String, List<UserImportCommand>> entry : groupedByUsername.entrySet()) {
+            List<UserImportCommand> list = entry.getValue();
             // 第一条保留（用于后续处理）
             firstOccurrenceList.add(list.get(0));
             // 其余行标记为文件中重复
@@ -85,12 +85,12 @@ public class UserRegistrationAppService {
 
         // ==================== 第二步：批量查数据库（只查每个用户名第一次出现的） ====================
         List<String> usernamesToCheck = firstOccurrenceList.stream()
-            .map(UserImportData::getUsername)
+            .map(UserImportCommand::getUsername)
             .toList();
         Set<String> existingInDb = userRepository.findExistingUsernames(usernamesToCheck);
 
         // 只对通过查重的数据加密
-        List<UserImportData> needEncrypt = dataList.stream()
+        List<UserImportCommand> needEncrypt = dataList.stream()
             .filter(data -> !duplicateInFile.contains(data.getUsername()))
             .filter(data -> !existingInDb.contains(data.getUsername()))
             .toList();
@@ -99,7 +99,7 @@ public class UserRegistrationAppService {
         List<CompletableFuture<Void>> futures = needEncrypt.stream()
             .map(data -> CompletableFuture.runAsync(() -> {
                 String encoded = passwordEncryptorPort.encode(data.getPassword());
-                data.setPassword(encoded);  // ⚠️ 需要给 UserImportData 加 setPassword 方法
+                data.setPassword(encoded);  // ⚠️ 需要给 UserImportCommand 加 setPassword 方法
             }, computeExecutor))
             .toList();
 

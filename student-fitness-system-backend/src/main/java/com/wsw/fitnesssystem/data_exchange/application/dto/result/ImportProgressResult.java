@@ -1,4 +1,4 @@
-package com.wsw.fitnesssystem.data_exchange.application.dto;
+package com.wsw.fitnesssystem.data_exchange.application.dto.result;
 
 import com.wsw.fitnesssystem.data_exchange.domain.enums.ImportStatus;
 import lombok.Builder;

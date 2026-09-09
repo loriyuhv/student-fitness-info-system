@@ -1,6 +1,6 @@
 package com.wsw.fitnesssystem.data_exchange.application.service.query;
 
-import com.wsw.fitnesssystem.data_exchange.application.dto.ImportProgressResult;
+import com.wsw.fitnesssystem.data_exchange.application.dto.result.ImportProgressResult;
 import com.wsw.fitnesssystem.data_exchange.domain.model.ImportTask;
 import com.wsw.fitnesssystem.data_exchange.domain.repository.ImportTaskRepository;
 import com.wsw.fitnesssystem.shared.exception.BizException;

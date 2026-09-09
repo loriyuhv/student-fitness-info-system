@@ -1,6 +1,6 @@
 package com.wsw.fitnesssystem.data_exchange.interfaces;
 
-import com.wsw.fitnesssystem.data_exchange.application.dto.ImportProgressResult;
+import com.wsw.fitnesssystem.data_exchange.application.dto.result.ImportProgressResult;
 import com.wsw.fitnesssystem.data_exchange.application.service.command.ImportSubmissionService;
 import com.wsw.fitnesssystem.data_exchange.application.ImportTemplateAppService;
 import com.wsw.fitnesssystem.data_exchange.application.enums.ImportBizType;

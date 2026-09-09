@@ -1,17 +1,26 @@
-package com.wsw.fitnesssystem.data_exchange.application.plugin;
+package com.wsw.fitnesssystem.data_exchange.application.dto;
 
 import cn.idev.excel.annotation.ExcelIgnore;
 import cn.idev.excel.annotation.ExcelProperty;
+import com.wsw.fitnesssystem.data_exchange.application.dto.command.UserImportCommand;
+import com.wsw.fitnesssystem.data_exchange.application.plugin.UserImportPlugin;
 import com.wsw.fitnesssystem.data_exchange.infrastructure.parser.RowIndexAware;
 import lombok.Data;
 
 /**
+ * 用户导入记录（文件行映射）。
+ * <p>
+ * 对应 Excel/CSV 文件中的一行用户数据，承载原始解析结果。
+ * 通过 {@link UserImportPlugin} 转换为 {@link UserImportCommand}
+ * 传递给 user 模块。
+ * </p>
+ *
  * @author loriyuhv
  * @version 1.0 2026/3/26 15:45
  * @since 1.0
  */
 @Data
-public class UserExcelDTO implements RowIndexAware {
+public class UserImportRecord implements RowIndexAware {
 
     // ==================== 用户核心字段 ====================
 
@@ -38,11 +47,13 @@ public class UserExcelDTO implements RowIndexAware {
 
     // ==================== 用户扩展信息（user_profile） ====================
 
+    /** 0-未知 1-男 2-女 */
     @ExcelProperty("性别")
-    private Integer gender;          // 0-未知 1-男 2-女
+    private Integer gender;
 
+    /** 格式：yyyy-MM-dd */
     @ExcelProperty("出生日期")
-    private String birthDate;        // 格式：yyyy-MM-dd
+    private String birthDate;
 
     @ExcelProperty("头像URL")
     private String avatarUrl;
@@ -52,8 +63,9 @@ public class UserExcelDTO implements RowIndexAware {
 
     // ==================== 学生特有字段 ====================
 
+    /** 学生必填，不填默认使用 username */
     @ExcelProperty("学号")
-    private String studentNo;        // 学生必填，不填默认使用 username
+    private String studentNo;
 
     @ExcelProperty("班级ID")
     private Long classId;
@@ -72,8 +84,9 @@ public class UserExcelDTO implements RowIndexAware {
 
     // ==================== 教师特有字段 ====================
 
+    /** 教师必填，不填默认使用 username */
     @ExcelProperty("教师工号")
-    private String teacherNo;        // 教师必填，不填默认使用 username
+    private String teacherNo;
 
     // ==================== 行号（由监听器注入） ====================
 
