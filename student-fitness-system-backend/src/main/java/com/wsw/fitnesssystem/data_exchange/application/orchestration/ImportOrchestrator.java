@@ -1,9 +1,11 @@
 package com.wsw.fitnesssystem.data_exchange.application.orchestration;
 
 import com.google.common.collect.Lists;
+import com.wsw.fitnesssystem.data_exchange.application.config.ImportApplicationProperties;
 import com.wsw.fitnesssystem.data_exchange.application.plugin.ImportPlugin;
 import com.wsw.fitnesssystem.data_exchange.application.collector.ErrorCollector;
 import com.wsw.fitnesssystem.data_exchange.application.collector.ErrorCollectorHolder;
+import com.wsw.fitnesssystem.data_exchange.application.port.output.FileStoragePort;
 import com.wsw.fitnesssystem.data_exchange.domain.model.ImportTask;
 import com.wsw.fitnesssystem.data_exchange.infrastructure.exception.ImportInfrastructureException;
 import com.wsw.fitnesssystem.data_exchange.domain.exception.ImportCancelledException;
@@ -11,8 +13,6 @@ import com.wsw.fitnesssystem.data_exchange.application.collector.ErrorRecord;
 import com.wsw.fitnesssystem.data_exchange.infrastructure.parser.ExcelFileParser;
 import com.wsw.fitnesssystem.data_exchange.domain.repository.ImportTaskRepository;
 import com.wsw.fitnesssystem.data_exchange.application.generator.ErrorFileGenerator;
-import com.wsw.fitnesssystem.data_exchange.infrastructure.util.FileCleanupUtils;
-import com.wsw.fitnesssystem.data_exchange.infrastructure.config.ImportConfig;
 import com.wsw.fitnesssystem.shared.response.ResultCode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -69,9 +69,11 @@ import java.util.concurrent.atomic.AtomicInteger;
 @RequiredArgsConstructor
 public class ImportOrchestrator {
 
+    private final FileStoragePort fileStoragePort;
     private final ExcelFileParser excelFileParser;
     private final ErrorFileGenerator errorFileGenerator;
     private final ImportTaskRepository importTaskRepository;
+    private final ImportApplicationProperties appProperties;
 
     /**
      * 执行导入（模板方法）
@@ -96,7 +98,7 @@ public class ImportOrchestrator {
             // ========== Step 1: 预估行数，决策解析模式 ==========
             int estimatedRows = excelFileParser.estimatedRowCount(file);
             int batchSize = plugin.getBatchSize();
-            if (estimatedRows < ImportConfig.STREAM_THRESHOLD) {
+            if (estimatedRows < appProperties.getBatch().getStreamThreshold()) {
                 // 小文件：全量解析，代码简单，内存 = O(total)
                 log.info("[{}] Estimated {} rows, using full processing mode", taskId, estimatedRows);
                 doExecuteFull(taskId, file, plugin);
@@ -138,7 +140,7 @@ public class ImportOrchestrator {
                 );
         } finally {
             // ========== Step 5: 清理临时文件（强制兜底） ==========
-            FileCleanupUtils.cleanup(file);
+            fileStoragePort.cleanup(file);
             // ========== Step 6：清理 ThreadLocal ==========
             ErrorCollectorHolder.remove();
         }
@@ -429,7 +431,7 @@ public class ImportOrchestrator {
             String msg = (error.getRowIndex() > 0 ? "Row " + error.getRowIndex() : "Unknown row")
                 + ": " + error.getErrorReason();
             uniqueErrors.add(msg);
-            if (uniqueErrors.size() >= ImportConfig.ERROR_MSG_MAX_COUNT) {
+            if (uniqueErrors.size() >= appProperties.getDisplay().getErrorMsgMaxCount()) {
                 break;
             }
         }

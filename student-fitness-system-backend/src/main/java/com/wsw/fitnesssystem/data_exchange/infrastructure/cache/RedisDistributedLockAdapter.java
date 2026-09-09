@@ -1,7 +1,7 @@
 package com.wsw.fitnesssystem.data_exchange.infrastructure.cache;
 
 import com.wsw.fitnesssystem.data_exchange.application.port.output.DistributedLockPort;
-import com.wsw.fitnesssystem.data_exchange.infrastructure.config.ImportConfig;
+import com.wsw.fitnesssystem.data_exchange.infrastructure.config.ImportInfrastructureProperties;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -24,7 +24,7 @@ import java.time.Duration;
  * <pre>
  * Key:   import:lock:file:{fileMd5}
  * Value: {taskId}
- * TTL:   60 分钟（由 {@link ImportConfig#FILE_LOCK_TTL_MINUTES} 控制）
+ * TTL:   60 分钟（由 {@link ImportInfrastructureProperties#getRedis()} 控制）
  * </pre>
  *
  * @author loriyuhv
@@ -37,6 +37,7 @@ import java.time.Duration;
 public class RedisDistributedLockAdapter implements DistributedLockPort {
 
     private final StringRedisTemplate redis;
+    private final ImportInfrastructureProperties infraProps;
 
     @Override
     public boolean tryLock(String fileMd5, String taskId) {
@@ -48,7 +49,7 @@ public class RedisDistributedLockAdapter implements DistributedLockPort {
 
         String key = ImportRedisKeys.fileLockKey(fileMd5);
         Boolean success = redis.opsForValue()
-                .setIfAbsent(key, taskId, Duration.ofMinutes(ImportConfig.FILE_LOCK_TTL_MINUTES));
+                .setIfAbsent(key, taskId, Duration.ofMinutes(infraProps.getRedis().getLockTtlMinutes()));
 
         if (Boolean.TRUE.equals(success)) {
             log.debug("File lock acquired: md5={}, taskId={}", fileMd5, taskId);

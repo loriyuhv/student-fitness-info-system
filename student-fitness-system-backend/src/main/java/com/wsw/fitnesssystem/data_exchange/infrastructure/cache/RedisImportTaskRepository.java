@@ -3,7 +3,7 @@ package com.wsw.fitnesssystem.data_exchange.infrastructure.cache;
 import com.wsw.fitnesssystem.data_exchange.domain.model.ImportTask;
 import com.wsw.fitnesssystem.data_exchange.domain.repository.ImportTaskRepository;
 import com.wsw.fitnesssystem.data_exchange.domain.enums.ImportStatus;
-import com.wsw.fitnesssystem.data_exchange.infrastructure.config.ImportConfig;
+import com.wsw.fitnesssystem.data_exchange.infrastructure.config.ImportInfrastructureProperties;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -28,6 +28,7 @@ import java.util.stream.Collectors;
 public class RedisImportTaskRepository implements ImportTaskRepository {
 
     private final StringRedisTemplate redis;
+    private final ImportInfrastructureProperties infraProperties;
 
     // ==================== 核心仓储方法 ====================
 
@@ -55,7 +56,7 @@ public class RedisImportTaskRepository implements ImportTaskRepository {
 
         try {
             redis.opsForHash().putAll(key, map);
-            redis.expire(key, Duration.ofHours(ImportConfig.IMPORT_TASK_TTL_HOURS));
+            redis.expire(key, Duration.ofHours(infraProperties.getRedis().getTaskTtlHours()));
             log.debug("[{}] ImportTask saved, status={}, processed={}/{}",
                 task.getTaskId(), task.getStatus(), task.getProcessed(), task.getTotal());
         } catch (Exception e) {
@@ -160,15 +161,15 @@ public class RedisImportTaskRepository implements ImportTaskRepository {
 
     private String formatErrors(List<?> errors) {
         if (errors == null || errors.isEmpty()) return "";
-        int limit = Math.min(errors.size(), ImportConfig.ERROR_MSG_MAX_COUNT);
+        int limit = Math.min(errors.size(), infraProperties.getRedis().getErrorMsgMaxCount());
         StringBuilder sb = new StringBuilder();
         for (int i = 0; i < limit; i++) {
             sb.append(errors.get(i));
             if (i < limit - 1) sb.append(" | ");
         }
         String result = sb.toString();
-        return result.length() > ImportConfig.ERROR_MSG_MAX_LENGTH
-            ? result.substring(0, ImportConfig.ERROR_MSG_MAX_LENGTH) + "..."
+        return result.length() > infraProperties.getRedis().getErrorMsgMaxLength()
+            ? result.substring(0, infraProperties.getRedis().getErrorMsgMaxLength()) + "..."
             : result;
     }
 

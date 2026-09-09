@@ -1,6 +1,6 @@
 package com.wsw.fitnesssystem.data_exchange.infrastructure.cache;
 
-import com.wsw.fitnesssystem.data_exchange.infrastructure.config.ImportConfig;
+import com.wsw.fitnesssystem.data_exchange.infrastructure.config.ImportInfrastructureProperties;
 
 /**
  * 导入模块 Redis Key 规范。
@@ -53,7 +53,7 @@ public class ImportRedisKeys {
      *   errorFilePath   → 错误文件磁盘路径
      *   cancelled       → 取消标记（1 表示已取消，用于线程轮询）
      * </pre>
-     * <b>TTL：</b>24 小时（由 {@link ImportConfig#IMPORT_TASK_TTL_HOURS} 控制）
+     * <b>TTL：</b>24 小时（由 {@link ImportInfrastructureProperties#getRedis()} 控制）
      *
      * @param taskId 任务 ID
      * @return Redis Key
@@ -78,7 +78,7 @@ public class ImportRedisKeys {
      * Value: {taskId}  → 持有锁的任务 ID
      * </pre>
      * 基于文件 MD5 实现防重，同一文件同时只能有一个导入任务。
-     * <b>TTL：</b>60 分钟（由 {@link ImportConfig#FILE_LOCK_TTL_MINUTES} 控制，作为兜底释放）
+     * <b>TTL：</b>60 分钟（由 {@link ImportInfrastructureProperties#getRedis()} 控制，作为兜底释放）
      *
      * @param fileMd5 文件 MD5
      * @return Redis Key
@@ -103,7 +103,7 @@ public class ImportRedisKeys {
      * Value: {count}  → 时间窗口内提交次数
      * </pre>
      * 防止单用户高频提交，保护系统资源。
-     * <b>TTL：</b>60 秒（由 {@link ImportConfig#RATE_LIMIT_WINDOW_SECONDS} 控制）
+     * <b>TTL：</b>60 秒（由 {@link ImportInfrastructureProperties#getRateLimit()} 控制）
      *
      * @param userId 用户 ID
      * @return Redis Key

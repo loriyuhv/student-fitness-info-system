@@ -1,7 +1,7 @@
 package com.wsw.fitnesssystem.data_exchange.infrastructure.cache;
 
 import com.wsw.fitnesssystem.data_exchange.application.port.output.RateLimiterPort;
-import com.wsw.fitnesssystem.data_exchange.infrastructure.config.ImportConfig;
+import com.wsw.fitnesssystem.data_exchange.infrastructure.config.ImportInfrastructureProperties;
 import com.wsw.fitnesssystem.shared.exception.BizException;
 import com.wsw.fitnesssystem.shared.response.ResultCode;
 import lombok.RequiredArgsConstructor;
@@ -21,8 +21,8 @@ import java.util.Collections;
  * <ul>
  *   <li>使用 Redis {@code INCR} 命令统计时间窗口内的请求次数</li>
  *   <li>使用 Lua 脚本保证 {@code INCR + EXPIRE} 原子性</li>
- *   <li>窗口大小和上限由 {@link ImportConfig#RATE_LIMIT_WINDOW_SECONDS} 和
- *       {@link ImportConfig#RATE_LIMIT_MAX_COUNT} 控制</li>
+ *   <li>窗口大小和上限由 {@link ImportInfrastructureProperties#getRateLimit()} 和
+ *       {@link ImportInfrastructureProperties#getRateLimit()} 控制</li>
  * </ul>
  * <p>
  * <b>Redis 数据结构：</b>
@@ -42,9 +42,7 @@ import java.util.Collections;
 public class RedisRateLimiterAdapter implements RateLimiterPort {
 
     private final StringRedisTemplate redis;
-
-    private static final int RATE_LIMIT_WINDOW_SECONDS = ImportConfig.RATE_LIMIT_WINDOW_SECONDS;
-    private static final int RATE_LIMIT_MAX_COUNT = ImportConfig.RATE_LIMIT_MAX_COUNT;
+    private final ImportInfrastructureProperties infraProps;
 
     /**
      * Lua 脚本：原子执行 INCR + EXPIRE。
@@ -68,19 +66,19 @@ public class RedisRateLimiterAdapter implements RateLimiterPort {
 
         String key = ImportRedisKeys.rateLimitKey(userId);
         Long current = redis.execute(new DefaultRedisScript<>(LUA_SCRIPT, Long.class),
-                Collections.singletonList(key), String.valueOf(RATE_LIMIT_WINDOW_SECONDS));
+                Collections.singletonList(key), String.valueOf(infraProps.getRateLimit().getWindowSeconds()));
 
-        if (current > RATE_LIMIT_MAX_COUNT) {
+        if (current > infraProps.getRateLimit().getMaxCount()) {
             log.warn("User {} exceeded rate limit: {} requests in {} seconds",
-                userId, current, RATE_LIMIT_WINDOW_SECONDS
+                userId, current, infraProps.getRateLimit().getWindowSeconds()
             );
             throw new BizException(ResultCode.PARAM_INVALID,
-                "请求过于频繁，请等待 " + RATE_LIMIT_WINDOW_SECONDS + " 秒后再试"
+                "请求过于频繁，请等待 " + infraProps.getRateLimit().getWindowSeconds() + " 秒后再试"
             );
         }
 
         log.debug("Rate limit passed: userId={}, requests={}/{}",
-            userId, current, RATE_LIMIT_MAX_COUNT);
+            userId, current, infraProps.getRateLimit().getMaxCount());
     }
 
 }

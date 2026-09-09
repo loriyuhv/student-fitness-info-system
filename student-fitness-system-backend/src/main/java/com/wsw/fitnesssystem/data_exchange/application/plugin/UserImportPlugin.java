@@ -2,9 +2,9 @@ package com.wsw.fitnesssystem.data_exchange.application.plugin;
 
 import com.wsw.fitnesssystem.data_exchange.application.collector.ErrorCollector;
 import com.wsw.fitnesssystem.data_exchange.application.collector.ErrorCollectorHolder;
+import com.wsw.fitnesssystem.data_exchange.application.config.ImportApplicationProperties;
 import com.wsw.fitnesssystem.data_exchange.application.port.output.UserProvisioningPort;
 import com.wsw.fitnesssystem.data_exchange.application.enums.ImportBizType;
-import com.wsw.fitnesssystem.data_exchange.infrastructure.config.ImportConfig;
 import com.wsw.fitnesssystem.shared.util.ValidationUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -43,6 +43,7 @@ import java.util.Objects;
 public class UserImportPlugin implements ImportPlugin<UserExcelDTO, UserImportData> {
 
     private final UserProvisioningPort userProvisioningPort;
+    private final ImportApplicationProperties appProperties;
 
     @Override
     public String getBizType() {
@@ -52,6 +53,11 @@ public class UserImportPlugin implements ImportPlugin<UserExcelDTO, UserImportDa
     @Override
     public Class<UserExcelDTO> getDtoClass() {
         return UserExcelDTO.class;
+    }
+
+    @Override
+    public int getBatchSize() {
+        return appProperties.getBatch().getDefaultSize();
     }
 
     // ============================================================
@@ -89,22 +95,26 @@ public class UserImportPlugin implements ImportPlugin<UserExcelDTO, UserImportDa
             String trimmedUsername = dto.getUsername().trim();
             dto.setUsername(trimmedUsername);
 
-            if (trimmedUsername.length() > ImportConfig.USERNAME_MAX_LENGTH) {
+            if (trimmedUsername.length() > appProperties.getValidation().getUsernameMaxLength()) {
                 collector.addError(
                     rowIndex,
                     buildRowData(dto),
-                    "用户账号长度超过限制（最大 " + ImportConfig.USERNAME_MAX_LENGTH + " 个字符）"
+                    "用户账号长度超过限制（最大%s个字符）".formatted(
+                        appProperties.getValidation().getUsernameMaxLength()
+                    )
                 );
                 continue;
             }
 
             // ========== 3. 密码校验（必填） ==========
             if (StringUtils.isBlank(dto.getPassword())
-                || dto.getPassword().length() < ImportConfig.PASSWORD_MIN_LENGTH) {
+                || dto.getPassword().length() < appProperties.getValidation().getPasswordMinLength()) {
                 collector.addError(
                     rowIndex,
                     buildRowData(dto),
-                    "密码必须至少 " + ImportConfig.PASSWORD_MIN_LENGTH + " 位字符"
+                    "密码必须至少%s位字符".formatted(
+                        appProperties.getValidation().getPasswordMinLength()
+                    )
                 );
                 continue;
             }
@@ -113,11 +123,13 @@ public class UserImportPlugin implements ImportPlugin<UserExcelDTO, UserImportDa
             String nickname = Objects.toString(dto.getNickname(), "").trim();
             dto.setNickname(nickname);
 
-            if (nickname.length() > ImportConfig.NICKNAME_MAX_LENGTH) {
+            if (nickname.length() > appProperties.getValidation().getNicknameMaxLength()) {
                 collector.addError(
                     rowIndex,
                     buildRowData(dto),
-                    "昵称超过最大长度限制（最大 " + ImportConfig.NICKNAME_MAX_LENGTH + " 个字符）"
+                    "昵称超过最大长度限制（最大 %s 个字符）".formatted(
+                        appProperties.getValidation().getNicknameMaxLength()
+                    )
                 );
                 continue;
             }

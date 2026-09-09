@@ -72,3 +72,37 @@ auth:
     max-fail-count: 3
     lock-duration-seconds: 900
     count-window-seconds: 900
+# ================================================================
+#  Data Exchange 模块配置
+# ================================================================
+data-exchange:
+  # ---------- 应用层配置（业务策略） ----------
+  application:
+    file:
+      max-size: 200MB                      # 单文件最大大小
+      allowed-extensions:                  # 支持的文件扩展名
+        - .xlsx
+        - .xls
+    batch:
+      default-size: 500                    # 默认每批处理条数
+      stream-threshold: 10000              # 小文件阈值（< 此值走全量，≥ 此值走流式）
+    validation:
+      username-max-length: 50              # 用户名最大长度
+      password-min-length: 6               # 密码最小长度
+      nickname-max-length: 20              # 昵称最大长度
+    display:
+      error-msg-max-count: 5              # 错误摘要保留条数（前端展示）
+
+  # ---------- 基础设施层配置（技术参数） ----------
+  infrastructure:
+    redis:
+      task-ttl-hours: 24                   # 导入任务进度 TTL（小时）
+      lock-ttl-minutes: 60                 # 文件锁 TTL（分钟）
+      error-msg-max-length: 500            # 错误信息最大长度（存入 Redis 时截断）
+      error-msg-max-count: 5               # 错误摘要保留条数
+    rate-limit:
+      window-seconds: 60                   # 限流时间窗口（秒）
+      max-count: 5                         # 窗口内最大提交次数
+    temp-file:
+      root-dir: import                     # 临时文件根目录（相对于 java.io.tmpdir）
+      file-name: data.xlsx                 # 临时文件名
