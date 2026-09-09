@@ -28,10 +28,10 @@ public class LocalUserProvisioningAdapter implements UserProvisioningPort {
     private final UserRegistrationAppService userRegistrationAppService;
 
     @Override
-    public List<UserImportResult> batchRegister(List<UserImportCommand> userDataList) {
-        log.info("Batch registering {} users via local adapter", userDataList.size());
+    public List<UserImportResult> importUsers(List<UserImportCommand> commands) {
+        log.info("Batch registering {} users via local adapter", commands.size());
         try {
-            return userRegistrationAppService.batchRegister(userDataList);
+            return userRegistrationAppService.batchRegister(commands);
         } catch (BizException e) {
             log.error("Batch registration failed", e);
             throw e;

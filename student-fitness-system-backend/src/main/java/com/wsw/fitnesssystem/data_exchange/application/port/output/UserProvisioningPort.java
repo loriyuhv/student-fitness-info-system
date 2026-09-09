@@ -6,7 +6,7 @@ import com.wsw.fitnesssystem.data_exchange.application.dto.result.UserImportResu
 import java.util.List;
 
 /**
- * 用户导入端口（由 handle_excel 模块定义，user 模块实现）
+ * 用户导入端口（由 data_exchange 模块定义，user 模块实现）
  *
  * <p><b>职责：</b>
  * <ul>
@@ -22,11 +22,11 @@ import java.util.List;
 public interface UserProvisioningPort {
 
     /**
-     * 批量注册用户（含扩展表）
+     * 批量导入用户（含扩展表）
      *
-     * @param userDataList 用户导入数据列表
-     * @return 每条数据的处理结果（成功/失败 + 错误原因 + 行号）
+     * @param commands 用户导入命令列表
+     * @return 每条数据的导入结果（成功/失败 + 错误原因 + 行号）
      */
-    List<UserImportResult> batchRegister(List<UserImportCommand> userDataList);
+    List<UserImportResult> importUsers(List<UserImportCommand> commands);
 
 }
