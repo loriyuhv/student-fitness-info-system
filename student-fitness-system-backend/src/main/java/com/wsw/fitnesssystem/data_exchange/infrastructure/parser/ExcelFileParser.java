@@ -3,7 +3,7 @@ package com.wsw.fitnesssystem.data_exchange.infrastructure.parser;
 import cn.idev.excel.FastExcel;
 import cn.idev.excel.context.AnalysisContext;
 import cn.idev.excel.read.listener.ReadListener;
-import com.wsw.fitnesssystem.data_exchange.infrastructure.exception.ExcelException;
+import com.wsw.fitnesssystem.data_exchange.infrastructure.exception.ImportInfrastructureException;
 import com.wsw.fitnesssystem.data_exchange.domain.exception.ImportCancelledException;
 import com.wsw.fitnesssystem.shared.response.ResultCode;
 import lombok.extern.slf4j.Slf4j;
@@ -45,7 +45,7 @@ public class ExcelFileParser {
      * @param taskId   任务 ID（用于日志跟踪）
      * @param <T>      DTO 类型
      * @return 完整的 DTO 列表
-     * @throws ExcelException 解析失败时抛出
+     * @throws ImportInfrastructureException 解析失败时抛出
      */
     public <T> List<T> parseFull(File file, Class<T> dtoClass, String taskId) {
         List<T> list = new ArrayList<>();
@@ -58,7 +58,7 @@ public class ExcelFileParser {
         } catch (Exception e) {
             log.error("Excel full parse failed, dtoClass={}, file={}",
                 dtoClass.getSimpleName(), file.getAbsolutePath(), e);
-            throw new ExcelException(
+            throw new ImportInfrastructureException(
                 ResultCode.PARAM_TYPE_ERROR, "文件解析失败：" + e.getMessage(), e
             );
         }
@@ -81,7 +81,7 @@ public class ExcelFileParser {
      * @param batchSize 每批处理条数
      * @param consumer  批次处理器（在回调中直接处理，不要长期持有引用）
      * @param <T>       DTO 类型
-     * @throws ExcelException 解析失败时抛出
+     * @throws ImportInfrastructureException 解析失败时抛出
      */
     public <T> void parseStream(
             File file, Class<T> dtoClass, int batchSize, Consumer<List<T>> consumer) {
@@ -96,7 +96,7 @@ public class ExcelFileParser {
             log.error("Excel stream parse failed, dtoClass={}, file={}",
                 dtoClass.getSimpleName(), file.getAbsolutePath(), e
             );
-            throw new ExcelException(
+            throw new ImportInfrastructureException(
                 ResultCode.PARAM_TYPE_ERROR, "文件解析失败：" + e.getMessage(), e
             );
         }

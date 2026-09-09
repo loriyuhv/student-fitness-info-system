@@ -5,7 +5,7 @@ import com.wsw.fitnesssystem.data_exchange.application.plugin.ImportPlugin;
 import com.wsw.fitnesssystem.data_exchange.application.collector.ErrorCollector;
 import com.wsw.fitnesssystem.data_exchange.application.collector.ErrorCollectorHolder;
 import com.wsw.fitnesssystem.data_exchange.domain.model.ImportTask;
-import com.wsw.fitnesssystem.data_exchange.infrastructure.exception.ExcelException;
+import com.wsw.fitnesssystem.data_exchange.infrastructure.exception.ImportInfrastructureException;
 import com.wsw.fitnesssystem.data_exchange.domain.exception.ImportCancelledException;
 import com.wsw.fitnesssystem.data_exchange.application.collector.ErrorRecord;
 import com.wsw.fitnesssystem.data_exchange.infrastructure.parser.ExcelFileParser;
@@ -77,7 +77,7 @@ public class ImportOrchestrator {
      * 执行导入（模板方法）
      * <p><b>完整流程：</b></p>
      * <ol>
-     *   <li>预估 Excel 数据行数，智能选择全量/流式模式</li>
+     *   <li>预估文件数据行数，智能选择全量/流式模式</li>
      *   <li>进入对应执行分支（{@link #doExecuteFull} 或 {@link #doExecuteStream}）</li>
      *   <li>分支内部：解析 → 校验 → 转换 → 持久化 → 上报进度</li>
      *   <li>最终状态判定：全部成功 = FINISHED，部分失败 = PARTIAL</li>
@@ -85,9 +85,9 @@ public class ImportOrchestrator {
      * </ol>
      *
      * @param taskId 任务唯一标识，用于进度追踪与日志串联
-     * @param file 已转存到磁盘的临时 Excel 文件（非 MultipartFile，避免 InputStream 异步关闭）
+     * @param file 已转存到磁盘的临时文件（非 MultipartFile，避免 InputStream 异步关闭）
      * @param plugin 业务插件，封装了具体业务的校验/转换/持久化逻辑
-     * @param <T> Excel 解析对应的 DTO 类型
+     * @param <T> 文件解析对应的 DTO 类型
      * @param <E> 持久化对应的 Entity 类型
      */
     public <T, E> void execute(String taskId, File file, ImportPlugin<T, E> plugin) {
@@ -108,8 +108,8 @@ public class ImportOrchestrator {
             }
         } catch (ImportCancelledException e) {
             log.warn("[{}] Task cancelled by user", taskId);
-        } catch (ExcelException e) {
-            // Excel 模块已知异常（格式损坏、密码保护、解析失败等）
+        } catch (ImportInfrastructureException e) {
+            // 文件解析已知异常（格式损坏、密码保护、解析失败等）
             String customMsg = e.getMessage();
             log.error("[{}] Excel processing failed: {}", taskId, customMsg, e);
             // 失败时创建新任务并标记失败（如果还没创建，或者直接标记已有任务）
