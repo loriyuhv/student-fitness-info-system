@@ -28,6 +28,9 @@ import java.util.List;
 @Getter
 public class ImportTask {
 
+    /** 错误摘要最大保留条数 */
+    private final int MAX_ERROR_SUMMARY_SIZE = 20;
+
     /** 任务唯一标识 */
     private final String taskId;
 
@@ -110,7 +113,7 @@ public class ImportTask {
      */
     public void start(int total) {
         if (this.status != ImportStatus.INIT) {
-            throw new IllegalStateException("Task already started");
+            throw new IllegalStateException("任务已启动，不能重复启动");
         }
         this.total = total;
         this.status = ImportStatus.PROCESSING;
@@ -126,7 +129,7 @@ public class ImportTask {
      */
     public void recordBatch(int batchSuccess, int batchFail, List<String> batchErrors) {
         if (this.status != ImportStatus.PROCESSING) {
-            throw new IllegalStateException("Task is not in processing state");
+            throw new IllegalStateException("任务未在处理中状态");
         }
         this.successCount += batchSuccess;
         this.failCount += batchFail;
@@ -134,8 +137,8 @@ public class ImportTask {
         if (batchErrors != null && !batchErrors.isEmpty()) {
             this.errorSummary.addAll(batchErrors);
             // 限制错误摘要数量，防止过大
-            if (this.errorSummary.size() > 100) {
-                this.errorSummary = this.errorSummary.subList(0, 100);
+            if (this.errorSummary.size() > MAX_ERROR_SUMMARY_SIZE) {
+                this.errorSummary = this.errorSummary.subList(0, MAX_ERROR_SUMMARY_SIZE);
             }
         }
     }
@@ -147,7 +150,7 @@ public class ImportTask {
      */
     public void finishSuccess() {
         if (this.status != ImportStatus.PROCESSING) {
-            throw new IllegalStateException("Cannot finish a non-processing task");
+            throw new IllegalStateException("任务未在处理中状态");
         }
         this.status = ImportStatus.FINISHED;
     }
@@ -159,7 +162,7 @@ public class ImportTask {
      */
     public void finishPartial() {
         if (this.status != ImportStatus.PROCESSING) {
-            throw new IllegalStateException("Cannot finish a non-processing task");
+            throw new IllegalStateException("任务未在处理中状态");
         }
         this.status = ImportStatus.PARTIAL;
     }

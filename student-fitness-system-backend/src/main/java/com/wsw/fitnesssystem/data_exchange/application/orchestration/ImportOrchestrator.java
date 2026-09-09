@@ -346,7 +346,7 @@ public class ImportOrchestrator {
             //    所有失败的行都已经在 collector 中有记录，计数只是为了统计和进度展示
             int failed = batchSize - inserted;
 
-            log.info("[{}] Batch {} processed successfully, success={}, fail={}",
+            log.debug("[{}] Batch {} processed successfully, success={}, fail={}",
                 taskId, batchNo, inserted, failed);
 
             return new BatchResult(inserted, failed);
