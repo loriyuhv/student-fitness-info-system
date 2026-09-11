@@ -1,12 +1,15 @@
 package com.wsw.fitnesssystem.data_exchange.domain.enums;
 
 /**
- * Excel 导入任务状态
+ * 文件导入任务状态
+ *【存储说明】数据库直接存储枚举name字符串，不使用数字编码
+ *
  * @author loriyuhv
  * @version 1.0 2026/8/22 11:40
  * @since 1.0
  */
 public enum ImportStatus {
+
     INIT,           // 初始
     PROCESSING,     // 处理中
     FINISHED,       // 全部成功
@@ -26,4 +29,5 @@ public enum ImportStatus {
     public boolean isRunning() {
         return this == INIT || this == PROCESSING;
     }
+
 }

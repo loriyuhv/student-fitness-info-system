@@ -27,7 +27,7 @@ public enum Status {
         for (Status status : values()) {
             if (status.code == code) return status;
         }
-        throw new IllegalArgumentException("Unknown user locked: " + code);
+        throw new IllegalArgumentException("无效编码：" + code);
     }
 
 }
