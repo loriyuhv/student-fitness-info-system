@@ -15,7 +15,7 @@ import java.util.Set;
  */
 @Repository
 @RequiredArgsConstructor
-public class AuthorizationRepositoryImpl implements AuthorizationRepository {
+public class DbAuthorizationRepository implements AuthorizationRepository {
 
     private final SysRoleMapper roleMapper;
     private final SysPermissionMapper permissionMapper;
@@ -28,6 +28,11 @@ public class AuthorizationRepositoryImpl implements AuthorizationRepository {
     @Override
     public Set<String> findPermissionsByUserIdAndCampusId(Long userId, Long campusId) {
         return permissionMapper.selectPermCodesByUserIdAndCampusId(userId, campusId);
+    }
+
+    @Override
+    public Integer findMinDataScope(Long userId, Long campusId) {
+        return roleMapper.selectMinDataScopeByUserIdAndCampusId(userId, campusId);
     }
 
 }
