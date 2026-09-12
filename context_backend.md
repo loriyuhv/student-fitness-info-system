@@ -7,21 +7,21 @@
 **重要规范**：AI 操作文件时，必须使用**相对于工作区根目录的相对路径**，禁止加绝对路径前缀。
 
 ### 后端 Java 源码路径映射（相对路径）
-- **后端源码根目录**（相对于工作区）：`fitness-system/src/main/java`
+- **后端源码根目录**（相对于工作区）：`student-fitness-system-backend/src/main/java`
 - **对应包名**：`com.wsw.fitnesssystem`
 - **映射示例**：
   - 包路径：`com.wsw.fitnesssystem.user.domain.model.User`
   - 物理文件：`fitness-system/src/main/java/com/wsw/fitnesssystem/user/domain/model/User.java`
 
 ### 后端资源文件路径映射（相对路径）
-- **配置文件**：`fitness-system/src/main/resources/application.yaml`
-- **Mapper XML**：`fitness-system/src/main/resources/mapper/**/*.xml`
-- **数据库迁移脚本**：`fitness-system/src/main/resources/db/migration/V1.0__*.sql`
+- **配置文件**：`student-fitness-system-backend/src/main/resources/application.yaml`
+- **Mapper XML**：`student-fitness-system-backend/src/main/resources/mapper/**/*.xml`
+- **数据库迁移脚本**：`student-fitness-system-backend/src/main/resources/db/migration/**/V1.0__*.sql`
 
 ### AI 生成新文件时的路径规则
-创建新 Java 类时，路径必须以 `fitness-system/src/main/java/` 开头。
+创建新 Java 类时，路径必须以 `student-fitness-system-backend/src/main/java/` 开头。
 例如：新增 `FitnessRecord.java` 应放在：
-`fitness-system/src/main/java/com/wsw/fitnesssystem/fitness/domain/model/FitnessRecord.java`
+`student-fitness-system-backend/src/main/java/com/wsw/fitnesssystem/fitness/domain/model/FitnessRecord.java`
 
 ## 二、你的角色
 
