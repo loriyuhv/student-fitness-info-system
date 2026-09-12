@@ -9,10 +9,10 @@
 //
 // ============ 真实后端接口约定（实现时替换） ============
 // 建议后端路径（context 前缀 /api 由 Vite 代理自动处理）：
-//  GET /health/student/dashboard         → data: StudentDashboard
-//  GET /health/student/records           → data: TestRecord[]
-//  GET /health/student/records/{id}      → data: TestDetail
-//  GET /health/student/diagnosis         → data: DiagnosisReport
+//  GET /health/dashboard     → data: StudentDashboard
+//  GET /fitness/records      → data: TestRecord[]
+//  GET /fitness/records/{id} → data: TestDetail
+//  GET /health/diagnosis     → data: DiagnosisReport
 // ============================================
 
 import type {
@@ -166,12 +166,12 @@ const MOCK_DIAGNOSIS: DiagnosisReport = {
 /**
  * 学生首页仪表盘数据
  *
- * 【真实接口】GET /health/student/dashboard
+ * 【真实接口】GET /health/dashboard
  * @returns StudentDashboard
  */
 export async function getDashboard(): Promise<StudentDashboard> {
   // 后端就绪后替换为：
-  // return httpRequest<StudentDashboard>({ method: 'GET', url: '/health/student/dashboard' })
+  // return httpRequest<StudentDashboard>({ method: 'GET', url: '/health/dashboard' })
   await mockDelay()
   return {
     student: MOCK_STUDENT,
@@ -183,12 +183,12 @@ export async function getDashboard(): Promise<StudentDashboard> {
 /**
  * 学生历史体测列表（按时间倒序）
  *
- * 【真实接口】GET /health/student/records
+ * 【真实接口】GET /fitness/records
  * @returns TestRecord[]
  */
 export async function getHistoryList(): Promise<TestRecord[]> {
   // 后端就绪后替换为：
-  // return httpRequest<TestRecord[]>({ method: 'GET', url: '/health/student/records' })
+  // return httpRequest<TestRecord[]>({ method: 'GET', url: '/fitness/records' })
   await mockDelay()
   return MOCK_RECORDS
 }
@@ -196,13 +196,13 @@ export async function getHistoryList(): Promise<TestRecord[]> {
 /**
  * 某次体测的完整详情（项目细分得分 + 综合诊断结论）
  *
- * 【真实接口】GET /health/student/records/{recordId}
+ * 【真实接口】GET /fitness/records/{recordId}
  * @param recordId 体测记录 ID
  * @returns TestDetail
  */
 export async function getHistoryDetail(recordId: number): Promise<TestDetail> {
   // 后端就绪后替换为：
-  // return httpRequest<TestDetail>({ method: 'GET', url: `/health/student/records/${recordId}` })
+  // return httpRequest<TestDetail>({ method: 'GET', url: `/fitness/records/${recordId}` })
   await mockDelay()
   const detail = MOCK_DETAILS[recordId]
   if (!detail) {
@@ -214,12 +214,12 @@ export async function getHistoryDetail(recordId: number): Promise<TestDetail> {
 /**
  * 学生诊断报告（K 值 / 体质类型 / 运动处方 / 健康风险）
  *
- * 【真实接口】GET /health/student/diagnosis
+ * 【真实接口】GET /health/diagnosis
  * @returns DiagnosisReport
  */
 export async function getDiagnosis(): Promise<DiagnosisReport> {
   // 后端就绪后替换为：
-  // return httpRequest<DiagnosisReport>({ method: 'GET', url: '/health/student/diagnosis' })
+  // return httpRequest<DiagnosisReport>({ method: 'GET', url: '/health/diagnosis' })
   await mockDelay()
   return MOCK_DIAGNOSIS
 }
