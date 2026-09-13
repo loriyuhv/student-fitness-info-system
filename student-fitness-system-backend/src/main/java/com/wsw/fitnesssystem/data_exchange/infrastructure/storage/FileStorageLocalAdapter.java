@@ -32,7 +32,7 @@ import java.time.LocalDate;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class LocalFileStorageAdapter implements FileStoragePort {
+public class FileStorageLocalAdapter implements FileStoragePort {
 
     private final ImportInfrastructureProperties infraProps;
 

@@ -40,6 +40,7 @@ application/
 ├── port/             # 端口定义
 │   └── output/       # 输出端口（由基础设施实现）
 ├── scheduler/        # 异步调度器
+├── orchestrator/     # 流程编排器（多步骤串联，与 service 的"用例入口"职责区分）
 ├── collector/        # 错误收集器
 ├── generator/        # 文件生成器
 └── enums/            # 应用层枚举
@@ -92,6 +93,26 @@ application/
 |**接口层（Controller）**|`XxxRequest`|`XxxResponse`|`ImportSubmissionRequest` → `ApiResult<ImportProgressResponse>`|
 |**应用层（Service）**|`XxxCommand` / `XxxQuery`|`XxxResult`|`ImportSubmissionCommand` → `ImportProgressResult`|
 |**领域层**|领域对象|领域对象|`ImportTask` → `ImportTask`|
+|**文件行映射（解析层）**|`XxxRecord`|`XxxRecord`|`UserImportRecord`|
+
+#### 4\.1\.1 文件行映射对象（XxxRecord）
+
+**定位**：文件解析后产出的行级中间对象，承载原始字段（如 Excel 单元格内容）。
+
+在插件层通过 `convert` 方法转换为应用层 Command / Entity。
+
+**命名**：`XxxRecord`，Xxx 表达业务语义（`UserImportRecord`、`FitnessRecordImportRecord`）。
+
+**存放位置**：`application/dto/record/`
+
+**与 DTO 其他类型的区别**：
+
+|类型|用途|是否暴露给前端/跨模块|
+|---|---|---|
+|`XxxRecord`|文件行映射（解析中间产物）|❌ 仅本模块内部使用|
+|`XxxCommand`|应用服务入参|✅ 可跨模块|
+|`XxxResult`|应用服务出参|✅ 可跨模块|
+|`XxxRequest` / `XxxResponse`|HTTP 接口出入参|✅ 仅接口层|
 
 ### 4\.2 接口层 DTO
 
@@ -188,7 +209,7 @@ Exception.class                  // 兜底
 |应用服务（读）|`application.service.query`|
 |应用服务（写）|`application.service.command`|
 |端口接口|`application.port.output`|
-|端口适配器|`infrastructure.cache`（Redis）或 `infrastructure.persistence`（MySQL）|
+|端口适配器|`infrastructure.cache`（Redis）/ `infrastructure.persistence`（MySQL）/ `infrastructure.storage`（文件）/ `infrastructure.parser`（解析）|
 |业务插件|`application.plugin`|
 |聚合根/值对象|`domain.model` 或 `domain.vo`|
 |仓储接口|`domain.repository`|
@@ -196,6 +217,7 @@ Exception.class                  // 兜底
 |枚举|`domain.enums`（领域）或 `application.enums`（应用）|
 |基础设施异常|`infrastructure.exception`|
 |工具类|`infrastructure.util`|
+|文件行映射|`application.dto.record`|
 
 ### 6\.2 核心规则
 
@@ -204,6 +226,7 @@ Exception.class                  // 兜底
 |Redis 所有实现|`infrastructure.cache`|
 |MySQL 所有实现|`infrastructure.persistence`|
 |文件解析|`infrastructure.parser`|
+|文件存储|`infrastructure.storage`|
 
 ### 6\.3 特殊放置规则
 

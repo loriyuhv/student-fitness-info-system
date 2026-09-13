@@ -1,6 +1,6 @@
 package com.wsw.fitnesssystem.data_exchange.application.scheduler;
 
-import com.wsw.fitnesssystem.data_exchange.application.orchestration.ImportOrchestrator;
+import com.wsw.fitnesssystem.data_exchange.application.orchestrator.ImportOrchestrator;
 import com.wsw.fitnesssystem.data_exchange.application.plugin.ImportPlugin;
 import com.wsw.fitnesssystem.data_exchange.application.port.output.DistributedLockPort;
 import com.wsw.fitnesssystem.data_exchange.application.service.command.ImportSubmissionService;

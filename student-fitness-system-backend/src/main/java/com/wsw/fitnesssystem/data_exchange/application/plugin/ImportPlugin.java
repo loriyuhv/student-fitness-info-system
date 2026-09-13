@@ -20,9 +20,6 @@ import java.util.List;
  */
 public interface ImportPlugin<T, E> {
 
-    /** 默认每批处理条数（仅作为后备值，实现类应使用配置覆盖） */
-    int DEFAULT_BATCH_SIZE = 500;
-
     /**
      * 获取业务类型标识，全局唯一。
      * <p>
@@ -48,9 +45,7 @@ public interface ImportPlugin<T, E> {
      *
      * @return 每批处理条数
      */
-    default int getBatchSize() {
-        return DEFAULT_BATCH_SIZE;
-    }
+    int getBatchSize();
 
     /**
      * 业务校验。

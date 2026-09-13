@@ -1,6 +1,6 @@
 package com.wsw.fitnesssystem.data_exchange.application.plugin;
 
-import com.wsw.fitnesssystem.data_exchange.application.orchestration.ImportOrchestrator;
+import com.wsw.fitnesssystem.data_exchange.application.orchestrator.ImportOrchestrator;
 import com.wsw.fitnesssystem.shared.exception.BizException;
 import com.wsw.fitnesssystem.shared.response.ResultCode;
 import lombok.extern.slf4j.Slf4j;

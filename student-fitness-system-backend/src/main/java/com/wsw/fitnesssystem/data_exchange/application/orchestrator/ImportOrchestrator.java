@@ -1,4 +1,4 @@
-package com.wsw.fitnesssystem.data_exchange.application.orchestration;
+package com.wsw.fitnesssystem.data_exchange.application.orchestrator;
 
 import com.google.common.collect.Lists;
 import com.wsw.fitnesssystem.data_exchange.application.config.ImportApplicationProperties;
