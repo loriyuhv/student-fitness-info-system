@@ -1,4 +1,4 @@
-package com.wsw.fitnesssystem.data_exchange.interfaces.dto;
+package com.wsw.fitnesssystem.data_exchange.interfaces.web.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Builder;

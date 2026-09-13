@@ -1,4 +1,4 @@
-package com.wsw.fitnesssystem.data_exchange.interfaces;
+package com.wsw.fitnesssystem.data_exchange.interfaces.web;
 
 import com.wsw.fitnesssystem.data_exchange.application.dto.result.ImportProgressResult;
 import com.wsw.fitnesssystem.data_exchange.application.service.command.ImportSubmissionService;
@@ -7,7 +7,7 @@ import com.wsw.fitnesssystem.data_exchange.application.enums.ImportBizType;
 import com.wsw.fitnesssystem.data_exchange.application.service.command.ImportTaskCommandService;
 import com.wsw.fitnesssystem.data_exchange.application.service.query.ImportTaskQueryService;
 import com.wsw.fitnesssystem.data_exchange.application.service.query.ImportTypeQueryService;
-import com.wsw.fitnesssystem.data_exchange.interfaces.dto.ImportProgressResponse;
+import com.wsw.fitnesssystem.data_exchange.interfaces.web.dto.ImportProgressResponse;
 import com.wsw.fitnesssystem.shared.context.RequestContextHolder;
 import com.wsw.fitnesssystem.shared.domain.valueobject.Operator;
 import com.wsw.fitnesssystem.shared.exception.BizException;
