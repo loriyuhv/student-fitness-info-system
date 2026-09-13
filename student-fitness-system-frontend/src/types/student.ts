@@ -1,6 +1,6 @@
 // ============================================
 // 学生端（C 端）类型定义
-// 与后端 health 模块「学生端接口」对齐
+// 与后端 fitness 模块「学生端接口」对齐
 // ============================================
 
 /** 体测等级（与后端 total_level 文案一致） */
@@ -113,4 +113,82 @@ export interface DiagnosisReport {
   sportPrescription: string[]
   /** 健康风险提示 */
   healthRisks: HealthRisk[]
+}
+
+/* ============================================================
+ * 以下为「后端原始响应」类型（snake_case）
+ * 仅用于 API 层适配，组件层不引用
+ * ============================================================ */
+
+/** 后端返回的体测记录列表项（原始格式） */
+export interface TestRecordRaw {
+  record_id: number
+  test_time: string
+  test_round: number
+  total_score: number
+  level: string
+}
+
+/** 后端返回的体测详情（原始格式） */
+export interface TestDetailRaw {
+  record_id: number
+  student: {
+    student_no: string
+    name: string
+    class_name: string
+  }
+  test_time: string
+  test_round: number
+  total_score: number
+  level: string
+  items: Array<{
+    item_code: string
+    item_name: string
+    unit: string
+    item_value: number
+    score: number
+    bonus: number
+  }>
+  summary: {
+    physique_type: string
+    k_value: number
+    sport_prescription: string[]
+  } | null
+}
+
+/** 后端返回的仪表盘数据（原始格式） */
+export interface StudentDashboardRaw {
+  student: {
+    user_id: number
+    student_no: string
+    name: string
+    gender: number
+    class_name: string
+    college: string
+    enroll_year: number
+  }
+  latest_test: TestRecordRaw | null
+  indicators: {
+    height: number
+    weight: number
+    bmi: number
+    vital_capacity: number
+  }
+}
+
+/** 后端返回的诊断报告（原始格式） */
+export interface DiagnosisReportRaw {
+  record_id: number
+  generate_time: string
+  total_score: number
+  level: string
+  k_value: number
+  physique_type: string
+  sport_prescription: string[]
+  health_risks: Array<{
+    title: string
+    severity: string
+    risk: string
+    suggestion: string
+  }>
 }
