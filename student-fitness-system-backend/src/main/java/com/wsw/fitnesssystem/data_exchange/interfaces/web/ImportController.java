@@ -1,6 +1,7 @@
 package com.wsw.fitnesssystem.data_exchange.interfaces.web;
 
 import com.wsw.fitnesssystem.data_exchange.application.dto.result.ImportProgressResult;
+import com.wsw.fitnesssystem.data_exchange.application.dto.result.ImportTemplateDownloadResult;
 import com.wsw.fitnesssystem.data_exchange.application.service.command.ImportSubmissionService;
 import com.wsw.fitnesssystem.data_exchange.application.service.query.ImportTemplateQueryService;
 import com.wsw.fitnesssystem.data_exchange.application.enums.ImportBizType;
@@ -11,6 +12,7 @@ import com.wsw.fitnesssystem.data_exchange.interfaces.web.dto.ImportProgressResp
 import com.wsw.fitnesssystem.shared.context.RequestContextHolder;
 import com.wsw.fitnesssystem.shared.domain.valueobject.Operator;
 import com.wsw.fitnesssystem.shared.exception.BizException;
+import com.wsw.fitnesssystem.shared.exception.SystemException;
 import com.wsw.fitnesssystem.shared.response.ApiResult;
 import com.wsw.fitnesssystem.shared.response.ResultCode;
 import jakarta.servlet.http.HttpServletResponse;
@@ -24,11 +26,17 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 /**
  * 导入控制器。
- * <p>提供导入提交、进度查询、取消、模板下载等 REST 接口。</p>
+ * <p>对外提供导入相关的 REST 接口：提交导入、查询进度、下载错误文件、
+ * 取消任务、下载模板、查询业务类型列表。</p>
+ *
+ * <p>职责边界：仅做参数校验、调用应用服务、写入 HTTP 响应；
+ * 业务逻辑一律下沉到 application 层。</p>
  *
  * @author loriyuhv
  * @version 1.0 2026/8/21 15:35
@@ -137,22 +145,44 @@ public class ImportController {
     }
 
     /**
-     * 下载导入模板
+     * 下载导入模板。
+     * <p>根据业务类型返回对应的 Excel 模板（含列头与示例数据），
+     * 供用户填写后通过 {@link #submit(String, MultipartFile)} 上传。</p>
      *
-     * @param bizType  业务类型（如 USER_IMPORT）
-     * @param response HTTP 响应
+     * @param bizType  业务类型编码（如 {@code USER_IMPORT}）
+     * @param response HTTP 响应，用于写入文件字节流
      */
     @GetMapping("/template")
     @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER')")
     public void downloadTemplate(@RequestParam String bizType, HttpServletResponse response) {
-        // 校验 bizType 是否合法（利用枚举校验）
+        // 1. 校验 bizType 合法性（利用枚举校验，无效编码抛 BizException）
         ImportBizType.getByCode(bizType);
-        // 调用应用服务生成并下载
-        importTemplateQueryService.downloadTemplate(bizType, response);
+
+        // 2. 从应用层获取模板文件内容（内存字节，不落盘）
+        ImportTemplateDownloadResult template = importTemplateQueryService.getTemplateFile(bizType);
+
+        // 3. 写入响应流
+        try {
+            String fileName = URLEncoder.encode(template.getFileName(), StandardCharsets.UTF_8)
+                .replaceAll("\\+", "%20");
+            response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+            response.setHeader("Content-Disposition", "attachment; filename*=UTF-8''" + fileName);
+            response.getOutputStream().write(template.getContent());
+            response.flushBuffer();
+        } catch (IOException e) {
+            log.error("Failed to write template response, bizType={}", bizType, e);
+            throw new SystemException(ResultCode.FILE_GENERATE_ERROR, e);
+        }
     }
 
     // ======================= 辅助方法 ============================
 
+    /**
+     * 将应用层 {@link ImportProgressResult} 转换为接口层 {@link ImportProgressResponse}。
+     * <p>接口层 DTO 使用蛇形字段名（如 success_count）适配前端；应用层 DTO 保持驼峰。</p>
+     * @param result 应用层结果
+     * @return HTTP响应结果
+     */
     private ImportProgressResponse buildResponse(ImportProgressResult result) {
         return ImportProgressResponse.builder()
             .total(result.getTotal())
