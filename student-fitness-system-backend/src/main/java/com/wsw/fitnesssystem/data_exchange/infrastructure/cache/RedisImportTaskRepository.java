@@ -4,6 +4,8 @@ import com.wsw.fitnesssystem.data_exchange.domain.model.ImportTask;
 import com.wsw.fitnesssystem.data_exchange.domain.repository.ImportTaskRepository;
 import com.wsw.fitnesssystem.data_exchange.domain.enums.ImportStatus;
 import com.wsw.fitnesssystem.data_exchange.infrastructure.config.ImportInfrastructureProperties;
+import com.wsw.fitnesssystem.shared.exception.SystemException;
+import com.wsw.fitnesssystem.shared.response.ResultCode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -75,8 +77,11 @@ public class RedisImportTaskRepository implements ImportTaskRepository {
         } catch (Exception e) {
             if (isInitialCreate) {
                 log.error("[{}] Failed to create ImportTask in Redis", task.getTaskId(), e);
-                throw new IllegalStateException(
-                    "无法在 Redis 中创建导入任务进度记录，taskId=" + task.getTaskId(), e);
+                throw new SystemException(
+                    ResultCode.CACHE_ERROR,
+                    "创建导入任务进度记录失败，taskId=" + task.getTaskId(),
+                    e
+                );
             }
             log.error("[{}] Failed to update ImportTask in Redis, task state kept in memory only",
                 task.getTaskId(), e);
@@ -116,15 +121,33 @@ public class RedisImportTaskRepository implements ImportTaskRepository {
     @Override
     public void requestCancel(String taskId) {
         String key = ImportRedisKeys.taskKey(taskId);
-        redis.opsForHash().put(key, ImportTaskField.CANCELLED.getKey(), "1");
-        log.info("[{}] Cancellation requested", taskId);
+        try {
+            redis.opsForHash().put(key, ImportTaskField.CANCELLED.getKey(), "1");
+            log.info("[{}] Cancellation requested", taskId);
+        } catch (Exception e) {
+            log.error("[{}] Failed to request cancel", taskId, e);
+            throw new SystemException(
+                ResultCode.CACHE_ERROR,
+                "标记导入任务取消状态失败，taskId=" + taskId,
+                e
+            );
+        }
     }
 
     @Override
     public boolean isCancelled(String taskId) {
         String key = ImportRedisKeys.taskKey(taskId);
-        Object val = redis.opsForHash().get(key, ImportTaskField.CANCELLED.getKey());
-        return "1".equals(val);
+        try {
+            Object val = redis.opsForHash().get(key, ImportTaskField.CANCELLED.getKey());
+            return "1".equals(val);
+        } catch (Exception e) {
+            log.error("[{}] Failed to check cancel flag", taskId, e);
+            throw new SystemException(
+                ResultCode.CACHE_ERROR,
+                "读取导入任务取消状态失败，taskId=" + taskId,
+                e
+            );
+        }
     }
 
     // ==================== 私有辅助方法 ====================
