@@ -21,15 +21,17 @@ import java.util.List;
  *   <li>重建任务（仅供 Repository 使用）：使用 {@link #ImportTask(String, ImportStatus, int, int, int, int, List, String)}</li>
  * </ul>
  *
+ * <p><b>配置说明：</b>错误摘要保留条数属于展示策略，由应用层从
+ * {@code data-exchange.application.display.error-msg-max-count} 读取，
+ * 通过 {@link #recordBatch(int, int, List, int)} 的参数传入。
+ * 领域层不持有配置引用，保持对 Spring 框架的零依赖。</p>
+ *
  * @author loriyuhv
  * @version 1.0 2026/9/7 20:32
  * @since 1.0
  */
 @Getter
 public class ImportTask {
-
-    /** 错误摘要最大保留条数 */
-    private final int MAX_ERROR_SUMMARY_SIZE = 20;
 
     /** 任务唯一标识 */
     private final String taskId;
@@ -127,7 +129,9 @@ public class ImportTask {
      * @param batchErrors  本批错误摘要（可为空）
      * @throws IllegalStateException 若非 PROCESSING 状态则抛出
      */
-    public void recordBatch(int batchSuccess, int batchFail, List<String> batchErrors) {
+    public void recordBatch(
+        int batchSuccess, int batchFail, List<String> batchErrors, int maxErrorSummarySize
+    ) {
         if (this.status != ImportStatus.PROCESSING) {
             throw new IllegalStateException("任务未在处理中状态");
         }
@@ -137,8 +141,8 @@ public class ImportTask {
         if (batchErrors != null && !batchErrors.isEmpty()) {
             this.errorSummary.addAll(batchErrors);
             // 限制错误摘要数量，防止过大
-            if (this.errorSummary.size() > MAX_ERROR_SUMMARY_SIZE) {
-                this.errorSummary = this.errorSummary.subList(0, MAX_ERROR_SUMMARY_SIZE);
+            if (this.errorSummary.size() > maxErrorSummarySize) {
+                this.errorSummary = this.errorSummary.subList(0, maxErrorSummarySize);
             }
         }
     }
@@ -209,7 +213,7 @@ public class ImportTask {
      * 禁止从任意终态（FINISHED / PARTIAL / FAILED / CANCELLED）再次变更。</p>
      */
     private void requireActive(String action) {
-        if (!isRunning()) {
+        if (isTerminated()) {
             throw new IllegalStateException(
                 "任务当前状态为 " + status + "，已处于终态，不能" + action);
         }
@@ -218,12 +222,15 @@ public class ImportTask {
     // ==================== 查询方法 ====================
 
     /**
-     * 判断任务是否正在运行（INIT 或 PROCESSING）。
-     *
-     * @return true 表示运行中
+     * 判断任务是否已进入终态。
+     * <p>终态包括 FINISHED / PARTIAL / FAILED / CANCELLED，
+     * 进入终态后不可再变更状态。</p>
      */
-    public boolean isRunning() {
-        return this.status == ImportStatus.PROCESSING || this.status == ImportStatus.INIT;
+    public boolean isTerminated() {
+        return this.status == ImportStatus.FINISHED
+            || this.status == ImportStatus.PARTIAL
+            || this.status == ImportStatus.FAILED
+            || this.status == ImportStatus.CANCELLED;
     }
 
     /**

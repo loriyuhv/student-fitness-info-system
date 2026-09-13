@@ -191,7 +191,10 @@ public class ImportOrchestrator {
 
             // 6.3 实时上报进度：客户端轮询可感知到处理进展
             List<String> latestSummary = buildErrorSummary(collector);
-            task.recordBatch(result.successIncrement, result.failIncrement, latestSummary);
+            task.recordBatch(
+                result.successIncrement, result.failIncrement,
+                latestSummary, appProperties.getDisplay().getErrorMsgMaxCount()
+            );
             importTaskRepository.save(task);
         }
 
@@ -262,7 +265,10 @@ public class ImportOrchestrator {
 
             List<String> latestSummary  = buildErrorSummary(collector);
             // 3.2 实时上报进度
-            task.recordBatch(result.successIncrement, result.failIncrement, latestSummary);
+            task.recordBatch(
+                result.successIncrement, result.failIncrement,
+                latestSummary, appProperties.getDisplay().getErrorMsgMaxCount()
+            );
             importTaskRepository.save(task);
         });
 
