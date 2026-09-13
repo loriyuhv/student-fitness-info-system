@@ -1,15 +1,14 @@
 package com.wsw.fitnesssystem.data_exchange.application.port.output;
 
+import com.wsw.fitnesssystem.data_exchange.application.dto.upload.UploadedFile;
 import com.wsw.fitnesssystem.shared.exception.BizException;
-import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
 
 /**
  * 文件存储端口（输出端口）。
- * <p>
- * 定义文件上传、转存、清理等操作契约，由基础设施层实现。
- * </p>
+ * <p>定义文件转存、清理等操作契约，由基础设施层实现。
+ * 参数使用应用层抽象，不依赖具体 Web 技术栈。</p>
  *
  * @author loriyuhv
  * @version 1.0 2026/9/9 14:55
@@ -26,7 +25,7 @@ public interface FileStoragePort {
      * @return 转存后的临时文件对象
      * @throws BizException 转存失败时抛出
      */
-    File saveTempFile(MultipartFile file, String taskId);
+    File saveTempFile(UploadedFile file, String taskId);
 
     /**
      * 计算文件的 MD5。

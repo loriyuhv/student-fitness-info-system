@@ -1,6 +1,7 @@
 package com.wsw.fitnesssystem.data_exchange.application.service.command;
 
 import com.wsw.fitnesssystem.data_exchange.application.config.ImportApplicationProperties;
+import com.wsw.fitnesssystem.data_exchange.application.dto.upload.UploadedFile;
 import com.wsw.fitnesssystem.data_exchange.application.plugin.ImportPluginRegistry;
 import com.wsw.fitnesssystem.data_exchange.application.plugin.ImportPlugin;
 import com.wsw.fitnesssystem.data_exchange.application.port.output.FileStoragePort;
@@ -13,7 +14,6 @@ import com.wsw.fitnesssystem.shared.response.ResultCode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
 import java.util.UUID;
@@ -51,7 +51,7 @@ public class ImportSubmissionService {
      * @param userId 操作人ID（用于频率限制）
      * @return 任务 ID，用于后续查询进度
      */
-    public String submit(ImportBizType bizTypeEnum, MultipartFile file, Long userId) {
+    public String submit(ImportBizType bizTypeEnum, UploadedFile file, Long userId) {
         // 1. 前置校验：文件格式、大小、扩展名
         validateFile(file);
 
@@ -94,9 +94,9 @@ public class ImportSubmissionService {
      * @param file 待校验的文件
      * @throws BizException 校验失败时抛出
      */
-    private void validateFile(MultipartFile file) {
+    private void validateFile(UploadedFile file) {
         // 1. 非空校验（包含空文件）
-        if (file == null || file.isEmpty()) {
+        if (file == null || file.getSize() == 0) {
             throw new BizException(ResultCode.PARAM_INVALID, "文件不能为空");
         }
 

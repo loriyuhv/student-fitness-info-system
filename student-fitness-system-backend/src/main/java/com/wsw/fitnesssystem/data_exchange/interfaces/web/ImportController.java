@@ -2,12 +2,14 @@ package com.wsw.fitnesssystem.data_exchange.interfaces.web;
 
 import com.wsw.fitnesssystem.data_exchange.application.dto.result.ImportProgressResult;
 import com.wsw.fitnesssystem.data_exchange.application.dto.result.ImportTemplateDownloadResult;
+import com.wsw.fitnesssystem.data_exchange.application.dto.upload.UploadedFile;
 import com.wsw.fitnesssystem.data_exchange.application.service.command.ImportSubmissionService;
 import com.wsw.fitnesssystem.data_exchange.application.service.query.ImportTemplateQueryService;
 import com.wsw.fitnesssystem.data_exchange.application.enums.ImportBizType;
 import com.wsw.fitnesssystem.data_exchange.application.service.command.ImportTaskCommandService;
 import com.wsw.fitnesssystem.data_exchange.application.service.query.ImportTaskQueryService;
 import com.wsw.fitnesssystem.data_exchange.application.service.query.ImportTypeQueryService;
+import com.wsw.fitnesssystem.data_exchange.interfaces.web.adapter.MultipartUploadedFile;
 import com.wsw.fitnesssystem.data_exchange.interfaces.web.dto.ImportProgressResponse;
 import com.wsw.fitnesssystem.shared.context.RequestContextHolder;
 import com.wsw.fitnesssystem.shared.domain.valueobject.Operator;
@@ -75,8 +77,11 @@ public class ImportController {
         // 2. 从安全上下文中获取当前操作人信息（含 userId）
         Operator operator = RequestContextHolder.getRequiredOperator();
 
-        // 3. 提交导入任务到异步线程池，返回任务 ID
-        String taskId = importSubmissionService.submit(bizTypeEnum, file, operator.userId());
+        // 3. Web 类型适配为应用层抽象（接口层职责）
+        UploadedFile uploadedFile = MultipartUploadedFile.of(file);
+
+        // 4. 提交导入任务到异步线程池，返回任务 ID
+        String taskId = importSubmissionService.submit(bizTypeEnum, uploadedFile, operator.userId());
 
         return ApiResult.success(taskId);
     }
