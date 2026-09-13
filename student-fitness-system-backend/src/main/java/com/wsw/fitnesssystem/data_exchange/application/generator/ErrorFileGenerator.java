@@ -2,6 +2,9 @@ package com.wsw.fitnesssystem.data_exchange.application.generator;
 
 import cn.idev.excel.FastExcel;
 import com.wsw.fitnesssystem.data_exchange.application.collector.ErrorRecord;
+import com.wsw.fitnesssystem.shared.exception.BizException;
+import com.wsw.fitnesssystem.shared.exception.SystemException;
+import com.wsw.fitnesssystem.shared.response.ResultCode;
 import lombok.extern.slf4j.Slf4j;
 import org.jspecify.annotations.NonNull;
 import org.springframework.stereotype.Service;
@@ -9,6 +12,8 @@ import org.springframework.stereotype.Service;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+
+import static com.wsw.fitnesssystem.shared.response.ResultCode.PARAM_INVALID;
 
 /**
  * @author loriyuhv
@@ -24,7 +29,7 @@ public class ErrorFileGenerator {
      */
     public File generateErrorFile(List<ErrorRecord> errors, List<String> headers) {
         if (errors == null || errors.isEmpty()) {
-            throw new IllegalArgumentException("错误列表为空");
+            throw new BizException(PARAM_INVALID, "错误列表为空");
         }
 
         // 列头：行号 + 原始列头 + 错误原因
@@ -42,11 +47,11 @@ public class ErrorFileGenerator {
                 .head(newHeaders.stream().map(List::of).toList())
                 .sheet("错误数据")
                 .doWrite(dataRows);
-            log.info("错误文件生成成功: {}", tempFile.getAbsolutePath());
+            log.info("Error file generated: path={}", tempFile.getAbsolutePath());
             return tempFile;
         } catch (Exception e) {
-            log.error("生成错误 Excel 失败", e);
-            throw new RuntimeException("生成错误文件失败", e);
+            log.error("Failed to generate error excel file", e);
+            throw new SystemException(ResultCode.FILE_GENERATE_ERROR, e);
         }
     }
 

@@ -27,7 +27,7 @@ public class ImportTaskQueryService {
         return importTaskRepository.findById(taskId)
             .map(this::buildResult)
             .orElseThrow(
-                () -> new BizException(ResultCode.IMPORT_TASK_NOT_FOUND, "Task not found: " + taskId)
+                () -> new BizException(ResultCode.IMPORT_TASK_NOT_FOUND, "任务不存在，taskId=" + taskId)
             );
     }
 

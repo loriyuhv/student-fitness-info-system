@@ -243,7 +243,7 @@ public class UserImportPlugin implements ImportPlugin<UserImportRecord, UserImpo
             }
         }
 
-        log.info("用户导入完成: 总数={}, 成功={}, 失败={}",
+        log.info("User import completed, total={}, success={}, failed={}",
             entities.size(), successCount, entities.size() - successCount);
 
         return successCount;
