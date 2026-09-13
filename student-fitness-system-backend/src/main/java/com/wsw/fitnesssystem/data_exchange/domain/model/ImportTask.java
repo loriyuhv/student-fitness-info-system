@@ -18,7 +18,7 @@ import java.util.List;
  * <p><b>构造约束：</b></p>
  * <ul>
  *   <li>新建任务：使用 {@link #ImportTask(String)}</li>
- *   <li>重建任务（仅供 Repository 使用）：使用 {@link #ImportTask(String, ImportStatus, int, int, int, int, List, String)}</li>
+ *   <li>重建任务（仅供 Repository 使用）：使用 {@link #reconstitute(String, ImportStatus, int, int, int, int, List, String)}</li>
  * </ul>
  *
  * <p><b>配置说明：</b>错误摘要保留条数属于展示策略，由应用层从
@@ -77,21 +77,10 @@ public class ImportTask {
     }
 
     /**
-     * 重建构造函数（Redis 恢复聚合根）
-     * <p>
-     * <b>警告：仅供 Repository 层内部使用，应用层不应直接调用此构造方法。</b>
-     * 应用层请使用 {@link #ImportTask(String)} 创建新任务。
-     *
-     * @param taskId 任务ID
-     * @param status 任务状态
-     * @param total 总数
-     * @param processed 已处理数
-     * @param successCount 成功数
-     * @param failCount 失败数
-     * @param errorSummary 错误摘要
-     * @param errorFilePath 错误文件路径
+     * 私有重建构造函数。
+     * <p>仅供 {@link #reconstitute} 工厂方法调用，禁止外部直接 new。</p>
      */
-    public ImportTask(
+    private ImportTask(
         String taskId, ImportStatus status, int total, int processed,
         int successCount, int failCount, List<String> errorSummary, String errorFilePath
     ) {
@@ -103,6 +92,32 @@ public class ImportTask {
         this.failCount = failCount;
         this.errorSummary = errorSummary != null ? new ArrayList<>(errorSummary) : new ArrayList<>();
         this.errorFilePath = errorFilePath;
+    }
+
+    /**
+     * 从持久化状态重建聚合根（仅 Repository 层使用）。
+     *
+     * <p><b>警告：</b>此方法绕过所有业务规则和状态校验，仅供
+     * {@code ImportTaskRepository} 从 Redis 加载任务时调用。
+     * 应用层若需创建新任务，请使用 {@link #ImportTask(String)}。</p>
+     *
+     * @param taskId       任务 ID
+     * @param status       任务状态
+     * @param total        总数据条数
+     * @param processed    已处理条数
+     * @param successCount 成功条数
+     * @param failCount    失败条数
+     * @param errorSummary 错误摘要
+     * @param errorFilePath 错误文件路径（可为 null）
+     * @return 重建后的聚合根实例
+     */
+    public static ImportTask reconstitute(
+        String taskId, ImportStatus status, int total, int processed,
+        int successCount, int failCount, List<String> errorSummary, String errorFilePath
+    ) {
+        return new ImportTask(
+            taskId, status, total, processed, successCount, failCount, errorSummary, errorFilePath
+        );
     }
 
     // ==================== 行为方法 ====================

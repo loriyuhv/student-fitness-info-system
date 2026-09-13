@@ -318,30 +318,41 @@ import:{模块}:{维度}:{标识}
 #### 9\.3\.3 YAML 结构
 
 ```YAML
+# ================================================================
+#  Data Exchange 模块配置
+# ================================================================
 data-exchange:
+  # ---------- 应用层配置（业务策略） ----------
   application:
     file:
-      max-size: 200MB
-      allowed-extensions: [.xlsx, .xls]
+      max-size: 200MB                      # 单文件最大大小
+      allowed-extensions:                  # 支持的文件扩展名
+        - .xlsx
+        - .xls
     batch:
-      default-size: 500
-      stream-threshold: 10000
+      default-size: 500                    # 默认每批处理条数
+      stream-threshold: 10000              # 小文件阈值（< 此值走全量，≥ 此值走流式）
     validation:
-      username-max-length: 50
-      password-min-length: 6
+      username-max-length: 50              # 用户名最大长度
+      password-min-length: 6               # 密码最小长度
+      nickname-max-length: 20              # 昵称最大长度
     display:
-      error-msg-max-count: 10
+      error-msg-max-count: 5              # 错误摘要保留条数（前端展示）
+
+  # ---------- 基础设施层配置（技术参数） ----------
   infrastructure:
-    temp-file:
-      root-dir: import
-      file-name: data.xlsx
     redis:
-      task-ttl-hours: 24
-      lock-ttl-minutes: 60
-      error-msg-max-length: 500
+      task-ttl-hours: 24                   # 导入任务进度 TTL（小时）
+      lock-ttl-minutes: 60                 # 文件锁 TTL（分钟）
+      error-msg-max-length: 500            # 错误信息最大长度（存入 Redis 时截断）
+      error-msg-max-count: 5               # 错误摘要保留条数
     rate-limit:
-      window-seconds: 60
-      max-count: 5
+      window-seconds: 60                   # 限流时间窗口（秒）
+      max-count: 5                         # 窗口内最大提交次数
+    temp-file:
+      root-dir: import                     # 临时文件根目录（相对于 java.io.tmpdir）
+      file-name: data.xlsx                 # 临时文件名
+
 ```
 
 #### 9\.3\.4 配置类结构
@@ -476,12 +487,20 @@ public class ImportTask {
     }
 
     // 仅 Repository 层可调用（重建聚合根用）
-    protected ImportTask(String taskId, ImportStatus status, int total, int processed,
-                         int successCount, int failCount, List<String> errorSummary) {
-        // ...
+    private ImportTask(String taskId, ImportStatus status, ...) { ... }
+    
+    public static ImportTask reconstitute(String taskId, ImportStatus status, ...) {
+        return new ImportTask(taskId, status, ...);
     }
 }
 ```
+
+> 为什么不直接用 `protected`？ Java 的 `protected` 只允许同包/子类访问，
+> Repository 实现通常位于不同包（`infrastructure.persistence`），
+> 因此采用 `private 构造函数 + public static reconstitute 工厂方法`，
+> 用方法名而非访问修饰符来表达「仅特定层可用」的意图。
+> 
+> 
 
 ### 11\.4 输出端口 \+ 适配器
 

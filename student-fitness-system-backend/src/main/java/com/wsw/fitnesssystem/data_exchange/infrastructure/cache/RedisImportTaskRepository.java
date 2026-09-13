@@ -102,8 +102,7 @@ public class RedisImportTaskRepository implements ImportTaskRepository {
                 ? entries.get(ImportTaskField.ERROR_FILE_PATH.getKey()).toString()
                 : null;
 
-            // 使用包级私有构造函数重建聚合根
-            ImportTask task = new ImportTask(
+            ImportTask task = ImportTask.reconstitute(
                 taskId, status, total, processed, successCount, failCount, errorSummary, errorFilePath
             );
             return Optional.of(task);
