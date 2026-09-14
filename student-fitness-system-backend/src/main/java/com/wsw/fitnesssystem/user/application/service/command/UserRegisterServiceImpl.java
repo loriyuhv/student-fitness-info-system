@@ -2,6 +2,7 @@ package com.wsw.fitnesssystem.user.application.service.command;
 
 import com.wsw.fitnesssystem.data_exchange.application.dto.command.UserImportCommand;
 import com.wsw.fitnesssystem.data_exchange.application.dto.result.UserImportResult;
+import com.wsw.fitnesssystem.user.application.config.UserApplicationProperties;
 import com.wsw.fitnesssystem.user.application.service.UserRegisterService;
 import com.wsw.fitnesssystem.user.domain.model.StudentProfile;
 import com.wsw.fitnesssystem.user.domain.model.TeacherProfile;
@@ -14,6 +15,7 @@ import com.wsw.fitnesssystem.user.domain.repository.UserRepository;
 import com.wsw.fitnesssystem.user.domain.vb.Gender;
 import com.wsw.fitnesssystem.user.domain.vb.Status;
 import com.wsw.fitnesssystem.user.domain.vb.UserType;
+import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -39,11 +41,21 @@ import java.util.Set;
 public class UserRegisterServiceImpl implements UserRegisterService {
 
     private final UserRepository userRepository;
+    private final UserApplicationProperties appProperties;
     private final UserProfileRepository userProfileRepository;
     private final StudentProfileRepository studentProfileRepository;
     private final TeacherProfileRepository teacherProfileRepository;
 
-    private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+    /** 日期解析器：由 {@link #initDateFormatter()} 在 Bean 初始化时构建 */
+    private DateTimeFormatter dateFormatter;
+
+    @PostConstruct
+    void initDateFormatter() {
+        this.dateFormatter = DateTimeFormatter.ofPattern(
+            appProperties.getDataImport().getDateFormat());
+        log.debug("Date formatter initialized: pattern={}",
+            appProperties.getDataImport().getDateFormat());
+    }
 
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -77,27 +89,23 @@ public class UserRegisterServiceImpl implements UserRegisterService {
             try {
                 Long userId = doRegisterSingleUser(data);
                 results.add(successResult(data, userId));
-                // log.debug("用户注册成功: username={}, userId={}", username, user.getUserId());
             } catch (DuplicateKeyException e) {
                 // 精确捕获重复键异常
                 results.add(failResult(data, "数据重复: 该记录已存在（用户名或唯一键冲突）"));
-                log.error("用户注册失败: username={}, row={}", username, data.getRowIndex(), e);
+                log.error("Registration failed: username={}, row={}", username, data.getRowIndex(), e);
             } catch (DataIntegrityViolationException e) {
-                // int row = rowExtractor != null ? rowExtractor.apply(entity) : -1;
-                // String cause = singleEx.getMostSpecificCause().getMessage();
                 // 截断过长消息，只保留前50个字符
                 String cause = e.getMostSpecificCause().getMessage();
                 String friendlyMsg = cause.length() > 30 ? cause.substring(0, 30) + "..." : cause;
-                // collector.addError(row, "数据格式异常: " + friendlyMsg);
                 results.add(failResult(data, "数据格式异常: " + friendlyMsg));
-                log.error("用户注册失败: username={}, row={}", username, data.getRowIndex(), e);
+                log.error("Registration failed: username={}, row={}", username, data.getRowIndex(), e);
             } catch (Exception e) {
                 results.add(failResult(data, "系统异常: " + e.getMessage()));
-                log.error("用户注册失败: username={}, row={}", username, data.getRowIndex(), e);
+                log.error("Registration failed: username={}, row={}", username, data.getRowIndex(), e);
             }
         }
 
-        log.info("批量注册完成: 总数={}, 成功={}, 失败={}",
+        log.info("Batch registration completed: total={}, success={}, fail={}",
             dataList.size(),
             results.stream().filter(UserImportResult::isSuccess).count(),
             results.stream().filter(r -> !r.isSuccess()).count());
@@ -175,9 +183,9 @@ public class UserRegisterServiceImpl implements UserRegisterService {
             return null;
         }
         try {
-            return LocalDate.parse(dateStr.trim(), DATE_FORMATTER);
+            return LocalDate.parse(dateStr.trim(), dateFormatter);
         } catch (Exception e) {
-            log.warn("日期格式解析失败: {}", dateStr);
+            log.warn("Date parse failed: value={}", dateStr);
             return null;
         }
     }

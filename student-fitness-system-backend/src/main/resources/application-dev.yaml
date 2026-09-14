@@ -106,3 +106,11 @@ data-exchange:
     temp-file:
       root-dir: import                     # 临时文件根目录（相对于 java.io.tmpdir）
       file-name: data.xlsx                 # 临时文件名
+# ================================================================
+#  User 模块配置
+# ================================================================
+user:
+  # ---------- 应用层配置（业务策略） ----------
+  application:
+    data-import:
+      date-format: yyyy-MM-dd       # 导入数据中日期字段的解析格式
