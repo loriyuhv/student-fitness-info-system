@@ -3,14 +3,23 @@ package com.wsw.fitnesssystem.user.interfaces.web;
 import com.wsw.fitnesssystem.shared.context.RequestContextHolder;
 import com.wsw.fitnesssystem.shared.domain.valueobject.Operator;
 import com.wsw.fitnesssystem.shared.response.ApiResult;
+import com.wsw.fitnesssystem.shared.response.PageResult;
+import com.wsw.fitnesssystem.user.application.dto.query.StudentListQuery;
+import com.wsw.fitnesssystem.user.application.dto.result.StudentListItemResult;
 import com.wsw.fitnesssystem.user.application.dto.result.UserInfoResult;
+import com.wsw.fitnesssystem.user.application.service.query.StudentQueryService;
 import com.wsw.fitnesssystem.user.application.service.query.UserInfoQueryService;
 import com.wsw.fitnesssystem.user.interfaces.web.dto.UserInfoResponse;
+import com.wsw.fitnesssystem.user.interfaces.web.dto.response.StudentListItemResponse;
+import com.wsw.fitnesssystem.user.interfaces.web.dto.response.StudentListPageResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.List;
 
 /**
  * 用户信息控制器
@@ -31,6 +40,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/user")
 public class UserController {
 
+    private final StudentQueryService studentQueryService;
     private final UserInfoQueryService userInfoQueryService;
 
     /**
@@ -61,6 +71,56 @@ public class UserController {
             .build();
 
         return ApiResult.success(response);
+    }
+
+    /**
+     * 分页查询学生列表。
+     *
+     * <p><b>当前阶段：</b>仅管理员可访问，返回全校区学生。</p>
+     * <p><b>后续：</b>适配数据权限后，教师/学生访问将自动按范围过滤。</p>
+     */
+    @GetMapping("/students")
+    public ApiResult<StudentListPageResponse> listStudents(
+        @RequestParam(required = false) Integer pageNum,
+        @RequestParam(required = false) Integer pageSize
+    ) {
+
+        Operator operator = RequestContextHolder.getRequiredOperator();
+        StudentListQuery query = StudentListQuery.of(pageNum, pageSize);
+
+        PageResult<StudentListItemResult> result =
+            studentQueryService.listStudents(operator, query);
+
+        return ApiResult.success(buildResponse(result));
+    }
+
+    private StudentListPageResponse buildResponse(PageResult<StudentListItemResult> result) {
+        List<StudentListItemResponse> items = result.getItems().stream()
+            .map(this::buildItemResponse)
+            .toList();
+
+        return StudentListPageResponse.builder()
+            .total(result.getTotal())
+            .pageNum(result.getPageNum())
+            .pageSize(result.getPageSize())
+            .items(items)
+            .build();
+    }
+
+    private StudentListItemResponse buildItemResponse(StudentListItemResult r) {
+        return StudentListItemResponse.builder()
+            .studentId(r.getStudentId())
+            .userId(r.getUserId())
+            .studentNo(r.getStudentNo())
+            .classId(r.getClassId())
+            .enrollYear(r.getEnrollYear())
+            .major(r.getMajor())
+            .gender(r.getGender())
+            .familyAddress(r.getFamilyAddress())
+            .nickname(r.getNickname())
+            .phoneNumber(r.getPhoneNumber())
+            .email(r.getEmail())
+            .build();
     }
 
 }

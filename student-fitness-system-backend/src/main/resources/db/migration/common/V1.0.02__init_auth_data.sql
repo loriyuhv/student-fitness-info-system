@@ -3,7 +3,7 @@
 -- 目的：提供开发/测试环境的基础登录账号，便于功能演示与联调
 -- ⚠️ 安全警告：所有初始账号的密码均为默认值（明文：123456，对应下方的 Bcrypt 密文），
 --    部署到生产环境前，必须禁用这些默认账号或强制用户在首次登录时修改密码！
--- 校区策略：所有初始化用户统一归属校区 ID=1101（示例校区）。
+-- 校区策略：所有初始化用户统一归属校区 ID=1001（示例校区）。
 --    注：生产环境中，系统级管理员通常 campus_id=0 以跨校区管理，
 --    此处绑定具体校区仅为了在多校区演示中直观区分数据范围。
 -- ============================================================
@@ -12,51 +12,66 @@
 -- 说明：拥有系统全部权限，用于系统配置、角色分配及运维管理。
 -- 用户名：admin（固定保留名称，不可删除）
 -- 来源：source=0（IMPORT 导入），create_by=1（系统自举创建）
-INSERT INTO sys_user (`campus_id`, `username`, `password`, nickname, remark, user_type, source, create_by)
-VALUES (1101,
-        'admin',
-        '$2a$10$2529vU4WTji.qS6i3LfEYu6s2NUHzeWOnwl.so9CtSJUm7O3QnHp6',
-        '系统管理员',
-        '系统初始化管理员',
-        0, -- user_type: 0-管理员
-        0, -- source: 0-导入
-        1 -- create_by: 1 代表系统自身
-       );
+INSERT INTO
+    sys_user (`campus_id`, `username`, `password`, nickname, remark, user_type, source, create_by)
+VALUES
+    (1001,
+     'admin',
+     '$2a$10$2529vU4WTji.qS6i3LfEYu6s2NUHzeWOnwl.so9CtSJUm7O3QnHp6',
+     '系统管理员',
+     '系统初始化管理员',
+     0, -- user_type: 0-管理员
+     0, -- source: 0-导入
+     NULL -- create_by: NULL 代表系统自身
+    );
+
+
+SET @admin_id = (SELECT
+                     user_id
+                 FROM
+                     sys_user
+                 WHERE
+                       username = 'admin'
+                   AND deleted = 0);
 
 -- 2. 示例教师账号（角色：TEACHER）
 -- 说明：体育教师“张建国”，工号 12018007，具备体测数据录入、查看本班汇总等教学权限。
 -- 用户名即工号，便于与教务系统数据对齐。
-INSERT INTO sys_user (`campus_id`, `username`, `password`, nickname, remark, user_type, source, create_by)
-VALUES (1101,
-        '12018007',
-        '$2a$10$2529vU4WTji.qS6i3LfEYu6s2NUHzeWOnwl.so9CtSJUm7O3QnHp6',
-        '张建国',
-        '体育老师',
-        1, -- user_type: 1-教师
-        0, -- source: 0-导入
-        1 -- create_by: 1 代表系统自身
-       );
+INSERT INTO
+    sys_user (`campus_id`, `username`, `password`, nickname, remark, user_type, source, create_by)
+VALUES
+    (1001,
+     '12018007',
+     '$2a$10$2529vU4WTji.qS6i3LfEYu6s2NUHzeWOnwl.so9CtSJUm7O3QnHp6',
+     '张建国',
+     '体育老师',
+     1, -- user_type: 1-教师
+     0, -- source: 0-导入
+     @admin_id -- create_by: 大概率是1 代表系统自身
+    );
 
 -- 3. 示例学生账号（角色：STUDENT）
 -- 说明：学生“王子轩”，学号 412251401，仅可登录查看本人体测成绩与历史记录。
 -- 用户名即学号，符合校园信息化场景中的统一身份认证习惯。
-INSERT INTO sys_user (`campus_id`, `username`, `password`, nickname, remark, user_type, source, create_by)
-VALUES (1101,
-        '412251401',
-        '$2a$10$2529vU4WTji.qS6i3LfEYu6s2NUHzeWOnwl.so9CtSJUm7O3QnHp6',
-        '王子轩',
-        '学生',
-        2, -- user_type: 2-学生
-        0, -- source: 0-导入
-        1 -- create_by: 1 代表系统自身
-       );
+INSERT INTO
+    sys_user (`campus_id`, `username`, `password`, nickname, remark, user_type, source, create_by)
+VALUES
+    (1001,
+     '412251401',
+     '$2a$10$2529vU4WTji.qS6i3LfEYu6s2NUHzeWOnwl.so9CtSJUm7O3QnHp6',
+     '王子轩',
+     '学生',
+     2, -- user_type: 2-学生
+     0, -- source: 0-导入
+     @admin_id -- create_by: 大概率是1 代表系统自身
+    );
 
 -- ============================================================
 -- 初始化系统内置角色（RBAC 核心数据）
 -- 目的：定义系统运行必需的三个基础角色，用于后续用户授权。
 -- 关联说明：角色创建后，需在 sys_role_permission 中为每个角色挂载对应的权限编码，
 --          在 sys_user_role 中将用户与角色绑定，三者共同构成完整的权限体系。
--- 校区策略：所有内置角色统一归属校区 ID=1101（示例校区），
+-- 校区策略：所有内置角色统一归属校区 ID=1001（示例校区），
 --          实际部署时可根据需要调整 campus_id 或创建校区自定义角色。
 -- 数据权限提示：这里显式指定 data_scope，避免使用默认值 0（全部数据）带来的越权风险。
 -- ============================================================
@@ -64,32 +79,38 @@ VALUES (1101,
 -- 1. 系统管理员角色（ADMIN）
 -- 用途：系统最高权限，可管理用户、角色、权限配置，并查看所有数据。
 -- 数据范围：0-全部数据（跨校区、跨班级），用于运维与系统配置。
-INSERT INTO sys_role (campus_id, role_code, role_name, data_scope, remark)
-VALUES (1101,
-        'ADMIN',
-        '系统管理员',
-        0, -- data_scope: 0-全部数据
-        '系统最高权限，负责系统配置与用户管理，可跨校区操作');
+INSERT INTO
+    sys_role (campus_id, role_code, role_name, data_scope, remark)
+VALUES
+    (1001,
+     'ADMIN',
+     '系统管理员',
+     0, -- data_scope: 0-全部数据
+     '系统最高权限，负责系统配置与用户管理，可跨校区操作');
 
 -- 2. 教师角色（TEACHER）
 -- 用途：负责学生体测数据的录入、修改及查看，仅限任教班级。
 -- 数据范围：2-本班（通过教师-班级关联表确定任教班级，数据查询时自动过滤）
-INSERT INTO sys_role (campus_id, role_code, role_name, data_scope, remark)
-VALUES (1101,
-        'TEACHER',
-        '教师',
-        2, -- data_scope: 2-本班
-        '负责学生体测数据的录入与管理，仅可操作自己任教班级的学生数据');
+INSERT INTO
+    sys_role (campus_id, role_code, role_name, data_scope, remark)
+VALUES
+    (1001,
+     'TEACHER',
+     '教师',
+     2, -- data_scope: 2-本班
+     '负责学生体测数据的录入与管理，仅可操作自己任教班级的学生数据');
 
 -- 3. 学生角色（STUDENT）
 -- 用途：登录后仅可查看本人体测成绩与历史记录，无录入/修改权限。
 -- 数据范围：1-仅本人（通过当前登录用户 user_id 过滤数据）
-INSERT INTO sys_role (campus_id, role_code, role_name, data_scope, remark)
-VALUES (1101,
-        'STUDENT',
-        '学生',
-        1, -- data_scope: 1-仅本人
-        '仅可查看本人体测数据，无法查看他人数据或执行变更操作');
+INSERT INTO
+    sys_role (campus_id, role_code, role_name, data_scope, remark)
+VALUES
+    (1001,
+     'STUDENT',
+     '学生',
+     1, -- data_scope: 1-仅本人
+     '仅可查看本人体测数据，无法查看他人数据或执行变更操作');
 
 -- ============================================================
 -- 系统权限初始化数据（V1.0）
@@ -102,7 +123,8 @@ VALUES (1101,
 --   5. 权限名称（perm_name）用于界面展示，权限编码（perm_code）用于程序判断，两者不可混淆
 -- ============================================================
 
-INSERT INTO sys_permission (perm_code, perm_name, remark)
+INSERT INTO
+    sys_permission (perm_code, perm_name, remark)
 VALUES
 
 -- ============================================================
@@ -218,12 +240,17 @@ VALUES
 -- 权限来源：ADMIN 角色的权限通过在 sys_role_permission 中使用 CROSS JOIN
 --          与 sys_permission 全量关联实现（参见角色-权限绑定脚本）
 -- ============================================================
-INSERT INTO sys_user_role (user_id, role_id)
-SELECT u.user_id, r.role_id
-FROM sys_user u
-         JOIN sys_role r
-              ON r.role_code = 'ADMIN'
-WHERE u.username = 'admin';
+INSERT INTO
+    sys_user_role (user_id, role_id)
+SELECT
+    u.user_id,
+    r.role_id
+FROM
+    sys_user u
+    JOIN sys_role r
+         ON r.role_code = 'ADMIN'
+WHERE
+    u.username = 'admin';
 
 -- ============================================================
 -- 教师 → TEACHER 角色绑定
@@ -233,7 +260,7 @@ WHERE u.username = 'admin';
 -- 权限范围：通过 TEACHER 角色获得以下权限：
 --           - fitness:record:view / add / update（体测记录管理）
 --           - fitness:summary:view（体测汇总查看）
---           - student:profile:view / update（学生档案查看与有限修改）
+--           - user:student:view / update（学生档案查看与有限修改）
 -- 数据权限：配合 TEACHER 角色的 data_scope=2（本班），
 --           所有查询操作仅返回该教师任教班级的学生数据
 -- 前置条件：执行此绑定前，需确保：
@@ -242,11 +269,16 @@ WHERE u.username = 'admin';
 --           3. 教师-班级关联表（teacher_class）中已配置该教师的任教班级
 -- 安全提示：初始密码为默认值（123456），部署生产环境前应强制教师修改密码
 -- ============================================================
-INSERT INTO sys_user_role (user_id, role_id)
-SELECT u.user_id, r.role_id
-FROM sys_user u
-         JOIN sys_role r ON r.role_code = 'TEACHER'
-WHERE u.username = '12018007';
+INSERT INTO
+    sys_user_role (user_id, role_id)
+SELECT
+    u.user_id,
+    r.role_id
+FROM
+    sys_user u
+    JOIN sys_role r ON r.role_code = 'TEACHER'
+WHERE
+    u.username = '12018007';
 
 -- ============================================================
 -- 学生 → STUDENT 角色绑定
@@ -266,11 +298,16 @@ WHERE u.username = '12018007';
 -- 安全提示：初始密码为默认值（123456），部署生产环境前应强制学生修改密码；
 --           学生仅拥有只读权限，无任何录入、修改或删除操作能力
 -- ============================================================
-INSERT INTO sys_user_role (user_id, role_id)
-SELECT u.user_id, r.role_id
-FROM sys_user u
-         JOIN sys_role r ON r.role_code = 'STUDENT'
-WHERE u.username = '412251401';
+INSERT INTO
+    sys_user_role (user_id, role_id)
+SELECT
+    u.user_id,
+    r.role_id
+FROM
+    sys_user u
+    JOIN sys_role r ON r.role_code = 'STUDENT'
+WHERE
+    u.username = '412251401';
 
 -- ============================================================
 -- ADMIN 角色 → 全部权限绑定
@@ -287,11 +324,16 @@ WHERE u.username = '412251401';
 -- 后续维护：新增权限点后，需重新执行此脚本（或使用 CROSS JOIN 覆盖），
 --           否则新权限不会自动授予 ADMIN 角色
 -- ============================================================
-INSERT INTO sys_role_permission (role_id, perm_id)
-SELECT r.role_id, p.perm_id
-FROM sys_role r
-         CROSS JOIN sys_permission p -- CROSS JOIN = 笛卡尔积，将 ADMIN 与每个权限点逐一配对
-WHERE r.role_code = 'ADMIN';
+INSERT INTO
+    sys_role_permission (role_id, perm_id)
+SELECT
+    r.role_id,
+    p.perm_id
+FROM
+    sys_role r
+    CROSS JOIN sys_permission p -- CROSS JOIN = 笛卡尔积，将 ADMIN 与每个权限点逐一配对
+WHERE
+    r.role_code = 'ADMIN';
 
 -- ============================================================
 -- TEACHER 角色 → 权限绑定
@@ -307,29 +349,29 @@ WHERE r.role_code = 'ADMIN';
 --           6. user:student:update     - 修改学生档案（仅限非敏感字段：地址/电话等）
 -- 数据权限配合：所有查询/修改操作配合 TEACHER 角色的 data_scope=2（本班），
 --              自动过滤仅返回该教师任教班级的学生数据，无需在业务代码中额外编写班级过滤逻辑
--- 安全约束：student:profile:update 在 Service 层需做字段白名单校验，
+-- 安全约束：user:student:update 在 Service 层需做字段白名单校验，
 --           禁止教师修改学号（student_no）、身份证号（id_card）等核心不可变字段
 -- 后续维护：如需为教师角色新增权限（如导出功能、跨班级查看等），
 --           需在此语句的 p.perm_code IN (...) 列表中追加对应的权限编码，并重新执行
 -- ============================================================
-INSERT INTO sys_role_permission (role_id, perm_id)
-SELECT r.role_id, p.perm_id
-FROM sys_role r
-JOIN sys_permission p ON p.perm_code IN (
-    -- 体测记录管理（本班范围）
-    'fitness:record:view',
-    'fitness:record:add',
-    'fitness:record:update',
-    -- 体测汇总查看（本班范围）
-    'fitness:summary:view',
-    -- 学生档案管理（本班学生，仅查看和有限修改）
-    'user:student:view',
-    'user:student:update',
-    -- 教师档案管理（仅查看和有限修改）
-    'user:teacher:view',
-    'user:teacher:update'
-)
-WHERE r.role_code = 'TEACHER';
+INSERT INTO
+    sys_role_permission (role_id, perm_id)
+SELECT
+    r.role_id,
+    p.perm_id
+FROM
+    sys_role r
+    JOIN sys_permission p ON p.perm_code IN (
+                                             'fitness:record:view', -- 体测记录管理（本班范围）
+                                             'fitness:record:add',
+                                             'fitness:record:update',
+                                             'fitness:summary:view', -- 体测汇总查看（本班范围）
+                                             'user:student:view', -- 学生档案管理（本班学生，仅查看和有限修改）
+                                             'user:student:update',
+                                             'user:teacher:view', -- 教师档案管理（仅查看和有限修改）
+                                             'user:teacher:update')
+WHERE
+    r.role_code = 'TEACHER';
 
 -- ============================================================
 -- STUDENT 角色 → 权限绑定
@@ -337,9 +379,8 @@ WHERE r.role_code = 'TEACHER';
 --       支持学生登录后查看自己的体测记录和个人汇总分析
 -- 适用场景：系统初始化阶段，为 STUDENT 角色配置固定的功能权限集合
 -- 权限范围：通过本语句授予以下权限点：
---           1. fitness:record:self:view - 学生专用查看权限（仅本人体测记录）
---           2. fitness:record:view      - 通用查看权限（配合 data_scope=1，实际仅返回本人数据）
---           3. fitness:summary:view     - 查看体测汇总（配合 data_scope=1，仅返回本人的汇总分析）
+--           1. fitness:record:view      - 通用查看权限（配合 data_scope=1，实际仅返回本人数据）
+--           2. fitness:summary:view     - 查看体测汇总（配合 data_scope=1，仅返回本人的汇总分析）
 -- 数据权限配合：所有查询操作配合 STUDENT 角色的 data_scope=1（仅本人），
 --              系统在 Service 层强制追加当前登录用户的 user_id 过滤条件，
 --              确保学生无法通过修改请求参数或 SQL 注入等方式查看他人数据
@@ -351,11 +392,16 @@ WHERE r.role_code = 'TEACHER';
 -- 后续维护：如需为学生角色新增权限（如查看班级排名等），
 --           需在此语句的 p.perm_code IN (...) 列表中追加对应的权限编码，并重新执行
 -- ============================================================
-INSERT INTO sys_role_permission (role_id, perm_id)
-SELECT r.role_id, p.perm_id
-FROM sys_role r
-JOIN sys_permission p ON p.perm_code IN (
-    'fitness:record:view',        -- 配合 data_scope=1，仅返回本人数据
-    'fitness:summary:view'        -- 配合 data_scope=1，仅返回本人的汇总分析
-)
-WHERE r.role_code = 'STUDENT';
+INSERT INTO
+    sys_role_permission (role_id, perm_id)
+SELECT
+    r.role_id,
+    p.perm_id
+FROM
+    sys_role r
+    JOIN sys_permission p ON p.perm_code IN (
+                                             'fitness:record:view', -- 配合 data_scope=1，仅返回本人数据
+                                             'fitness:summary:view' -- 配合 data_scope=1，仅返回本人的汇总分析
+        )
+WHERE
+    r.role_code = 'STUDENT';

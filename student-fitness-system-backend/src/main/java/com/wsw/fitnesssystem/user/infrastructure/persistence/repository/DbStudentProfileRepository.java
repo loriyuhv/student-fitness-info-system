@@ -1,6 +1,8 @@
 package com.wsw.fitnesssystem.user.infrastructure.persistence.repository;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.wsw.fitnesssystem.shared.response.PageResult;
 import com.wsw.fitnesssystem.user.domain.model.StudentProfile;
 import com.wsw.fitnesssystem.user.domain.repository.StudentProfileRepository;
 import com.wsw.fitnesssystem.user.infrastructure.persistence.converter.StudentProfileConverter;
@@ -9,6 +11,7 @@ import com.wsw.fitnesssystem.user.infrastructure.persistence.mapper.StudentProfi
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -18,7 +21,7 @@ import java.util.Optional;
  */
 @Repository
 @RequiredArgsConstructor
-public class StudentProfileRepositoryImpl implements StudentProfileRepository {
+public class DbStudentProfileRepository implements StudentProfileRepository {
 
     private final StudentProfileMapper mapper;
     private final StudentProfileConverter converter;
@@ -53,6 +56,29 @@ public class StudentProfileRepositoryImpl implements StudentProfileRepository {
         } else {
             mapper.updateById(po);
         }
+    }
+
+    @Override
+    public PageResult<StudentProfile> pageByCampusId(Long campusId, int pageNum, int pageSize) {
+        if (campusId == null) {
+            return PageResult.empty(pageNum, pageSize);
+        }
+
+        Page<StudentProfilePo> mpPage = new Page<>(pageNum, pageSize);
+
+        LambdaQueryWrapper<StudentProfilePo> wrapper = new LambdaQueryWrapper<StudentProfilePo>()
+            .eq(StudentProfilePo::getCampusId, campusId)
+            .eq(StudentProfilePo::getStatus, 1)
+            .eq(StudentProfilePo::getDeleted, 0)
+            .orderByDesc(StudentProfilePo::getStudentId);
+
+        Page<StudentProfilePo> result = mapper.selectPage(mpPage, wrapper);
+
+        List<StudentProfile> items = result.getRecords().stream()
+            .map(converter::toDomain)
+            .toList();
+
+        return PageResult.of(items, result.getTotal(), pageNum, pageSize);
     }
 
 }

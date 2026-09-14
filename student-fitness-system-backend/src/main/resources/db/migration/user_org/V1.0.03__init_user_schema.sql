@@ -15,8 +15,8 @@ CREATE TABLE user_profile
     last_login_ip   VARCHAR(45) COMMENT '最后登录IP地址（支持 IPv4 和 IPv6，冗余字段，用于安全审计和风控）',
     last_login_time DATETIME COMMENT '最后登录时间（冗余字段，避免关联查询 sys_user_login 表，提高列表展示性能）',
     deleted         TINYINT                   DEFAULT 0 COMMENT '逻辑删除标记：0-未删除，1-已删除（软删除，保留历史数据用于审计）',
-    create_by       VARCHAR(50) COMMENT '创建人（记录操作人用户名，便于追溯数据来源）',
-    update_by       VARCHAR(50) COMMENT '最后更新人（记录操作人用户名，便于追踪变更责任人）',
+    create_by       BIGINT COMMENT '创建人用户ID（关联sys_user.user_id）',
+    update_by       BIGINT COMMENT '最后更新人用户ID（关联sys_user.user_id）',
     create_time     DATETIME                  DEFAULT CURRENT_TIMESTAMP COMMENT '记录创建时间（自动生成）',
     update_time     DATETIME                  DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '记录最后更新时间（自动更新）',
     -- 唯一索引：确保一个用户只有一条扩展信息记录
@@ -45,9 +45,9 @@ CREATE TABLE class_info
     status        TINYINT              DEFAULT 1 COMMENT '业务启用状态：0-停用（该班级不可再分配学生，已有数据保留），1-启用（正常使用）',
     deleted       TINYINT              DEFAULT 0 COMMENT '逻辑删除标记：0-未删除，1-已删除（参与唯一索引，允许删除后重建同名班级）',
     remark        VARCHAR(200) COMMENT '备注信息（运营或管理备注，如“本班为体育教育专业示范班”）',
-    create_by     VARCHAR(50) COMMENT '创建人（记录操作人用户名，便于追溯数据来源）',
+    create_by     BIGINT COMMENT '创建人用户ID（关联sys_user.user_id）',
     create_time   DATETIME             DEFAULT CURRENT_TIMESTAMP COMMENT '记录创建时间（自动生成）',
-    update_by     VARCHAR(50) COMMENT '最后更新人（记录操作人用户名，便于追踪变更责任人）',
+    update_by     BIGINT COMMENT '最后更新人用户ID（关联sys_user.user_id）',
     update_time   DATETIME             DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '记录最后更新时间（自动更新）',
     -- 唯一索引：确保同一班级编码在系统中唯一（含逻辑删除），删除后可重建同名班级
     UNIQUE KEY uk_class_code (class_code, deleted)
@@ -80,9 +80,9 @@ CREATE TABLE student_profile
     remark         VARCHAR(200) COMMENT '备注信息（如“体测免测”“转专业学生”等特殊标记）',
     status         TINYINT              DEFAULT 1 COMMENT '学籍状态：0-禁用（如休学、退学），1-正常（在校在籍）',
     deleted        TINYINT              DEFAULT 0 COMMENT '逻辑删除标记：0-未删除，1-已删除（参与唯一索引，允许删除后重建）',
-    create_by      VARCHAR(50) COMMENT '创建人（记录操作人用户名，便于追溯数据来源）',
+    create_by      BIGINT COMMENT '创建人用户ID（关联sys_user.user_id）',
     create_time    DATETIME             DEFAULT CURRENT_TIMESTAMP COMMENT '记录创建时间（自动生成）',
-    update_by      VARCHAR(50) COMMENT '最后更新人（记录操作人用户名，便于追踪变更责任人）',
+    update_by      BIGINT COMMENT '最后更新人用户ID（关联sys_user.user_id）',
     update_time    DATETIME             DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '记录最后更新时间（自动更新）',
     -- 唯一索引：确保一个用户只有一条学生档案记录，且删除后可重建
     UNIQUE KEY uk_user_deleted (user_id, deleted),
@@ -115,9 +115,9 @@ CREATE TABLE teacher_profile
     remark      VARCHAR(200) COMMENT '备注信息（如“高级职称”“教研组长”等身份标记或补充说明）',
     status      TINYINT              DEFAULT 1 COMMENT '在职状态：0-禁用（如离职、停职），1-正常（在职在岗）',
     deleted     TINYINT              DEFAULT 0 COMMENT '逻辑删除标记：0-未删除，1-已删除（参与唯一索引，允许删除后重建）',
-    create_by   VARCHAR(50) COMMENT '创建人（记录操作人用户名，便于追溯数据来源）',
+    create_by   BIGINT COMMENT '创建人用户ID（关联sys_user.user_id）',
     create_time DATETIME             DEFAULT CURRENT_TIMESTAMP COMMENT '记录创建时间（自动生成）',
-    update_by   VARCHAR(50) COMMENT '最后更新人（记录操作人用户名，便于追踪变更责任人）',
+    update_by   BIGINT COMMENT '最后更新人用户ID（关联sys_user.user_id）',
     update_time DATETIME             DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '记录最后更新时间（自动更新）',
     -- 唯一索引：确保一个用户只有一条教师档案记录，且删除后可重建
     UNIQUE KEY uk_user_deleted (user_id, deleted),
@@ -149,9 +149,9 @@ CREATE TABLE teacher_class
     status      TINYINT         DEFAULT 1 COMMENT '关联状态：0-无效（该教师不再负责该班级，但不删除历史记录），1-有效（当前正在任教）',
     deleted     TINYINT         DEFAULT 0 COMMENT '逻辑删除标记：0-未删除，1-已删除（参与唯一索引，允许删除后重新建立相同关联）',
     remark      VARCHAR(200) COMMENT '备注信息（如“临时代课”“2024秋季学期”等教学任务说明）',
-    create_by   VARCHAR(50) COMMENT '创建人（记录操作人用户名，便于追溯数据来源）',
+    create_by   BIGINT COMMENT '创建人用户ID（关联sys_user.user_id）',
     create_time DATETIME        DEFAULT CURRENT_TIMESTAMP COMMENT '记录创建时间（自动生成）',
-    update_by   VARCHAR(50) COMMENT '最后更新人（记录操作人用户名，便于追踪变更责任人）',
+    update_by   BIGINT COMMENT '最后更新人用户ID（关联sys_user.user_id）',
     update_time DATETIME        DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '记录最后更新时间（自动更新）',
     -- 唯一索引：确保同一教师在同一班级下只有一条有效/已删除记录，防止重复分配
     -- 设计意图：当教师不再负责某班级时，执行逻辑删除（deleted=1），

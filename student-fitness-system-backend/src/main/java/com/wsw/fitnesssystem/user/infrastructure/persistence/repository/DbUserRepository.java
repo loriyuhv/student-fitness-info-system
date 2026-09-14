@@ -8,10 +8,7 @@ import com.wsw.fitnesssystem.user.infrastructure.persistence.mapper.SysUserMappe
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
-import java.util.HashSet;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 
 /**
  * 用户仓储实现（Infrastructure 层）
@@ -23,7 +20,7 @@ import java.util.Set;
  */
 @Repository
 @RequiredArgsConstructor
-public class UserRepositoryImpl implements UserRepository {
+public class DbUserRepository implements UserRepository {
 
     private final SysUserMapper userMapper;
     private final UserConverter userConverter;
@@ -49,6 +46,20 @@ public class UserRepositoryImpl implements UserRepository {
         }
 
         return new HashSet<>(userMapper.selectExistingUsernames(usernames));
+    }
+
+    @Override
+    public List<User> findByIds(Collection<Long> userIds) {
+        if (userIds == null || userIds.isEmpty()) {
+            return List.of();
+        }
+        List<UserPo> pos = userMapper.selectBatchIds(userIds);
+        if (pos == null || pos.isEmpty()) {
+            return List.of();
+        }
+        return pos.stream()
+            .map(userConverter::toDomain)
+            .toList();
     }
 
     // ==================== 写入实现 ====================

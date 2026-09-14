@@ -2,6 +2,7 @@ package com.wsw.fitnesssystem.user.domain.repository;
 
 import com.wsw.fitnesssystem.user.domain.model.User;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -45,6 +46,16 @@ public interface UserRepository {
      * @return 已存在的用户名集合
      */
     Set<String> findExistingUsernames(List<String> usernames);
+
+    /**
+     * 按用户 ID 集合批量查询。
+     *
+     * <p><b>用途：</b>关联数据组装（如学生列表带昵称），避免 N+1 查询。</p>
+     *
+     * @param userIds 用户 ID 集合
+     * @return 用户列表；集合为空返回空列表
+     */
+    List<User> findByIds(Collection<Long> userIds);
 
     // ==================== 写入 ====================
 

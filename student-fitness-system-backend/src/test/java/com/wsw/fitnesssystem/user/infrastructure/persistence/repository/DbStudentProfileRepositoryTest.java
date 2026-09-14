@@ -24,7 +24,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 @SpringBootTest
 @Transactional
 @DisplayName("StudentProfileRepository 单元测试")
-class StudentProfileRepositoryImplTest {
+class DbStudentProfileRepositoryTest {
 
     @Autowired
     private StudentProfileRepository repository;

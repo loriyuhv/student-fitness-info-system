@@ -1,8 +1,10 @@
 package com.wsw.fitnesssystem.shared.config;
 
+import com.baomidou.mybatisplus.annotation.DbType;
 import com.baomidou.mybatisplus.extension.plugins.MybatisPlusInterceptor;
 import com.baomidou.mybatisplus.extension.plugins.inner.DataPermissionInterceptor;
 import com.baomidou.mybatisplus.extension.plugins.inner.OptimisticLockerInnerInterceptor;
+import com.baomidou.mybatisplus.extension.plugins.inner.PaginationInnerInterceptor;
 import com.wsw.fitnesssystem.shared.data_permission.CustomDataPermissionHandler;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
@@ -26,10 +28,13 @@ public class MybatisPlusConfig {
     public MybatisPlusInterceptor mybatisPlusInterceptor() {
         MybatisPlusInterceptor interceptor = new MybatisPlusInterceptor();
 
-        // 乐观锁插件（支持 @Version 注解）
+        // 1. 分页插件（放最前，确保分页 COUNT 和其他插件协同）
+        interceptor.addInnerInterceptor(new PaginationInnerInterceptor(DbType.MYSQL));
+
+        // 2. 乐观锁插件（支持 @Version 注解）
         interceptor.addInnerInterceptor(new OptimisticLockerInnerInterceptor());
 
-        // 数据权限拦截器（注意顺序：放在最后，确保其他插件先生效）
+        // 3. 数据权限拦截器（注意顺序：放在最后，确保其他插件先生效）
         interceptor.addInnerInterceptor(new DataPermissionInterceptor(dataPermissionHandler));
 
         return interceptor;
