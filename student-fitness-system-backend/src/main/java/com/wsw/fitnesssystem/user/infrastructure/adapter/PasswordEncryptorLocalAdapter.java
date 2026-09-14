@@ -1,4 +1,4 @@
-package com.wsw.fitnesssystem.user.infrastructure.encrypt;
+package com.wsw.fitnesssystem.user.infrastructure.adapter;
 
 import com.wsw.fitnesssystem.user.domain.port.PasswordEncryptorPort;
 import lombok.RequiredArgsConstructor;
@@ -12,7 +12,7 @@ import org.springframework.stereotype.Component;
  */
 @Component
 @RequiredArgsConstructor
-public class LocalPasswordEncryptor implements PasswordEncryptorPort {
+public class PasswordEncryptorLocalAdapter implements PasswordEncryptorPort {
 
     private final PasswordEncoder passwordEncoder;
 
