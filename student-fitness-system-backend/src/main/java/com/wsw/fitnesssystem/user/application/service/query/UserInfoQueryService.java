@@ -3,9 +3,9 @@ package com.wsw.fitnesssystem.user.application.service.query;
 import com.wsw.fitnesssystem.shared.domain.valueobject.Operator;
 import com.wsw.fitnesssystem.shared.exception.BizException;
 import com.wsw.fitnesssystem.shared.response.ResultCode;
-import com.wsw.fitnesssystem.user.application.dto.port.UserAuthorizationInfo;
+import com.wsw.fitnesssystem.user.application.dto.result.UserAuthorizationResult;
 import com.wsw.fitnesssystem.user.application.dto.result.UserInfoResult;
-import com.wsw.fitnesssystem.user.application.port.AuthorizationPort;
+import com.wsw.fitnesssystem.user.application.port.output.UserAuthorizationQueryPort;
 import com.wsw.fitnesssystem.user.domain.model.User;
 import com.wsw.fitnesssystem.user.domain.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -32,7 +32,7 @@ import org.springframework.stereotype.Service;
 public class UserInfoQueryService {
 
     private final UserRepository userRepository;
-    private final AuthorizationPort authorizationPort;
+    private final UserAuthorizationQueryPort userAuthorizationQueryPort;
 
     /**
      * 获取当前操作用户的个人信息
@@ -48,7 +48,7 @@ public class UserInfoQueryService {
         User user = userRepository.findByCampusIdAndUserId(campusId, userId)
             .orElseThrow(() -> new BizException(ResultCode.USER_NOT_FOUND));
 
-        UserAuthorizationInfo authorizations = authorizationPort.getAuthorizations(userId, campusId);
+        UserAuthorizationResult authorizations = userAuthorizationQueryPort.findByUserIdAndCampusId(userId, campusId);
 
         return UserInfoResult.builder()
             .userId(user.getUserId())
@@ -59,8 +59,8 @@ public class UserInfoQueryService {
             .email(user.getEmail())
             .remark(user.getRemark())
             .userType(user.getUserType().getCode())
-            .roles(authorizations.roles())
-            .permissions(authorizations.permissions())
+            .roles(authorizations.getRoles())
+            .permissions(authorizations.getPermissions())
             .build();
     }
 
