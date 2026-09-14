@@ -1,6 +1,6 @@
 package com.wsw.fitnesssystem.iam.authentication.domain.model;
 
-import com.wsw.fitnesssystem.iam.authentication.application.dto.port.AuthUserCredential;
+import com.wsw.fitnesssystem.iam.authentication.application.dto.result.UserCredentialResult;
 import com.wsw.fitnesssystem.iam.authentication.domain.port.PasswordEncryptor;
 import com.wsw.fitnesssystem.shared.exception.BizException;
 import com.wsw.fitnesssystem.shared.response.ResultCode;
@@ -16,7 +16,7 @@ import lombok.NoArgsConstructor;
  * <p><b>职责：</b>
  * <ul>
  *   <li>封装密码校验、账号状态检查等认证领域逻辑</li>
- *   <li>只接收 {@code AuthUserCredential}（Auth 模块自己的契约）</li>
+ *   <li>只接收 {@code UserCredentialResult}（Auth 模块自己的契约）</li>
  *   <li>不依赖任何外部模块的类（包括 User 模块）</li>
  * </ul>
  *
@@ -40,12 +40,12 @@ public class AuthUser {
     private Integer status;
 
     /** 从 Auth 模块的契约创建 AuthUser */
-    public static AuthUser loadFromCredential(AuthUserCredential credential) {
+    public static AuthUser loadFromCredential(UserCredentialResult credential) {
         return AuthUser.builder()
             .userId(credential.getUserId())
             .campusId(credential.getCampusId())
             .username(credential.getUsername())
-            .passwordHash(credential.getPassword())
+            .passwordHash(credential.getPasswordHash())
             .userType(credential.getUserType())
             .status(credential.getStatus())
             .build();

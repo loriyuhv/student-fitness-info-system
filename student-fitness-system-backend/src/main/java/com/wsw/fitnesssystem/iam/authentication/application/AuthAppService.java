@@ -3,15 +3,16 @@ package com.wsw.fitnesssystem.iam.authentication.application;
 import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 import com.wsw.fitnesssystem.iam.authentication.application.dto.command.LoginCommand;
 import com.wsw.fitnesssystem.iam.authentication.application.dto.command.RefreshCommand;
-import com.wsw.fitnesssystem.iam.authentication.application.dto.port.AuthUserCredential;
 import com.wsw.fitnesssystem.iam.authentication.application.dto.port.RiskCheckResult;
 import com.wsw.fitnesssystem.iam.authentication.application.dto.result.LoginResult;
 import com.wsw.fitnesssystem.iam.authentication.application.dto.result.RefreshResult;
+import com.wsw.fitnesssystem.iam.authentication.application.dto.result.UserCredentialResult;
 import com.wsw.fitnesssystem.iam.authentication.application.event.LoginFailureEvent;
 import com.wsw.fitnesssystem.iam.authentication.application.event.LoginSuccessEvent;
 import com.wsw.fitnesssystem.iam.authentication.application.event.RefreshTokenEvent;
 import com.wsw.fitnesssystem.iam.authentication.application.event.SessionTerminatedEvent;
 import com.wsw.fitnesssystem.iam.authentication.application.port.*;
+import com.wsw.fitnesssystem.iam.authentication.application.port.output.UserCredentialQueryPort;
 import com.wsw.fitnesssystem.iam.authentication.domain.port.PasswordEncryptor;
 import com.wsw.fitnesssystem.iam.audit.domain.valueobject.LogoutReason;
 import com.wsw.fitnesssystem.iam.authentication.domain.model.AuthUser;
@@ -61,11 +62,11 @@ public class AuthAppService {
     /** 密码加密器（领域端口） */
     private final PasswordEncryptor passwordEncryptor;
 
-    /** 用户认证数据提供者端口 */
-    private final AuthUserDataProvider authUserDataProvider;
-
     /** 事件发布器（用于异步审计） */
     private final ApplicationEventPublisher eventPublisher;
+
+    /** 用户认证数据提供者端口 */
+    private final UserCredentialQueryPort userCredentialQueryPort;
 
     // ==================== 登录 ====================
 
@@ -137,7 +138,7 @@ public class AuthAppService {
      */
     public Set<String> kick(long campusId, long userId) {
         // 1. 校验用户是否存在（通过适配器查）
-        AuthUserCredential credential = authUserDataProvider.getAuthDataByCampusIdAndUserId(campusId, userId);
+        UserCredentialResult credential = userCredentialQueryPort.findByCampusIdAndUserId(campusId, userId);
         if (credential == null) {
             throw new BizException(ResultCode.KICKOUT_FAILED, ResultCode.USER_NOT_FOUND.getMessage());
         }
@@ -230,7 +231,7 @@ public class AuthAppService {
     private AuthUser authenticate(LoginCommand cmd) {
         try {
             // 1. 获取认证数据（通过适配器，无感本地/远程）
-            AuthUserCredential credential = authUserDataProvider.getAuthDataByUsername(cmd.getUsername());
+            UserCredentialResult credential = userCredentialQueryPort.findByUsername(cmd.getUsername());
 
             if (credential == null) {
                 throw new BizException(ResultCode.AUTH_ACCOUNT_NOT_EXIST);
