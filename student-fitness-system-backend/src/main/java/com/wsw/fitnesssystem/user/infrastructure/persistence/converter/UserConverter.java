@@ -1,9 +1,9 @@
 package com.wsw.fitnesssystem.user.infrastructure.persistence.converter;
 
 import com.wsw.fitnesssystem.user.domain.model.User;
-import com.wsw.fitnesssystem.user.domain.valueobject.UserSource;
-import com.wsw.fitnesssystem.user.domain.valueobject.Status;
-import com.wsw.fitnesssystem.user.domain.valueobject.UserType;
+import com.wsw.fitnesssystem.user.domain.vb.UserSource;
+import com.wsw.fitnesssystem.user.domain.vb.Status;
+import com.wsw.fitnesssystem.user.domain.vb.UserType;
 import com.wsw.fitnesssystem.user.infrastructure.persistence.entity.UserPo;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;

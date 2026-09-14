@@ -15,7 +15,7 @@ import com.wsw.fitnesssystem.shared.exception.BizException;
 import com.wsw.fitnesssystem.shared.response.ResultCode;
 import com.wsw.fitnesssystem.user.domain.model.StudentProfile;
 import com.wsw.fitnesssystem.user.domain.port.StudentProfileRepository;
-import com.wsw.fitnesssystem.user.domain.valueobject.Gender;
+import com.wsw.fitnesssystem.user.domain.vb.Gender;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;

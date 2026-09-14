@@ -1,6 +1,6 @@
 package com.wsw.fitnesssystem.user.domain.model;
 
-import com.wsw.fitnesssystem.user.domain.valueobject.Gender;
+import com.wsw.fitnesssystem.user.domain.vb.Gender;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;

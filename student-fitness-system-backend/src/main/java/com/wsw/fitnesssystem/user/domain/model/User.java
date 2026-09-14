@@ -1,8 +1,8 @@
 package com.wsw.fitnesssystem.user.domain.model;
 
-import com.wsw.fitnesssystem.user.domain.valueobject.UserSource;
-import com.wsw.fitnesssystem.user.domain.valueobject.Status;
-import com.wsw.fitnesssystem.user.domain.valueobject.UserType;
+import com.wsw.fitnesssystem.user.domain.vb.UserSource;
+import com.wsw.fitnesssystem.user.domain.vb.Status;
+import com.wsw.fitnesssystem.user.domain.vb.UserType;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;

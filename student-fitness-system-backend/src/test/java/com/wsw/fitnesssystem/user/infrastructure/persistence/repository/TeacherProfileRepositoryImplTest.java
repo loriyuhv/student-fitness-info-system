@@ -2,8 +2,8 @@ package com.wsw.fitnesssystem.user.infrastructure.persistence.repository;
 
 import com.wsw.fitnesssystem.user.domain.model.TeacherProfile;
 import com.wsw.fitnesssystem.user.domain.port.TeacherProfileRepository;
-import com.wsw.fitnesssystem.user.domain.valueobject.Gender;
-import com.wsw.fitnesssystem.user.domain.valueobject.Status;
+import com.wsw.fitnesssystem.user.domain.vb.Gender;
+import com.wsw.fitnesssystem.user.domain.vb.Status;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

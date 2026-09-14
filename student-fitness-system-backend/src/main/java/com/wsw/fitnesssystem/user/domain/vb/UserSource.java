@@ -1,4 +1,4 @@
-package com.wsw.fitnesssystem.user.domain.valueobject;
+package com.wsw.fitnesssystem.user.domain.vb;
 
 import lombok.Getter;
 

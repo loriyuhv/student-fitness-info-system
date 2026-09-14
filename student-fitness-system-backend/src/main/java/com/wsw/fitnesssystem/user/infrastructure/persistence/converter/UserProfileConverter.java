@@ -1,7 +1,7 @@
 package com.wsw.fitnesssystem.user.infrastructure.persistence.converter;
 
 import com.wsw.fitnesssystem.user.domain.model.UserProfile;
-import com.wsw.fitnesssystem.user.domain.valueobject.Gender;
+import com.wsw.fitnesssystem.user.domain.vb.Gender;
 import com.wsw.fitnesssystem.user.infrastructure.persistence.entity.UserProfilePo;
 import org.springframework.stereotype.Component;
 
