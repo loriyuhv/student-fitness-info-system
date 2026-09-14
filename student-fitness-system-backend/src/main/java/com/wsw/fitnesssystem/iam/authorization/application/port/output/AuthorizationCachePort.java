@@ -1,4 +1,4 @@
-package com.wsw.fitnesssystem.iam.authorization.application.port;
+package com.wsw.fitnesssystem.iam.authorization.application.port.output;
 
 import com.wsw.fitnesssystem.iam.authorization.application.dto.result.UserAuthorization;
 
@@ -24,7 +24,7 @@ import com.wsw.fitnesssystem.iam.authorization.application.dto.result.UserAuthor
   * @version 1.0 2026/1/16 14:10
  * @since 1.0
  */
-public interface AuthorizationCacheService {
+public interface AuthorizationCachePort {
 
     /**
      * 缓存用户权限快照

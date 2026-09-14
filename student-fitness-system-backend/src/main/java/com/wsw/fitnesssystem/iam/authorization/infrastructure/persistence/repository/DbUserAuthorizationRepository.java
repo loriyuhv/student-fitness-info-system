@@ -1,8 +1,8 @@
-package com.wsw.fitnesssystem.iam.authorization.infrastructure.persistence.db.repository;
+package com.wsw.fitnesssystem.iam.authorization.infrastructure.persistence.repository;
 
-import com.wsw.fitnesssystem.iam.authorization.domain.port.AuthorizationRepository;
-import com.wsw.fitnesssystem.iam.authorization.infrastructure.persistence.db.mapper.SysPermissionMapper;
-import com.wsw.fitnesssystem.iam.authorization.infrastructure.persistence.db.mapper.SysRoleMapper;
+import com.wsw.fitnesssystem.iam.authorization.domain.repository.UserAuthorizationRepository;
+import com.wsw.fitnesssystem.iam.authorization.infrastructure.persistence.mapper.SysPermissionMapper;
+import com.wsw.fitnesssystem.iam.authorization.infrastructure.persistence.mapper.SysRoleMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
@@ -15,7 +15,7 @@ import java.util.Set;
  */
 @Repository
 @RequiredArgsConstructor
-public class DbAuthorizationRepository implements AuthorizationRepository {
+public class DbUserAuthorizationRepository implements UserAuthorizationRepository {
 
     private final SysRoleMapper roleMapper;
     private final SysPermissionMapper permissionMapper;

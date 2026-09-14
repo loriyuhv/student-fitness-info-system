@@ -1,7 +1,7 @@
-package com.wsw.fitnesssystem.iam.authorization.infrastructure.persistence.db.mapper;
+package com.wsw.fitnesssystem.iam.authorization.infrastructure.persistence.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
-import com.wsw.fitnesssystem.iam.authorization.infrastructure.persistence.db.entity.SysRole;
+import com.wsw.fitnesssystem.iam.authorization.infrastructure.persistence.entity.SysRolePo;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.annotations.Select;
@@ -14,7 +14,7 @@ import java.util.Set;
  * @since 1.0
  */
 @Mapper
-public interface SysRoleMapper extends BaseMapper<SysRole> {
+public interface SysRoleMapper extends BaseMapper<SysRolePo> {
 
     /**
      * 根据用户ID和校区ID查询角色编码集合

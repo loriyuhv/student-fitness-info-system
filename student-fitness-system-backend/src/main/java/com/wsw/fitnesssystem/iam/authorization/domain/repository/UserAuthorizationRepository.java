@@ -1,4 +1,4 @@
-package com.wsw.fitnesssystem.iam.authorization.domain.port;
+package com.wsw.fitnesssystem.iam.authorization.domain.repository;
 
 import java.util.Set;
 
@@ -7,7 +7,7 @@ import java.util.Set;
  * @version 1.0 2026/3/21 18:37
  * @since 1.0
  */
-public interface AuthorizationRepository {
+public interface UserAuthorizationRepository {
 
     Set<String> findRolesByUserIdAndCampusId(Long userId, Long campusId);
 

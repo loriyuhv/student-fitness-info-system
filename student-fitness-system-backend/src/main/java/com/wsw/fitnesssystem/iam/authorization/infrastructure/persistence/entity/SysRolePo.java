@@ -1,4 +1,4 @@
-package com.wsw.fitnesssystem.iam.authorization.infrastructure.persistence.db.entity;
+package com.wsw.fitnesssystem.iam.authorization.infrastructure.persistence.entity;
 
 import com.baomidou.mybatisplus.annotation.*;
 import lombok.Data;
@@ -16,7 +16,7 @@ import java.time.LocalDateTime;
  */
 @Data
 @TableName("sys_role")
-public class SysRole implements Serializable {
+public class SysRolePo implements Serializable {
     @Serial
     private static final long serialVersionUID = 1L;
 

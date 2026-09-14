@@ -1,7 +1,7 @@
-package com.wsw.fitnesssystem.iam.authorization.infrastructure.persistence.redis.service;
+package com.wsw.fitnesssystem.iam.authorization.infrastructure.cache;
 
 import com.wsw.fitnesssystem.iam.authorization.application.dto.result.UserAuthorization;
-import com.wsw.fitnesssystem.iam.authorization.application.port.AuthorizationCacheService;
+import com.wsw.fitnesssystem.iam.authorization.application.port.output.AuthorizationCachePort;
 import com.wsw.fitnesssystem.shared.config.properties.AuthRedisKeys;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -19,13 +19,13 @@ import java.time.Duration;
  */
 @Slf4j
 @Service
-public class RedisAuthorizationCacheService implements AuthorizationCacheService {
+public class RedisAuthorizationCacheAdapter implements AuthorizationCachePort {
 
     private static final Duration TTL = Duration.ofHours(24);
 
     private final RedisTemplate<String, UserAuthorization> userAuthRedisTemplate;
 
-    public RedisAuthorizationCacheService(
+    public RedisAuthorizationCacheAdapter(
         @Qualifier("userAuthRedisTemplate")
         RedisTemplate<String, UserAuthorization> userAuthRedisTemplate) {
         this.userAuthRedisTemplate = userAuthRedisTemplate;

@@ -1,6 +1,6 @@
 package com.wsw.fitnesssystem.iam.authorization.infrastructure.adapter;
 
-import com.wsw.fitnesssystem.iam.authorization.domain.port.AuthorizationRepository;
+import com.wsw.fitnesssystem.iam.authorization.domain.repository.UserAuthorizationRepository;
 import com.wsw.fitnesssystem.shared.data_permission.DataScope;
 import com.wsw.fitnesssystem.shared.data_permission.DataScopeQueryPort;
 import lombok.RequiredArgsConstructor;
@@ -14,7 +14,7 @@ import org.springframework.stereotype.Component;
  * </p>
  *
  * <p><b>数据来源：</b>{@code sys_user_role} JOIN {@code sys_role}，
- * 通过 Domain 层的 {@link AuthorizationRepository} 间接访问，
+ * 通过 Domain 层的 {@link UserAuthorizationRepository} 间接访问，
  * 不直接依赖 MyBatis Mapper。</p>
  *
  * <p><b>多角色处理：</b>取 data_scope 最小值（数字越小权限越大）。
@@ -32,7 +32,7 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class DataScopeQueryAdapter implements DataScopeQueryPort {
 
-    private final AuthorizationRepository authorizationRepository;
+    private final UserAuthorizationRepository userAuthorizationRepository;
 
     @Override
     public DataScope queryMaxDataScope(Long userId, Long campusId) {
@@ -42,7 +42,7 @@ public class DataScopeQueryAdapter implements DataScopeQueryPort {
             return DataScope.SELF;
         }
 
-        Integer minDataScope = authorizationRepository.findMinDataScope(userId, campusId);
+        Integer minDataScope = userAuthorizationRepository.findMinDataScope(userId, campusId);
 
         // 无角色时，兜底为 SELF（仅本人），避免默认放开权限
         if (minDataScope == null) {

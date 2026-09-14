@@ -1,7 +1,7 @@
 package com.wsw.fitnesssystem.iam.authorization.application.dto.result;
 
 import com.wsw.fitnesssystem.iam.authorization.application.dto.query.AuthorizationQuery;
-import com.wsw.fitnesssystem.iam.authorization.application.port.AuthorizationCacheService;
+import com.wsw.fitnesssystem.iam.authorization.application.port.output.AuthorizationCachePort;
 import com.wsw.fitnesssystem.iam.authorization.application.service.AuthorizationQueryService;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -33,7 +33,7 @@ import java.util.Set;
  *  *
  *  * <p><b>典型用途：</b>
  *  * <ul>
- *  *   <li>写入 Redis 缓存：被 {@link AuthorizationCacheService}
+ *  *   <li>写入 Redis 缓存：被 {@link AuthorizationCachePort}
  *  *       序列化后存入 Redis，供后续请求快速读取</li>
  *  *   <li>转换为 Spring Security 权限：被 {@code JwtAuthenticationFilter}
  *  *       转换为 {@link org.springframework.security.core.GrantedAuthority}，
