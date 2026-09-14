@@ -26,7 +26,7 @@ public enum UserSource {
         for (UserSource source : values()) {
             if (source.code == code) return source;
         }
-        return IMPORT; // 默认
+        throw new IllegalArgumentException("无效的用户来源编码：" + code);
     }
 
 }

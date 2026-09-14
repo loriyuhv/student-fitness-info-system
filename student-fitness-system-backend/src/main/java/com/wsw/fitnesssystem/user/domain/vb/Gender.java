@@ -24,11 +24,9 @@ public enum Gender {
 
     public static Gender of(int code) {
         for (Gender gender : values()) {
-            if (gender.code == code) {
-                return gender;
-            }
+            if (gender.code == code) return gender;
         }
-        return UNKNOWN; // 默认未知
+        throw new IllegalArgumentException("无效的性别编码：" + code);
     }
 
 }

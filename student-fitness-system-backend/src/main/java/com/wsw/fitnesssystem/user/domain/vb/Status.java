@@ -27,7 +27,7 @@ public enum Status {
         for (Status status : values()) {
             if (status.code == code) return status;
         }
-        throw new IllegalArgumentException("无效编码：" + code);
+        throw new IllegalArgumentException("无效的用户状态编码：" + code);
     }
 
 }

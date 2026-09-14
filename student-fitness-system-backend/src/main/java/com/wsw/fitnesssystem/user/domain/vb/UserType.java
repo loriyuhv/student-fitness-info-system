@@ -26,7 +26,7 @@ public enum UserType {
         for (UserType type : values()) {
             if (type.code == code) return type;
         }
-        throw new IllegalArgumentException("Unknown user type: " + code);
+        throw new IllegalArgumentException("无效的用户类型编码：" + code);
     }
 
 }
