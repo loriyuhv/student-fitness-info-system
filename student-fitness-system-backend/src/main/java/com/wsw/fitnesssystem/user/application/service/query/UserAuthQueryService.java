@@ -1,4 +1,4 @@
-package com.wsw.fitnesssystem.user.application.service.impl;
+package com.wsw.fitnesssystem.user.application.service.query;
 
 import com.wsw.fitnesssystem.user.application.dto.port.UserAuthData;
 import com.wsw.fitnesssystem.user.domain.model.User;

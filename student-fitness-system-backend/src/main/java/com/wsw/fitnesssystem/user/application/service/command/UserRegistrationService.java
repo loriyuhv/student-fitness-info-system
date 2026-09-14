@@ -1,4 +1,4 @@
-package com.wsw.fitnesssystem.user.application.service.impl;
+package com.wsw.fitnesssystem.user.application.service.command;
 
 import com.wsw.fitnesssystem.data_exchange.application.dto.command.UserImportCommand;
 import com.wsw.fitnesssystem.data_exchange.application.dto.result.UserImportResult;

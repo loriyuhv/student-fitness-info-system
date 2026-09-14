@@ -1,6 +1,6 @@
 package com.wsw.fitnesssystem.user.application.dto.result;
 
-import com.wsw.fitnesssystem.user.application.service.impl.UserInfoQueryService;
+import com.wsw.fitnesssystem.user.application.service.query.UserInfoQueryService;
 import lombok.Builder;
 import lombok.Data;
 

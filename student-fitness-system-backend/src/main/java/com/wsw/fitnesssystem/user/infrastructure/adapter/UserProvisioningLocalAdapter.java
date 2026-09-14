@@ -4,7 +4,7 @@ import com.wsw.fitnesssystem.data_exchange.application.dto.command.UserImportCom
 import com.wsw.fitnesssystem.data_exchange.application.dto.result.UserImportResult;
 import com.wsw.fitnesssystem.data_exchange.application.port.output.UserProvisioningPort;
 import com.wsw.fitnesssystem.shared.exception.BizException;
-import com.wsw.fitnesssystem.user.application.service.impl.UserRegistrationService;
+import com.wsw.fitnesssystem.user.application.service.command.UserRegistrationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
