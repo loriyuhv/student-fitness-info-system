@@ -1,7 +1,7 @@
 package com.wsw.fitnesssystem.user.infrastructure.persistence.repository;
 
 import com.wsw.fitnesssystem.user.domain.model.User;
-import com.wsw.fitnesssystem.user.domain.port.UserRepository;
+import com.wsw.fitnesssystem.user.domain.repository.UserRepository;
 import com.wsw.fitnesssystem.user.infrastructure.persistence.converter.UserConverter;
 import com.wsw.fitnesssystem.user.infrastructure.persistence.entity.UserPo;
 import com.wsw.fitnesssystem.user.infrastructure.persistence.mapper.SysUserMapper;

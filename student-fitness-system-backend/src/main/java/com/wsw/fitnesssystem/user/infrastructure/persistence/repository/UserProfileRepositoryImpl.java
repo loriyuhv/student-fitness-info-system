@@ -2,7 +2,7 @@ package com.wsw.fitnesssystem.user.infrastructure.persistence.repository;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.wsw.fitnesssystem.user.domain.model.UserProfile;
-import com.wsw.fitnesssystem.user.domain.port.UserProfileRepository;
+import com.wsw.fitnesssystem.user.domain.repository.UserProfileRepository;
 import com.wsw.fitnesssystem.user.infrastructure.persistence.converter.UserProfileConverter;
 import com.wsw.fitnesssystem.user.infrastructure.persistence.entity.UserProfilePo;
 import com.wsw.fitnesssystem.user.infrastructure.persistence.mapper.UserProfileMapper;

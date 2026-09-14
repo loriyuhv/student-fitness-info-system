@@ -1,7 +1,7 @@
 package com.wsw.fitnesssystem.user.infrastructure.persistence.repository;
 
 import com.wsw.fitnesssystem.user.domain.model.UserProfile;
-import com.wsw.fitnesssystem.user.domain.port.UserProfileRepository;
+import com.wsw.fitnesssystem.user.domain.repository.UserProfileRepository;
 import com.wsw.fitnesssystem.user.domain.vb.Gender;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

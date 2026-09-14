@@ -4,6 +4,7 @@ import com.wsw.fitnesssystem.data_exchange.application.dto.command.UserImportCom
 import com.wsw.fitnesssystem.data_exchange.application.dto.result.UserImportResult;
 import com.wsw.fitnesssystem.user.application.service.UserRegisterService;
 import com.wsw.fitnesssystem.user.domain.port.*;
+import com.wsw.fitnesssystem.user.domain.repository.UserRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;

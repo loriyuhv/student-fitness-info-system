@@ -2,7 +2,7 @@ package com.wsw.fitnesssystem.user.application.service.query;
 
 import com.wsw.fitnesssystem.user.application.dto.port.UserAuthData;
 import com.wsw.fitnesssystem.user.domain.model.User;
-import com.wsw.fitnesssystem.user.domain.port.UserRepository;
+import com.wsw.fitnesssystem.user.domain.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 

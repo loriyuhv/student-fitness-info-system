@@ -1,4 +1,4 @@
-package com.wsw.fitnesssystem.user.domain.port;
+package com.wsw.fitnesssystem.user.domain.repository;
 
 import com.wsw.fitnesssystem.user.domain.model.StudentProfile;
 

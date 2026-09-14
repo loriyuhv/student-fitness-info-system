@@ -7,7 +7,7 @@ import com.wsw.fitnesssystem.user.application.dto.port.UserAuthorizationInfo;
 import com.wsw.fitnesssystem.user.application.dto.result.UserInfoResult;
 import com.wsw.fitnesssystem.user.application.port.AuthorizationPort;
 import com.wsw.fitnesssystem.user.domain.model.User;
-import com.wsw.fitnesssystem.user.domain.port.UserRepository;
+import com.wsw.fitnesssystem.user.domain.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
