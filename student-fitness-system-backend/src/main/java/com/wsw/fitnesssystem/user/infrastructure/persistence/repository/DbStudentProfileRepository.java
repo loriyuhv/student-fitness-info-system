@@ -32,7 +32,6 @@ public class DbStudentProfileRepository implements StudentProfileRepository {
             new LambdaQueryWrapper<StudentProfilePo>()
                 .eq(StudentProfilePo::getUserId, userId)
                 .eq(StudentProfilePo::getCampusId, campusId)
-                .eq(StudentProfilePo::getDeleted, 0)
         );
         return Optional.ofNullable(po).map(converter::toDomain);
     }
@@ -42,7 +41,6 @@ public class DbStudentProfileRepository implements StudentProfileRepository {
         StudentProfilePo po = mapper.selectOne(
             new LambdaQueryWrapper<StudentProfilePo>()
                 .eq(StudentProfilePo::getStudentNo, studentNo)
-                .eq(StudentProfilePo::getDeleted, 0)
         );
         return Optional.ofNullable(po).map(converter::toDomain);
     }
@@ -63,8 +61,7 @@ public class DbStudentProfileRepository implements StudentProfileRepository {
         Page<StudentProfilePo> mpPage = new Page<>(pageNum, pageSize);
 
         LambdaQueryWrapper<StudentProfilePo> wrapper = new LambdaQueryWrapper<StudentProfilePo>()
-            .eq(StudentProfilePo::getStatus, 1)    // 在籍
-            .eq(StudentProfilePo::getDeleted, 0)
+            .eq(StudentProfilePo::getStatus, 1)
             .orderByDesc(StudentProfilePo::getStudentId);
 
         Page<StudentProfilePo> result = mapper.selectPage(mpPage, wrapper);
