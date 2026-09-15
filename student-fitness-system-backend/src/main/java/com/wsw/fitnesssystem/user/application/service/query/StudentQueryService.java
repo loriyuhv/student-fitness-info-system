@@ -43,7 +43,9 @@ public class StudentQueryService {
      * 分页查询学生列表（当前：管理员视角，全校区）。
      */
     public PageResult<StudentListItemResult> listStudents(StudentListQuery query) {
-        PageResult<StudentProfile> profilePage = studentProfileRepository.page(query.getPageNum(), query.getPageSize());
+        PageResult<StudentProfile> profilePage = studentProfileRepository.page(
+            query.getPageNum(), query.getPageSize()
+        );
 
         if (profilePage.isEmpty()) {
             return PageResult.empty(query.getPageNum(), query.getPageSize());

@@ -67,9 +67,6 @@ public class DbStudentProfileRepository implements StudentProfileRepository {
             .eq(StudentProfilePo::getDeleted, 0)
             .orderByDesc(StudentProfilePo::getStudentId);
 
-        // 不加 campus_id / user_id / class_id 条件
-        // 这些条件由数据权限拦截器自动追加
-
         Page<StudentProfilePo> result = mapper.selectPage(mpPage, wrapper);
 
         List<StudentProfile> items = result.getRecords().stream()
