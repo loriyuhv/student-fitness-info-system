@@ -14,6 +14,7 @@ import com.wsw.fitnesssystem.user.interfaces.web.dto.response.StudentListItemRes
 import com.wsw.fitnesssystem.user.interfaces.web.dto.response.StudentListPageResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -80,16 +81,16 @@ public class UserController {
      * <p><b>后续：</b>适配数据权限后，教师/学生访问将自动按范围过滤。</p>
      */
     @GetMapping("/students")
+    @PreAuthorize("isAuthenticated()")
     public ApiResult<StudentListPageResponse> listStudents(
         @RequestParam(required = false) Integer pageNum,
         @RequestParam(required = false) Integer pageSize
     ) {
 
-        Operator operator = RequestContextHolder.getRequiredOperator();
         StudentListQuery query = StudentListQuery.of(pageNum, pageSize);
 
         PageResult<StudentListItemResult> result =
-            studentQueryService.listStudents(operator, query);
+            studentQueryService.listStudents(query);
 
         return ApiResult.success(buildResponse(result));
     }

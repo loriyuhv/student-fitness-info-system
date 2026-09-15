@@ -59,18 +59,16 @@ public class DbStudentProfileRepository implements StudentProfileRepository {
     }
 
     @Override
-    public PageResult<StudentProfile> pageByCampusId(Long campusId, int pageNum, int pageSize) {
-        if (campusId == null) {
-            return PageResult.empty(pageNum, pageSize);
-        }
-
+    public PageResult<StudentProfile> page(int pageNum, int pageSize) {
         Page<StudentProfilePo> mpPage = new Page<>(pageNum, pageSize);
 
         LambdaQueryWrapper<StudentProfilePo> wrapper = new LambdaQueryWrapper<StudentProfilePo>()
-            .eq(StudentProfilePo::getCampusId, campusId)
-            .eq(StudentProfilePo::getStatus, 1)
+            .eq(StudentProfilePo::getStatus, 1)    // 在籍
             .eq(StudentProfilePo::getDeleted, 0)
             .orderByDesc(StudentProfilePo::getStudentId);
+
+        // 不加 campus_id / user_id / class_id 条件
+        // 这些条件由数据权限拦截器自动追加
 
         Page<StudentProfilePo> result = mapper.selectPage(mpPage, wrapper);
 

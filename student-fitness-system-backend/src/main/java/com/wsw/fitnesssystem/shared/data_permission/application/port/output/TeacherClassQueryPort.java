@@ -1,4 +1,4 @@
-package com.wsw.fitnesssystem.shared.data_permission;
+package com.wsw.fitnesssystem.shared.data_permission.application.port.output;
 
 import java.util.Set;
 

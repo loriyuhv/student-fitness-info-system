@@ -22,17 +22,30 @@
         <!-- 业务包开启DEBUG：自己代码log.debug()可以输出 -->
         <logger name="com.wsw.fitnesssystem" level="INFO"/>
 
+        <logger name="com.wsw.fitnesssystem.iam.authentication.infrastructure.security.filter"
+                level="DEBUG" additivity="false">
+            <appender-ref ref="CONSOLE"/>
+        </logger>
+
+        <logger name="com.wsw.fitnesssystem.shared.data_permission"
+                level="DEBUG" additivity="false">
+            <appender-ref ref="CONSOLE"/>
+        </logger>
+
+        <logger name="com.wsw.fitnesssystem.user"
+                level="DEBUG" additivity="false">
+            <appender-ref ref="CONSOLE"/>
+        </logger>
+
         <!-- iam 上下文 mapper -->
         <logger name="com.wsw.fitnesssystem.iam.infrastructure.persistence.db.mapper"
                 level="INFO" additivity="false">
-                <!-- level="DEBUG" additivity="false"> -->
             <appender-ref ref="CONSOLE"/>
         </logger>
 
         <!-- handle_excel 上下文 mapper -->
         <logger name="com.wsw.fitnesssystem.data_exchange.infrastructure.persistence.db.mapper"
                 level="INFO" additivity="false">
-                <!-- level="DEBUG" additivity="false"> -->
             <appender-ref ref="CONSOLE"/>
         </logger>
     </springProfile>

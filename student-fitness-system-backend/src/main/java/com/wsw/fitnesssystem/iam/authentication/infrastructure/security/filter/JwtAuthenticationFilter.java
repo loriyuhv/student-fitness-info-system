@@ -189,6 +189,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 // 设置业务ThreadLocal上下文，供业务代码直接获取登录用户信息
                 RequestContext requestContext = RequestContext.of(operator, tokenId);
                 RequestContextHolder.setContext(requestContext);
+                log.debug("data permission jwt filter ==> operator: {}", operator);
             }
 
             // 6. 继续过滤器链

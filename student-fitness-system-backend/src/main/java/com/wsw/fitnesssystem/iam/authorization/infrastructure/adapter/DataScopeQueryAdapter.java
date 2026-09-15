@@ -1,8 +1,8 @@
 package com.wsw.fitnesssystem.iam.authorization.infrastructure.adapter;
 
 import com.wsw.fitnesssystem.iam.authorization.domain.repository.UserAuthorizationRepository;
-import com.wsw.fitnesssystem.shared.data_permission.DataScope;
-import com.wsw.fitnesssystem.shared.data_permission.DataScopeQueryPort;
+import com.wsw.fitnesssystem.shared.data_permission.domain.DataScope;
+import com.wsw.fitnesssystem.shared.data_permission.application.port.output.DataScopeQueryPort;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;

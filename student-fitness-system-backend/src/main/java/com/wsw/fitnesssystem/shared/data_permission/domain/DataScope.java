@@ -1,4 +1,4 @@
-package com.wsw.fitnesssystem.shared.data_permission;
+package com.wsw.fitnesssystem.shared.data_permission.domain;
 
 import lombok.Getter;
 

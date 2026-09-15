@@ -1,4 +1,6 @@
-package com.wsw.fitnesssystem.shared.data_permission;
+package com.wsw.fitnesssystem.shared.data_permission.application.port.output;
+
+import com.wsw.fitnesssystem.shared.data_permission.domain.DataScope;
 
 /**
  * 数据权限规则查询端口。

@@ -1,6 +1,5 @@
 package com.wsw.fitnesssystem.user.application.service.query;
 
-import com.wsw.fitnesssystem.shared.domain.valueobject.Operator;
 import com.wsw.fitnesssystem.shared.response.PageResult;
 import com.wsw.fitnesssystem.user.application.dto.query.StudentListQuery;
 import com.wsw.fitnesssystem.user.application.dto.result.StudentListItemResult;
@@ -43,10 +42,8 @@ public class StudentQueryService {
     /**
      * 分页查询学生列表（当前：管理员视角，全校区）。
      */
-    public PageResult<StudentListItemResult> listStudents(Operator operator, StudentListQuery query) {
-        // 1. 分页查询学生档案（当前按 campusId 过滤，未来交给数据权限拦截器）
-        PageResult<StudentProfile> profilePage = studentProfileRepository.pageByCampusId(
-            operator.campusId(), query.getPageNum(), query.getPageSize());
+    public PageResult<StudentListItemResult> listStudents(StudentListQuery query) {
+        PageResult<StudentProfile> profilePage = studentProfileRepository.page(query.getPageNum(), query.getPageSize());
 
         if (profilePage.isEmpty()) {
             return PageResult.empty(query.getPageNum(), query.getPageSize());

@@ -1,6 +1,6 @@
 package com.wsw.fitnesssystem.user.infrastructure.adapter;
 
-import com.wsw.fitnesssystem.shared.data_permission.TeacherClassQueryPort;
+import com.wsw.fitnesssystem.shared.data_permission.application.port.output.TeacherClassQueryPort;
 import com.wsw.fitnesssystem.user.domain.repository.TeacherClassRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

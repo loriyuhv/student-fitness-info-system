@@ -1,6 +1,11 @@
-package com.wsw.fitnesssystem.shared.data_permission;
+package com.wsw.fitnesssystem.shared.data_permission.application.aspect;
 
 import com.wsw.fitnesssystem.shared.context.RequestContextHolder;
+import com.wsw.fitnesssystem.shared.data_permission.context.DataPermissionContextHolder;
+import com.wsw.fitnesssystem.shared.data_permission.application.port.output.DataScopeQueryPort;
+import com.wsw.fitnesssystem.shared.data_permission.application.port.output.TeacherClassQueryPort;
+import com.wsw.fitnesssystem.shared.data_permission.domain.DataPermissionContext;
+import com.wsw.fitnesssystem.shared.data_permission.domain.DataScope;
 import com.wsw.fitnesssystem.shared.domain.valueobject.Operator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -36,6 +41,7 @@ public class DataPermissionAspect {
         "|| execution(* com.wsw.fitnesssystem..application.service.query..*(..))")
     public Object around(ProceedingJoinPoint pjp) throws Throwable {
         Operator operator = RequestContextHolder.getOperator();
+        log.debug("data permission around ==> operator: {}", operator);
         if (operator == null) {
             // 未登录场景（如系统任务），不组装 Context
             return pjp.proceed();
@@ -53,10 +59,12 @@ public class DataPermissionAspect {
     private DataPermissionContext buildContext(Operator operator) {
         DataScope scope = dataScopeQueryPort.queryMaxDataScope(
             operator.userId(), operator.campusId());
+        log.debug("data permission around ==> scope: {}", scope);
 
         Set<Long> allowedClassIds = (scope == DataScope.CLASS)
             ? teacherClassQueryPort.queryClassIdsByUserIdAndCampusId(operator.userId(), operator.campusId())
             : Set.of();
+        log.debug("data permission around ==> allowedClassIds: {}", allowedClassIds);
 
         return new DataPermissionContext(
             scope, operator.userId(), operator.campusId(), allowedClassIds

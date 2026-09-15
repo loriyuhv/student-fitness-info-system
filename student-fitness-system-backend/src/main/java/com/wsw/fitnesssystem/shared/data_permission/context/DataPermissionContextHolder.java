@@ -1,4 +1,6 @@
-package com.wsw.fitnesssystem.shared.data_permission;
+package com.wsw.fitnesssystem.shared.data_permission.context;
+
+import com.wsw.fitnesssystem.shared.data_permission.domain.DataPermissionContext;
 
 /**
  * 数据权限上下文持有者。
