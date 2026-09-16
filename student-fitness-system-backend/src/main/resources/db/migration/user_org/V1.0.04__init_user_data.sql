@@ -22,54 +22,60 @@ SET @admin_id = (SELECT
 --    关联：user_id 对应 sys_user.user_id
 -- ============================================================
 
--- 1.1 管理员扩展信息（1）
+-- 1.1 管理员扩展信息
 -- 说明：系统管理员，无性别和出生日期等个人敏感信息
 INSERT INTO
-    user_profile (user_id, campus_id, gender, birth_date, avatar_url, address, last_login_ip, last_login_time,
-                  create_by, update_by)
+    user_profile (user_id, campus_id, nickname, phone_number, email, remark,
+                  gender, birth_date, avatar_url, address, create_by, update_by)
 VALUES
-    ((SELECT user_id FROM sys_user WHERE username = 'admin' AND deleted = 0),
+    ((SELECT user_id FROM sys_user WHERE username = 'admin' AND status = 1 AND deleted = 0),
      1001,
-     1, -- 性别：未知
+     '系统管理员',
      NULL,
-     'https://api.dicebear.com/10.x/adventurer/svg?seed=user003',
      NULL,
-     '127.0.0.1',
-     NOW(),
+     '系统初始化管理员',
+     0, -- 性别：未知
+     NULL,
+     'https://api.dicebear.com/10.x/adventurer/svg?seed=user001',
+     NULL,
      @admin_id,
      @admin_id);
 
 -- 1.2 教师扩展信息（12018007 张建国）
 -- 说明：体育教师，已补充完整的个人资料
 INSERT INTO
-    user_profile (user_id, campus_id, gender, birth_date, avatar_url, address, last_login_ip, last_login_time,
-                  create_by, update_by)
+    user_profile (user_id, campus_id, nickname, phone_number, email, remark,
+                  gender, birth_date, avatar_url, address, create_by, update_by)
 VALUES
-    ((SELECT user_id FROM sys_user WHERE username = '12018007' AND deleted = 0),
+    ((SELECT user_id FROM sys_user WHERE username = '12018007' AND status = 1 AND deleted = 0),
      1001,
+     '张建国',
+     NULL,
+     NULL,
+     '体育老师',
      1, -- 性别：男
      '2004-04-16',
-     'https://api.dicebear.com/10.x/adventurer/svg?seed=user003',
+     'https://api.dicebear.com/10.x/adventurer/svg?seed=user002',
      '江西省宜春市袁州区学府路66号教师公寓3栋502室',
-     '192.168.1.100',
-     '2026-09-06 08:30:00',
      @admin_id,
      @admin_id);
 
 -- 1.3 学生扩展信息（412251401 王子轩）
 -- 说明：计算机科学与技术专业学生，已补充完整的个人资料
 INSERT INTO
-    user_profile (user_id, campus_id, gender, birth_date, avatar_url, address, last_login_ip, last_login_time,
-                  create_by, update_by)
+    user_profile (user_id, campus_id, nickname, phone_number, email, remark,
+                  gender, birth_date, avatar_url, address, create_by, update_by)
 VALUES
-    ((SELECT user_id FROM sys_user WHERE username = '412251401' AND deleted = 0),
+    ((SELECT user_id FROM sys_user WHERE username = '412251401' AND status = 1 AND deleted = 0),
      1001,
+     '王子轩',
+     NULL,
+     NULL,
+     '学生',
      1, -- 性别：男
      '2006-08-22',
-     'https://api.dicebear.com/10.x/adventurer/svg?seed=user001',
+     'https://api.dicebear.com/10.x/adventurer/svg?seed=user003',
      '江西省宜春市袁州区平安路88号阳光花园3栋201室',
-     '192.168.1.50',
-     '2026-09-05 19:45:00',
      @admin_id,
      @admin_id);
 

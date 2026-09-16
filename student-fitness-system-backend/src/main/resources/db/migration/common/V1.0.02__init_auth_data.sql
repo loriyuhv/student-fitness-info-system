@@ -11,15 +11,13 @@
 -- 1. 系统管理员账号（角色：ADMIN）
 -- 说明：拥有系统全部权限，用于系统配置、角色分配及运维管理。
 -- 用户名：admin（固定保留名称，不可删除）
--- 来源：source=0（IMPORT 导入），create_by=1（系统自举创建）
+-- 来源：source=0（IMPORT 导入），create_by=NULL（系统自身）
 INSERT INTO
-    sys_user (`campus_id`, `username`, `password`, nickname, remark, user_type, source, create_by)
+    sys_user (`campus_id`, `username`, `password`, user_type, source, create_by)
 VALUES
     (1001,
      'admin',
      '$2a$10$2529vU4WTji.qS6i3LfEYu6s2NUHzeWOnwl.so9CtSJUm7O3QnHp6',
-     '系统管理员',
-     '系统初始化管理员',
      0, -- user_type: 0-管理员
      0, -- source: 0-导入
      NULL -- create_by: NULL 代表系统自身
@@ -38,13 +36,11 @@ SET @admin_id = (SELECT
 -- 说明：体育教师“张建国”，工号 12018007，具备体测数据录入、查看本班汇总等教学权限。
 -- 用户名即工号，便于与教务系统数据对齐。
 INSERT INTO
-    sys_user (`campus_id`, `username`, `password`, nickname, remark, user_type, source, create_by)
+    sys_user (`campus_id`, `username`, `password`, user_type, source, create_by)
 VALUES
     (1001,
      '12018007',
      '$2a$10$2529vU4WTji.qS6i3LfEYu6s2NUHzeWOnwl.so9CtSJUm7O3QnHp6',
-     '张建国',
-     '体育老师',
      1, -- user_type: 1-教师
      0, -- source: 0-导入
      @admin_id -- create_by: 大概率是1 代表系统自身
@@ -54,13 +50,11 @@ VALUES
 -- 说明：学生“王子轩”，学号 412251401，仅可登录查看本人体测成绩与历史记录。
 -- 用户名即学号，符合校园信息化场景中的统一身份认证习惯。
 INSERT INTO
-    sys_user (`campus_id`, `username`, `password`, nickname, remark, user_type, source, create_by)
+    sys_user (`campus_id`, `username`, `password`, user_type, source, create_by)
 VALUES
     (1001,
      '412251401',
      '$2a$10$2529vU4WTji.qS6i3LfEYu6s2NUHzeWOnwl.so9CtSJUm7O3QnHp6',
-     '王子轩',
-     '学生',
      2, -- user_type: 2-学生
      0, -- source: 0-导入
      @admin_id -- create_by: 大概率是1 代表系统自身

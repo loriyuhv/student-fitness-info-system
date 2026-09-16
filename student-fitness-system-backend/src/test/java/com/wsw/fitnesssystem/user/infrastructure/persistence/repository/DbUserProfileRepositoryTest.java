@@ -22,7 +22,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 @SpringBootTest
 @Transactional
 @DisplayName("UserProfileRepository 单元测试")
-class UserProfileRepositoryImplTest {
+class DbUserProfileRepositoryTest {
 
     @Autowired
     private UserProfileRepository repository;
@@ -31,14 +31,11 @@ class UserProfileRepositoryImplTest {
     @DisplayName("保存用户档案成功 - 新增")
     void shouldInsertUserProfile_whenNoId() {
         // Given
-        UserProfile profile = UserProfile.builder()
-            .userId(1L)
-            .campusId(1001L)
-            .gender(Gender.MALE)
-            .birthDate(LocalDate.of(2000, 1, 1))
-            .avatarUrl("https://example.com/avatar.jpg")
-            .address("北京市海淀区")
-            .build();
+        UserProfile profile = UserProfile.create(1L, 1001L, "Jerry", 1L);
+        profile.updateGender(Gender.MALE, 1L);
+        profile.updateBirthDate(LocalDate.of(2000, 1, 1), 1L);
+        profile.updateAvatarUrl("https://example.com/avatar.jpg", 1L);
+        profile.updateAddress("北京市海淀区", 1L);
 
         // When
         repository.save(profile);
@@ -56,17 +53,17 @@ class UserProfileRepositoryImplTest {
     @DisplayName("保存用户档案成功 - 更新")
     void shouldUpdateUserProfile_whenIdExists() {
         // Given
-        UserProfile profile = UserProfile.builder()
-            .userId(2L)
-            .campusId(1002L)
-            .gender(Gender.MALE)
-            .address("上海市浦东新区")
-            .build();
+        UserProfile profile = UserProfile.create(2L, 1002L, "Jerry", 1L);
+        profile.updateGender(Gender.MALE, 1L);
+        profile.updateBirthDate(LocalDate.of(2000, 1, 1), 1L);
+        profile.updateAvatarUrl("https://example.com/avatar.jpg", 1L);
+        profile.updateAddress("上海市浦东新区", 1L);
+
         repository.save(profile);
         Long profileId = profile.getProfileId();
 
         // When
-        profile.setAddress("上海市静安区");
+        profile.updateAddress("上海市静安区", 2L);
         repository.save(profile);
 
         // Then
@@ -80,12 +77,11 @@ class UserProfileRepositoryImplTest {
     @DisplayName("根据用户ID和校区ID查询用户档案 - 存在")
     void shouldFindByUserIdAndCampusId_whenExists() {
         // Given
-        UserProfile profile = UserProfile.builder()
-            .userId(3L)
-            .campusId(1003L)
-            .gender(Gender.MALE)
-            .birthDate(LocalDate.of(1999, 5, 15))
-            .build();
+
+        UserProfile profile = UserProfile.create(3L, 1003L, "Jerry", 1L);
+        profile.updateGender(Gender.MALE, 1L);
+        profile.updateBirthDate(LocalDate.of(1999, 5, 15), 1L);
+
         repository.save(profile);
 
         // When

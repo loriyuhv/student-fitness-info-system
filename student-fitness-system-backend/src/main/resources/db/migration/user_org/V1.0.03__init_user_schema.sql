@@ -1,32 +1,40 @@
--- 用户扩展信息表（存储所有用户的可选扩展信息，与认证表 sys_user 解耦）
--- 说明：本表与 sys_user 表是 1:1 关系，存储用户的基本资料、头像、最后登录信息等，
---       sys_user 表专注于认证（账号/密码/状态），本表专注于用户画像（资料/头像/地址）
---       sys_user 与 user_profile 的区分，遵循“认证与个人信息分离”的设计原则
+-- 用户扩展信息表（sys_user 的垂直扩展：昵称、联系方式、画像字段）
+-- 说明：
+--   1. 本表与 sys_user 表是 1:1 关系，承载用户的画像信息（昵称、联系方式、地址、头像等）
+--   2. sys_user 专注于认证（账号/密码/状态），本表专注于用户画像，遵循"认证与画像分离"原则
+--   3. 拆表动机：画像字段会持续增长（30+ 甚至 100+），合表会导致认证查询拉取大量无用字段，
+--      且 ALTER TABLE 影响登录链路；拆表后认证表保持精简，画像字段可自由扩展
 DROP TABLE IF EXISTS user_profile;
 CREATE TABLE user_profile
 (
     profile_id      BIGINT PRIMARY KEY AUTO_INCREMENT COMMENT '用户扩展信息唯一标识（自增主键）',
     user_id         BIGINT           NOT NULL COMMENT '关联用户ID（逻辑外键：sys_user.user_id，1:1 关系）',
     campus_id       BIGINT           NOT NULL DEFAULT 1 COMMENT '所属校区ID（0表示系统级，非0关联校区表，便于多校区数据隔离）',
+    nickname        VARCHAR(50)      NOT NULL COMMENT '显示昵称（可重复，用于界面展示）',
+    phone_number    VARCHAR(20) COMMENT '手机号码（可用于登录或找回密码）',
+    email           VARCHAR(128) COMMENT '电子邮箱（可用于登录或找回密码）',
     gender          TINYINT UNSIGNED NOT NULL DEFAULT 0 COMMENT '性别：0-未知，1-男，2-女（默认未知）',
     birth_date      DATE COMMENT '出生日期（格式：YYYY-MM-DD，用于年龄计算和统计）',
     avatar_url      VARCHAR(500) COMMENT '头像图片URL（支持 CDN 地址，最长 500 字符）',
     address         VARCHAR(255) COMMENT '联系地址（用户填写的常用地址，用于寄送通知或证明材料）',
-    last_login_ip   VARCHAR(45) COMMENT '最后登录IP地址（支持 IPv4 和 IPv6，冗余字段，用于安全审计和风控）',
-    last_login_time DATETIME COMMENT '最后登录时间（冗余字段，避免关联查询 sys_user_login 表，提高列表展示性能）',
+    remark          VARCHAR(200) COMMENT '备注信息（运营或管理备注，无业务逻辑）',
     deleted         TINYINT                   DEFAULT 0 COMMENT '逻辑删除标记：0-未删除，1-已删除（软删除，保留历史数据用于审计）',
     create_by       BIGINT COMMENT '创建人用户ID（关联sys_user.user_id）',
-    update_by       BIGINT COMMENT '最后更新人用户ID（关联sys_user.user_id）',
     create_time     DATETIME                  DEFAULT CURRENT_TIMESTAMP COMMENT '记录创建时间（自动生成）',
+    update_by       BIGINT COMMENT '最后更新人用户ID（关联sys_user.user_id）',
     update_time     DATETIME                  DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '记录最后更新时间（自动更新）',
-    -- 唯一索引：确保一个用户只有一条扩展信息记录
-    UNIQUE KEY uk_user_id (user_id),
-    -- 普通索引：加速按删除标记查询有效用户扩展信息
+    -- 唯一索引：确保一个用户只有一条有效扩展信息记录，逻辑删除后可重建
+    UNIQUE KEY uk_user_deleted (`user_id`, `deleted`),
+    -- 唯一索引：手机号全局唯一（含逻辑删除），删除后可重建
+    UNIQUE KEY uk_phone_deleted (`phone_number`, `deleted`),
+    -- 唯一索引：邮箱全局唯一（含逻辑删除），删除后可重建
+    UNIQUE KEY uk_email_deleted (`email`, `deleted`),
+    -- 普通索引：加速按删除标记查询有效记录
     KEY idx_deleted (deleted),
-    -- 普通索引：加速按创建时间排序查询（如最近注册用户列表）
+    -- 普通索引：加速按创建时间排序查询
     KEY idx_create_time (create_time)
 ) ENGINE = InnoDB
-  DEFAULT CHARSET = utf8mb4 COMMENT ='用户扩展信息表（存储用户基本资料、头像、地址及最后登录记录，与 sys_user 表 1:1 关联）';
+  DEFAULT CHARSET = utf8mb4 COMMENT ='用户扩展信息表（sys_user 的垂直扩展，承载昵称/联系方式/画像字段，与 sys_user 1:1 关联）';
 
 -- 班级信息表（存储学校所有班级的基本信息，被学生档案和教师-班级关系引用）
 -- 说明：本表存储班级的基础信息，包括班级编码、名称、年级等。

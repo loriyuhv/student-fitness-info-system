@@ -2,35 +2,27 @@ package com.wsw.fitnesssystem.user.application.service.command;
 
 import com.wsw.fitnesssystem.data_exchange.application.dto.command.UserImportCommand;
 import com.wsw.fitnesssystem.data_exchange.application.dto.result.UserImportResult;
-import com.wsw.fitnesssystem.user.application.config.UserApplicationProperties;
 import com.wsw.fitnesssystem.user.application.service.UserRegisterService;
-import com.wsw.fitnesssystem.user.domain.model.StudentProfile;
-import com.wsw.fitnesssystem.user.domain.model.TeacherProfile;
-import com.wsw.fitnesssystem.user.domain.model.User;
-import com.wsw.fitnesssystem.user.domain.model.UserProfile;
-import com.wsw.fitnesssystem.user.domain.repository.StudentProfileRepository;
-import com.wsw.fitnesssystem.user.domain.repository.TeacherProfileRepository;
-import com.wsw.fitnesssystem.user.domain.repository.UserProfileRepository;
-import com.wsw.fitnesssystem.user.domain.repository.UserRepository;
-import com.wsw.fitnesssystem.user.domain.vb.Gender;
-import com.wsw.fitnesssystem.user.domain.vb.Status;
-import com.wsw.fitnesssystem.user.domain.vb.UserType;
-import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 
 /**
+ * 用户注册服务实现（批量编排）。
+ *
+ * <p><b>职责：</b>预过滤（文件内重复 / 库内已存在）+ 逐行调用
+ * {@link UserSingleRegistrar} 完成落库。
+ *
+ * <p><b>事务：</b>本类<b>不加</b> {@code @Transactional}，事务由
+ * {@link UserSingleRegistrar#registerOne} 逐行控制，保证"一行失败不影响其他行"。
+ *
  * @author loriyuhv
  * @version 1.0 2026/9/4 07:20
  * @since 1.0
@@ -40,31 +32,14 @@ import java.util.Set;
 @RequiredArgsConstructor
 public class UserRegisterServiceImpl implements UserRegisterService {
 
-    private final UserRepository userRepository;
-    private final UserApplicationProperties appProperties;
-    private final UserProfileRepository userProfileRepository;
-    private final StudentProfileRepository studentProfileRepository;
-    private final TeacherProfileRepository teacherProfileRepository;
-
-    /** 日期解析器：由 {@link #initDateFormatter()} 在 Bean 初始化时构建 */
-    private DateTimeFormatter dateFormatter;
-
-    @PostConstruct
-    void initDateFormatter() {
-        this.dateFormatter = DateTimeFormatter.ofPattern(
-            appProperties.getDataImport().getDateFormat());
-        log.debug("Date formatter initialized: pattern={}",
-            appProperties.getDataImport().getDateFormat());
-    }
+    private final UserSingleRegistrar userSingleRegistrar;
 
     @Override
-    @Transactional(rollbackFor = Exception.class)
     public Long registerSingle(UserImportCommand data) {
-        return doRegisterSingleUser(data);
+        return userSingleRegistrar.registerOne(data);
     }
 
     @Override
-    @Transactional(rollbackFor = Exception.class)
     public List<UserImportResult> registerBatch(
         List<UserImportCommand> dataList, Set<String> duplicateInFile, Set<String> existingInDb) {
 
@@ -85,16 +60,14 @@ public class UserRegisterServiceImpl implements UserRegisterService {
                 continue;
             }
 
-            // 3. 校验通过 → 创建 User 并保存
+            // 3. 通过 → 单行事务落库
             try {
-                Long userId = doRegisterSingleUser(data);
+                Long userId = userSingleRegistrar.registerOne(data);
                 results.add(successResult(data, userId));
             } catch (DuplicateKeyException e) {
-                // 精确捕获重复键异常
                 results.add(failResult(data, "数据重复: 该记录已存在（用户名或唯一键冲突）"));
                 log.error("Registration failed: username={}, row={}", username, data.getRowIndex(), e);
             } catch (DataIntegrityViolationException e) {
-                // 截断过长消息，只保留前50个字符
                 String cause = e.getMostSpecificCause().getMessage();
                 String friendlyMsg = cause.length() > 30 ? cause.substring(0, 30) + "..." : cause;
                 results.add(failResult(data, "数据格式异常: " + friendlyMsg));
@@ -113,86 +86,8 @@ public class UserRegisterServiceImpl implements UserRegisterService {
         return results;
     }
 
-
-    /**
-     * 保存单行用户数据（抽取为独立方法，便于事务管理）
-     * @param data 数据
-     * @return userId
-     */
-    private Long doRegisterSingleUser(UserImportCommand data) {
-        // 1. 保存 User
-        User user = User.builder()
-            .campusId(data.getCampusId())
-            .username(data.getUsername())
-            .password(data.getPassword()) // 已加密
-            .nickname(data.getNickname())
-            .phoneNumber(data.getPhoneNumber())
-            .email(data.getEmail())
-            .userType(UserType.of(data.getUserType()))
-            .status(Status.ENABLED)
-            .build();
-
-        userRepository.save(user);
-        Long userId = user.getUserId();
-
-        // 2. 创建并保存 UserProfile（所有用户类型都需要）
-        UserProfile userProfile = UserProfile.builder()
-            .userId(userId)
-            .campusId(data.getCampusId())
-            .gender(Gender.of(data.getGenderOrDefault()))
-            .birthDate(parseDate(data.getBirthDate()))
-            .avatarUrl(data.getAvatarUrl())
-            .address(data.getAddress())
-            .build();
-        userProfileRepository.save(userProfile);
-
-        // 3. 根据用户类型插入扩展表
-        if (data.isStudent()) {
-            StudentProfile student = StudentProfile.builder()
-                .campusId(data.getCampusId())
-                .userId(userId)
-                .studentNo(data.getStudentNoOrDefault())
-                .classId(data.getClassId())
-                .enrollYear(data.getEnrollYear())
-                .major(data.getMajor())
-                .idCard(data.getIdCard())
-                .gender(Gender.of(data.getGenderOrDefault()))
-                .familyAddress(data.getFamilyAddress())
-                .status(Status.ENABLED)
-                .build();
-            studentProfileRepository.save(student);
-        } else if (data.isTeacher()) {
-            TeacherProfile teacher = TeacherProfile.builder()
-                .campusId(data.getCampusId())
-                .userId(userId)
-                .teacherNo(data.getTeacherNoOrDefault())
-                .gender(Gender.of(data.getGenderOrDefault()))
-                .status(Status.ENABLED)
-                .build();
-            teacherProfileRepository.save(teacher);
-        }
-
-        return userId;
-    }
-
-
     // ==================== 辅助方法 ====================
 
-    private LocalDate parseDate(String dateStr) {
-        if (dateStr == null || dateStr.isBlank()) {
-            return null;
-        }
-        try {
-            return LocalDate.parse(dateStr.trim(), dateFormatter);
-        } catch (Exception e) {
-            log.warn("Date parse failed: value={}", dateStr);
-            return null;
-        }
-    }
-
-    /**
-     * 构建成功结果
-     */
     private UserImportResult successResult(UserImportCommand data, Long userId) {
         return UserImportResult.builder()
             .rowIndex(data.getRowIndexOrDefault())
@@ -202,9 +97,6 @@ public class UserRegisterServiceImpl implements UserRegisterService {
             .build();
     }
 
-    /**
-     * 构建失败结果
-     */
     private UserImportResult failResult(UserImportCommand data, String reason) {
         return UserImportResult.builder()
             .rowIndex(data.getRowIndexOrDefault())
@@ -219,7 +111,7 @@ public class UserRegisterServiceImpl implements UserRegisterService {
         return List.of(
             Objects.toString(data.getCampusId(), ""),
             Objects.toString(data.getUsername(), ""),
-            "******",  // 密码脱敏
+            "******",
             Objects.toString(data.getNickname(), ""),
             Objects.toString(data.getPhoneNumber(), ""),
             Objects.toString(data.getEmail(), ""),

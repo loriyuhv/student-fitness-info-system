@@ -3,11 +3,13 @@ package com.wsw.fitnesssystem.user.application.service.query;
 import com.wsw.fitnesssystem.shared.domain.valueobject.Operator;
 import com.wsw.fitnesssystem.shared.exception.BizException;
 import com.wsw.fitnesssystem.shared.response.ResultCode;
+import com.wsw.fitnesssystem.user.application.dto.result.UserAccountResult;
 import com.wsw.fitnesssystem.user.application.dto.result.UserAuthorizationResult;
 import com.wsw.fitnesssystem.user.application.dto.result.UserInfoResult;
+import com.wsw.fitnesssystem.user.application.port.output.UserAccountQueryPort;
 import com.wsw.fitnesssystem.user.application.port.output.UserAuthorizationQueryPort;
-import com.wsw.fitnesssystem.user.domain.model.User;
-import com.wsw.fitnesssystem.user.domain.repository.UserRepository;
+import com.wsw.fitnesssystem.user.domain.model.UserProfile;
+import com.wsw.fitnesssystem.user.domain.repository.UserProfileRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -17,9 +19,8 @@ import org.springframework.stereotype.Service;
  *
  * <p><b>职责：</b>
  * <ul>
- *   <li>提供用户个人资料的只读查询</li>
- *   <li>聚合用户核心信息（昵称、手机、邮箱等）</li>
- *   <li>通过 {@link UserRepository} 端口获取数据</li>
+ *   <li>聚合认证账号（authentication 提供的 Port）与用户档案（本模块 Repository）</li>
+ *   <li>查询用户角色与权限（authorization 提供的 Port）</li>
  * </ul>
  *
  * @author loriyuhv
@@ -31,7 +32,8 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class UserInfoQueryService {
 
-    private final UserRepository userRepository;
+    private final UserAccountQueryPort userAccountQueryPort;
+    private final UserProfileRepository userProfileRepository;
     private final UserAuthorizationQueryPort userAuthorizationQueryPort;
 
     /**
@@ -45,20 +47,28 @@ public class UserInfoQueryService {
         Long userId = operator.userId();
         Long campusId = operator.campusId();
 
-        User user = userRepository.findByCampusIdAndUserId(campusId, userId)
+        // 1. 认证账号（来自 authentication）
+        UserAccountResult account = userAccountQueryPort
+            .findByUserIdAndCampusId(userId, campusId)
             .orElseThrow(() -> new BizException(ResultCode.USER_NOT_FOUND));
 
+        // 2. 用户档案（本模块）
+        userProfileRepository.findByUserIdAndCampusId(userId, campusId);
+        UserProfile profile = userProfileRepository.findByUserIdAndCampusId(userId, campusId)
+            .orElseThrow(() -> new BizException(ResultCode.USER_NOT_FOUND));
+
+        // 3. 授权（来自 authorization）
         UserAuthorizationResult authorizations = userAuthorizationQueryPort.findByUserIdAndCampusId(userId, campusId);
 
         return UserInfoResult.builder()
-            .userId(user.getUserId())
-            .campusId(user.getCampusId())
-            .username(user.getUsername())
-            .nickname(user.getNickname())
-            .phoneNumber(user.getPhoneNumber())
-            .email(user.getEmail())
-            .remark(user.getRemark())
-            .userType(user.getUserType().getCode())
+            .userId(account.getUserId())
+            .campusId(account.getCampusId())
+            .username(account.getUsername())
+            .nickname(profile.getNickname())
+            .phoneNumber(profile.getPhoneNumber())
+            .email(profile.getEmail())
+            .remark(profile.getRemark())
+            .userType(account.getUserType())
             .roles(authorizations.getRoles())
             .permissions(authorizations.getPermissions())
             .build();

@@ -4,9 +4,9 @@ import com.wsw.fitnesssystem.shared.response.PageResult;
 import com.wsw.fitnesssystem.user.application.dto.query.StudentListQuery;
 import com.wsw.fitnesssystem.user.application.dto.result.StudentListItemResult;
 import com.wsw.fitnesssystem.user.domain.model.StudentProfile;
-import com.wsw.fitnesssystem.user.domain.model.User;
+import com.wsw.fitnesssystem.user.domain.model.UserProfile;
 import com.wsw.fitnesssystem.user.domain.repository.StudentProfileRepository;
-import com.wsw.fitnesssystem.user.domain.repository.UserRepository;
+import com.wsw.fitnesssystem.user.domain.repository.UserProfileRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -36,8 +36,8 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class StudentQueryService {
 
+    private final UserProfileRepository userProfileRepository;
     private final StudentProfileRepository studentProfileRepository;
-    private final UserRepository userRepository;
 
     /**
      * 分页查询学生列表（当前：管理员视角，全校区）。
@@ -56,33 +56,33 @@ public class StudentQueryService {
             .map(StudentProfile::getUserId)
             .collect(Collectors.toSet());
 
-        Map<Long, User> userMap = userRepository.findByIds(userIds).stream()
-            .collect(Collectors.toMap(User::getUserId, Function.identity()));
+        Map<Long, UserProfile> userProfileMap = userProfileRepository.findByUserIds(userIds).stream()
+            .collect(Collectors.toMap(UserProfile::getUserId, Function.identity()));
 
         // 3. 组装结果
         List<StudentListItemResult> items = profilePage.getItems().stream()
-            .map(sp -> assemble(sp, userMap.get(sp.getUserId())))
+            .map(sp -> assemble(sp, userProfileMap.get(sp.getUserId())))
             .toList();
 
         return PageResult.of(items, profilePage.getTotal(),
             query.getPageNum(), query.getPageSize());
     }
 
-    private StudentListItemResult assemble(StudentProfile profile, User user) {
+    private StudentListItemResult assemble(StudentProfile studentProfile, UserProfile userProfile) {
         StudentListItemResult.StudentListItemResultBuilder builder = StudentListItemResult.builder()
-            .studentId(profile.getStudentId())
-            .userId(profile.getUserId())
-            .studentNo(profile.getStudentNo())
-            .classId(profile.getClassId())
-            .enrollYear(profile.getEnrollYear())
-            .major(profile.getMajor())
-            .gender(profile.getGender() == null ? null : profile.getGender().getCode())
-            .familyAddress(profile.getFamilyAddress());
+            .studentId(studentProfile.getStudentId())
+            .userId(studentProfile.getUserId())
+            .studentNo(studentProfile.getStudentNo())
+            .classId(studentProfile.getClassId())
+            .enrollYear(studentProfile.getEnrollYear())
+            .major(studentProfile.getMajor())
+            .gender(studentProfile.getGender() == null ? null : studentProfile.getGender().getCode())
+            .familyAddress(studentProfile.getFamilyAddress());
 
-        if (user != null) {
-            builder.nickname(user.getNickname())
-                .phoneNumber(user.getPhoneNumber())
-                .email(user.getEmail());
+        if (userProfile != null) {
+            builder.nickname(userProfile.getNickname())
+                .phoneNumber(userProfile.getPhoneNumber())
+                .email(userProfile.getEmail());
         }
         return builder.build();
     }

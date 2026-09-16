@@ -11,5 +11,5 @@ SELECT u.user_id, r.role_code, p.perm_code FROM sys_user u
                                           ON r.role_id = rp.role_id AND rp.status = 1 AND rp.deleted = 0
                                                       JOIN sys_permission p
                                                       ON rp.perm_id = p.perm_id AND p.status = 1 AND p.deleted = 0
-WHERE u.username = '412251401' AND u.campus_id = 1101 AND u.status = 1 AND u.deleted = 0;
+WHERE u.username = '412251401' AND u.campus_id = 1001 AND u.status = 1 AND u.deleted = 0;
 

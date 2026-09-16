@@ -6,18 +6,17 @@ import com.wsw.fitnesssystem.iam.authentication.application.dto.command.RefreshC
 import com.wsw.fitnesssystem.iam.authentication.application.dto.port.RiskCheckResult;
 import com.wsw.fitnesssystem.iam.authentication.application.dto.result.LoginResult;
 import com.wsw.fitnesssystem.iam.authentication.application.dto.result.RefreshResult;
-import com.wsw.fitnesssystem.iam.authentication.application.dto.result.UserCredentialResult;
 import com.wsw.fitnesssystem.iam.authentication.application.event.LoginFailureEvent;
 import com.wsw.fitnesssystem.iam.authentication.application.event.LoginSuccessEvent;
 import com.wsw.fitnesssystem.iam.authentication.application.event.RefreshTokenEvent;
 import com.wsw.fitnesssystem.iam.authentication.application.event.SessionTerminatedEvent;
 import com.wsw.fitnesssystem.iam.authentication.application.port.*;
-import com.wsw.fitnesssystem.iam.authentication.application.port.output.UserCredentialQueryPort;
+import com.wsw.fitnesssystem.iam.authentication.domain.model.AuthAccount;
 import com.wsw.fitnesssystem.iam.authentication.domain.port.PasswordEncryptor;
 import com.wsw.fitnesssystem.iam.audit.domain.valueobject.LogoutReason;
-import com.wsw.fitnesssystem.iam.authentication.domain.model.AuthUser;
 import com.wsw.fitnesssystem.iam.authentication.application.dto.port.TokenPair;
 import com.wsw.fitnesssystem.iam.authentication.application.dto.port.RefreshTokenClaims;
+import com.wsw.fitnesssystem.iam.authentication.domain.repository.AuthAccountRepository;
 import com.wsw.fitnesssystem.shared.domain.valueobject.Operator;
 import com.wsw.fitnesssystem.shared.exception.BizException;
 import com.wsw.fitnesssystem.shared.response.ResultCode;
@@ -65,8 +64,8 @@ public class AuthAppService {
     /** 事件发布器（用于异步审计） */
     private final ApplicationEventPublisher eventPublisher;
 
-    /** 用户认证数据提供者端口 */
-    private final UserCredentialQueryPort userCredentialQueryPort;
+    /** 认证账号仓储 */
+    private final AuthAccountRepository authAccountRepository;
 
     // ==================== 登录 ====================
 
@@ -83,23 +82,23 @@ public class AuthAppService {
         riskPort.preCheck(cmd.getUsername());
 
         // 2. 用户认证
-        AuthUser user = authenticate(cmd);
+        AuthAccount account = authenticate(cmd);
 
         // 3. 生成 Token
         String accessTokenId = UUID.randomUUID().toString();
         String refreshTokenId = UUID.randomUUID().toString();
-        long userId = user.getUserId();
-        long campusId = user.getCampusId();
+        long userId = account.getUserId();
+        long campusId = account.getCampusId();
         long tokenVersion = sessionPort.getTokenVersion(campusId, userId);
 
         TokenPair tokenPair = tokenPort.generate(
-            campusId, userId, user.getUsername(), user.getUserType(),
+            campusId, userId, account.getUsername(), account.getUserType().getCode(),
             cmd.getDeviceId(), tokenVersion, accessTokenId, refreshTokenId
         );
 
         // 4. 登录成功 → 后置处理（风控 + 会话 + 审计）
         handleLoginSuccess(
-            userId, campusId, user.getUsername(), accessTokenId, refreshTokenId,
+            userId, campusId, account.getUsername(), accessTokenId, refreshTokenId,
             tokenPair.getAccessTokenExpiresIn(), cmd.getDeviceType(), cmd.getUserAgent(), cmd.getIp()
         );
 
@@ -137,11 +136,9 @@ public class AuthAppService {
      * @return 被踢出的所有 Token ID 集合
      */
     public Set<String> kick(long campusId, long userId) {
-        // 1. 校验用户是否存在（通过适配器查）
-        UserCredentialResult credential = userCredentialQueryPort.findByCampusIdAndUserId(campusId, userId);
-        if (credential == null) {
-            throw new BizException(ResultCode.KICKOUT_FAILED, ResultCode.USER_NOT_FOUND.getMessage());
-        }
+        // 1. 校验用户是否存在
+        authAccountRepository.findByUserIdAndCampusId(userId, campusId)
+            .orElseThrow(() -> new BizException(ResultCode.USER_NOT_FOUND));
 
         // 2. 移除用户权限
         authorizationPort.removeAuthorization(userId, campusId);
@@ -225,25 +222,19 @@ public class AuthAppService {
      * <p>认证失败时：发布失败事件 → 记录风控 → 根据锁定状态决定抛出类型
      *
      * @param cmd 登录命令对象 {@link LoginCommand}，包含用户名和密码
-     * @return {@link AuthUser} 登录成功的用户信息
+     * @return {@link AuthAccount} 登录成功的用户信息
      * @throws BizException 当认证失败时抛出，用于上层捕获和流程控制
      */
-    private AuthUser authenticate(LoginCommand cmd) {
+    private AuthAccount authenticate(LoginCommand cmd) {
         try {
-            // 1. 获取认证数据（通过适配器，无感本地/远程）
-            UserCredentialResult credential = userCredentialQueryPort.findByUsername(cmd.getUsername());
+            // 1. 查账号
+            AuthAccount account = authAccountRepository.findByUsername(cmd.getUsername())
+                .orElseThrow(() -> new BizException(ResultCode.AUTH_ACCOUNT_NOT_EXIST));
 
-            if (credential == null) {
-                throw new BizException(ResultCode.AUTH_ACCOUNT_NOT_EXIST);
-            }
+            // 2. 验证密码（领域逻辑）
+            account.verifyPassword(cmd.getPassword(), passwordEncryptor);
 
-            // 2. 加载领域模型
-            AuthUser user = AuthUser.loadFromCredential(credential);
-
-            // 3. 验证密码（领域逻辑）
-            user.verifyPassword(cmd.getPassword(), passwordEncryptor);
-
-            return user;
+            return account;
         } catch (BizException e) {
             // 注意：先记录审计、再处理风控。（即使风控失败也不影响认证异常返回）
             // 1. 登录失败审计

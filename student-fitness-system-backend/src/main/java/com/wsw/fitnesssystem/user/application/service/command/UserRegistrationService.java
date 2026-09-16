@@ -2,9 +2,9 @@ package com.wsw.fitnesssystem.user.application.service.command;
 
 import com.wsw.fitnesssystem.data_exchange.application.dto.command.UserImportCommand;
 import com.wsw.fitnesssystem.data_exchange.application.dto.result.UserImportResult;
+import com.wsw.fitnesssystem.user.application.port.output.UserAccountQueryPort;
 import com.wsw.fitnesssystem.user.application.service.UserRegisterService;
 import com.wsw.fitnesssystem.user.domain.port.*;
-import com.wsw.fitnesssystem.user.domain.repository.UserRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
@@ -27,19 +27,19 @@ import java.util.stream.Collectors;
 public class UserRegistrationService {
 
     private final Executor computeExecutor;
-    private final UserRepository userRepository;
     private final UserRegisterService userRegisterService;
+    private final UserAccountQueryPort userAccountQueryPort;
     private final PasswordEncryptorPort passwordEncryptorPort;
 
     public UserRegistrationService(
-        UserRepository userRepository,
         UserRegisterService userRegisterService,
+        UserAccountQueryPort userAccountQueryPort,
         PasswordEncryptorPort passwordEncryptorPort,
         @Qualifier("computeExecutor") Executor computeExecutor
     ) {
-        this.userRepository = userRepository;
         this.computeExecutor = computeExecutor;
         this.userRegisterService = userRegisterService;
+        this.userAccountQueryPort = userAccountQueryPort;
         this.passwordEncryptorPort = passwordEncryptorPort;
     }
 
@@ -88,7 +88,7 @@ public class UserRegistrationService {
         List<String> usernamesToCheck = firstOccurrenceList.stream()
             .map(UserImportCommand::getUsername)
             .toList();
-        Set<String> existingInDb = userRepository.findExistingUsernames(usernamesToCheck);
+        Set<String> existingInDb = userAccountQueryPort.findExistingUsernames(usernamesToCheck);
 
         // 只对通过查重的数据加密
         List<UserImportCommand> needEncrypt = dataList.stream()

@@ -7,8 +7,11 @@ import com.wsw.fitnesssystem.user.infrastructure.persistence.converter.UserProfi
 import com.wsw.fitnesssystem.user.infrastructure.persistence.entity.UserProfilePo;
 import com.wsw.fitnesssystem.user.infrastructure.persistence.mapper.UserProfileMapper;
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.stereotype.Repository;
 
+import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -18,28 +21,37 @@ import java.util.Optional;
  */
 @Repository
 @RequiredArgsConstructor
-public class UserProfileRepositoryImpl implements UserProfileRepository {
+public class DbUserProfileRepository implements UserProfileRepository {
 
     private final UserProfileMapper mapper;
-    private final UserProfileConverter converter;
 
     @Override
     public Optional<UserProfile> findByUserIdAndCampusId(Long userId, Long campusId) {
-        UserProfilePo po = mapper.selectOne(
-            new LambdaQueryWrapper<UserProfilePo>()
-                .eq(UserProfilePo::getUserId, userId)
-                .eq(UserProfilePo::getCampusId, campusId)
-                .eq(UserProfilePo::getDeleted, 0)
-        );
-        return Optional.ofNullable(po).map(converter::toDomain);
+        LambdaQueryWrapper<UserProfilePo> wrapper = new LambdaQueryWrapper<UserProfilePo>()
+            .eq(UserProfilePo::getUserId, userId)
+            .eq(UserProfilePo::getCampusId, campusId);
+        return Optional.ofNullable(mapper.selectOne(wrapper)).map(UserProfileConverter::toDomain);
+    }
+
+    @Override
+    public List<UserProfile> findByUserIds(Collection<Long> userIds) {
+        if (CollectionUtils.isEmpty(userIds)) return List.of();
+
+        LambdaQueryWrapper<UserProfilePo> wrapper = new LambdaQueryWrapper<UserProfilePo>()
+            .in(UserProfilePo::getUserId, userIds);
+
+        List<UserProfilePo> pos = mapper.selectList(wrapper);
+
+        if (CollectionUtils.isEmpty(pos)) return List.of();
+
+        return pos.stream().map(UserProfileConverter::toDomain).toList();
     }
 
     @Override
     public void save(UserProfile profile) {
-        UserProfilePo po = converter.toPo(profile);
+        UserProfilePo po = UserProfileConverter.toPo(profile);
         if (po.getProfileId() == null) {
             mapper.insert(po);
-            profile.setProfileId(po.getProfileId());
         } else {
             mapper.updateById(po);
         }

@@ -18,6 +18,5 @@ public class UserAccountResult {
     private Integer userType;
     private Integer source;
     private Integer status;
-    private Integer deleted;
 
 }

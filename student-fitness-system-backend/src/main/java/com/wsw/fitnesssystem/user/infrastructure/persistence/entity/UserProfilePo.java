@@ -1,7 +1,8 @@
 package com.wsw.fitnesssystem.user.infrastructure.persistence.entity;
 
 import com.baomidou.mybatisplus.annotation.*;
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -14,19 +15,30 @@ import java.time.LocalDateTime;
  * @version 1.0 2026/9/2 08:35
  * @since 1.0
  */
-@Data
+@Setter
+@Getter
 @TableName("user_profile")
 public class UserProfilePo {
 
-    @TableId(type = IdType.AUTO)
+    @TableId(value = "profile_id", type = IdType.AUTO)
     private Long profileId;
-
-    @TableField("campus_id")
-    private Long campusId;
 
     @TableField("user_id")
     private Long userId;
 
+    @TableField("campus_id")
+    private Long campusId;
+
+    @TableField("nickname")
+    private String nickname;
+
+    @TableField("phone_number")
+    private String phoneNumber;
+
+    @TableField("email")
+    private String email;
+
+    @TableField("gender")
     private Integer gender;
 
     @TableField("birth_date")
@@ -35,27 +47,26 @@ public class UserProfilePo {
     @TableField("avatar_url")
     private String avatarUrl;
 
+    @TableField("address")
     private String address;
 
-    @TableField("last_login_ip")
-    private String lastLoginIp;
+    @TableField("remark")
+    private String remark;
 
-    @TableField("last_login_time")
-    private LocalDateTime lastLoginTime;
-
+    @TableField("deleted")
     @TableLogic(value = "0", delval = "1")
     private Integer deleted;
 
-    @TableField(fill = FieldFill.INSERT)
+    @TableField(value = "create_by", fill = FieldFill.INSERT)
     private Long createBy;
 
-    @TableField(fill = FieldFill.INSERT_UPDATE)
-    private Long updateBy;
-
-    @TableField(fill = FieldFill.INSERT)
+    @TableField(value = "create_time", fill = FieldFill.INSERT)
     private LocalDateTime createTime;
 
-    @TableField(fill = FieldFill.INSERT_UPDATE)
+    @TableField(value = "update_by", fill = FieldFill.INSERT_UPDATE)
+    private Long updateBy;
+
+    @TableField(value = "update_time", fill = FieldFill.INSERT_UPDATE)
     private LocalDateTime updateTime;
 
 }

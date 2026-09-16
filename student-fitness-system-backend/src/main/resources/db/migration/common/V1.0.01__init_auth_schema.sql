@@ -1,30 +1,24 @@
--- 系统用户表（存储所有用户认证及基本信息，包含管理员、教师、学生）
+-- 系统用户表（IAM 认证核心表，仅承载登录账号、密码哈希、用户类型、来源、状态）
 DROP TABLE IF EXISTS sys_user;
 CREATE TABLE sys_user
 (
-    `user_id`      BIGINT PRIMARY KEY AUTO_INCREMENT COMMENT '用户唯一标识（自增主键）',
-    `campus_id`    BIGINT       NOT NULL DEFAULT 0 COMMENT '所属校区ID（0表示系统级管理员，非0关联校区表）',
-    `username`     VARCHAR(32)  NOT NULL COMMENT '登录账号（学生用学号，教师用工号，管理员自定义）',
-    `password`     VARCHAR(255) NOT NULL COMMENT '登录密码（使用Bcrypt加密存储）',
-    `nickname`     VARCHAR(50)  NOT NULL COMMENT '显示昵称（可重复，用于界面展示）',
-    `phone_number` VARCHAR(20) COMMENT '手机号码（可用于登录或找回密码）',
-    `email`        VARCHAR(128) COMMENT '电子邮箱（可用于登录或找回密码）',
-    `remark`       VARCHAR(200) COMMENT '备注信息（运营或管理备注，无业务逻辑）',
-    `user_type`    TINYINT               DEFAULT 2 NOT NULL COMMENT '用户类型：0-管理员 1-教师 2-学生',
-    `source`       TINYINT               DEFAULT 0 COMMENT '用户来源：0-导入（IMPORT），1-同步（SYNC），2-手动录入（MANUAL）',
-    `status`       TINYINT               DEFAULT 1 COMMENT '业务启用状态：0-禁用（无法登录/分配权限），1-启用（正常）业务可见性',
-    `deleted`      TINYINT               DEFAULT 0 COMMENT '逻辑删除标记：0-未删除，1-已删除（参与唯一索引，允许同名恢复）数据可见性',
-    `create_by`    BIGINT COMMENT '创建人用户ID（关联sys_user.user_id）',
-    `update_by`    BIGINT COMMENT '最后更新人用户ID（关联sys_user.user_id）',
-    `create_time`  DATETIME              DEFAULT CURRENT_TIMESTAMP COMMENT '记录创建时间（自动生成）',
-    `update_time`  DATETIME              DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '记录最后更新时间（自动更新）',
+    `user_id`     BIGINT PRIMARY KEY AUTO_INCREMENT COMMENT '用户唯一标识（自增主键）',
+    `campus_id`   BIGINT       NOT NULL DEFAULT 0 COMMENT '所属校区ID（0表示系统级管理员，非0关联校区表）',
+    `username`    VARCHAR(32)  NOT NULL COMMENT '登录账号（学生用学号，教师用工号，管理员自定义）',
+    `password`    VARCHAR(255) NOT NULL COMMENT '登录密码（使用Bcrypt加密存储）',
+    `user_type`   TINYINT      NOT NULL DEFAULT 2 COMMENT '用户类型：0-管理员 1-教师 2-学生（决定档案表归属，不可变，与角色正交）',
+    `source`      TINYINT               DEFAULT 0 COMMENT '用户来源：0-导入（IMPORT），1-同步（SYNC），2-手动录入（MANUAL）',
+    `status`      TINYINT               DEFAULT 1 COMMENT '业务启用状态：0-禁用（无法登录/分配权限），1-启用（正常）',
+    `deleted`     TINYINT               DEFAULT 0 COMMENT '逻辑删除标记：0-未删除，1-已删除（参与唯一索引，允许同名恢复）',
+    `create_by`   BIGINT COMMENT '创建人用户ID（关联sys_user.user_id）',
+    `create_time` DATETIME              DEFAULT CURRENT_TIMESTAMP COMMENT '记录创建时间（自动生成）',
+    `update_by`   BIGINT COMMENT '最后更新人用户ID（关联sys_user.user_id）',
+    `update_time` DATETIME              DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '记录最后更新时间（自动更新）',
     UNIQUE KEY uk_username_deleted (`username`, `deleted`),
-    UNIQUE KEY uk_phone_deleted (`phone_number`, `deleted`),
-    UNIQUE KEY uk_email_deleted (`email`, `deleted`),
     KEY idx_campus_username_deleted (`campus_id`, `username`, `deleted`),
     KEY idx_campus_status_deleted (`campus_id`, `status`, `deleted`)
 ) ENGINE = InnoDB
-  DEFAULT CHARSET = utf8mb4 COMMENT ='系统用户表（存储所有用户认证及基本信息，包含管理员、教师、学生）';
+  DEFAULT CHARSET = utf8mb4 COMMENT ='系统用户表（IAM 认证核心表，仅承载登录认证字段；画像字段见 user_profile）';
 
 -- 用户登录审计表（记录每次登录请求的详细上下文、JWT 令牌生命周期及在线状态，用于安全审计与活跃会话管理）
 DROP TABLE IF EXISTS sys_user_login;

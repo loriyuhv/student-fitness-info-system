@@ -1,8 +1,11 @@
 package com.wsw.fitnesssystem.iam.authentication.domain.model;
 
+import com.wsw.fitnesssystem.iam.authentication.domain.port.PasswordEncryptor;
 import com.wsw.fitnesssystem.iam.authentication.domain.vb.AccountStatus;
 import com.wsw.fitnesssystem.iam.authentication.domain.vb.UserSource;
 import com.wsw.fitnesssystem.iam.authentication.domain.vb.UserType;
+import com.wsw.fitnesssystem.shared.exception.BizException;
+import com.wsw.fitnesssystem.shared.response.ResultCode;
 import lombok.Getter;
 
 /**
@@ -22,7 +25,7 @@ public class AuthAccount {
     private final UserType userType;
     private final UserSource source;
     private AccountStatus status;
-    private Integer deleted;
+    private boolean deleted;
     private final Long createBy;
     private Long updateBy;
 
@@ -50,14 +53,14 @@ public class AuthAccount {
         }
         return new AuthAccount(
             null, campusId, username, passwordHash, userType, source,
-            AccountStatus.ENABLED, 0, operatorId, operatorId
+            AccountStatus.ENABLED, false, operatorId, operatorId
         );
     }
 
     /** 从持久化重建（仅 Repository 使用） */
     public static AuthAccount reconstitute(
         Long userId, Long campusId, String username, String passwordHash, UserType userType,
-        UserSource source, AccountStatus status, Integer deleted, Long createBy, Long updateBy
+        UserSource source, AccountStatus status, boolean deleted, Long createBy, Long updateBy
     ) {
         return new AuthAccount(
             userId, campusId, username, passwordHash, userType, source, status, deleted, createBy, updateBy
@@ -66,7 +69,7 @@ public class AuthAccount {
 
     private AuthAccount(
         Long userId, Long campusId, String username, String passwordHash, UserType userType,
-        UserSource source, AccountStatus status, Integer deleted, Long createBy, Long updateBy
+        UserSource source, AccountStatus status, boolean deleted, Long createBy, Long updateBy
     ) {
         this.userId = userId;
         this.campusId = campusId;
@@ -110,26 +113,49 @@ public class AuthAccount {
         if (isDeleted()) {
             throw new IllegalStateException("账号已删除");
         }
-        this.deleted = 1;
+        this.deleted = true;
         this.updateBy = operatorId;
     }
 
+    /**
+     * 恢复已删除账号
+     * <p><b>⚠️ 实现约束：</b>本方法把 deleted 从 1 改回 0。若通过
+     * {@code DbAuthAccountRepository.save()} 持久化，会因 {@code @TableLogic}
+     * 自动追加的 {@code AND deleted = 0} 条件导致更新失败。
+     * 恢复功能必须走自定义 SQL（{@code SysUserMapper.restoreById}）。
+     *
+     * @param operatorId 操作者ID
+     */
     public void restore(Long operatorId) {
         if (!isDeleted()) {
             throw new IllegalStateException("账号未被删除，无法恢复");
         }
-        this.deleted = 0;
+        this.deleted = false;
         this.updateBy = operatorId;
+    }
+
+    // ==================== 认证行为 ====================
+
+    /**
+     * 校验密码（登录场景）
+     *
+     * <p>流程：先检查账号可用状态，再比对 BCrypt 密文。
+     * <p>失败时抛出 {@link BizException}，由应用层统一处理。
+     */
+    public void verifyPassword(String rawPassword, PasswordEncryptor encryptor) {
+        if (!canLogin()) {
+            throw new BizException(ResultCode.RISK_ACCOUNT_DISABLED);
+        }
+        boolean matches = encryptor.matches(rawPassword, this.passwordHash);
+        if (!matches) {
+            throw new BizException(ResultCode.AUTH_PASSWORD_ERROR);
+        }
     }
 
     // ==================== 查询语义 ====================
 
     public boolean isEnabled() {
         return this.status == AccountStatus.ENABLED && !isDeleted();
-    }
-
-    public boolean isDeleted() {
-        return this.deleted != null && this.deleted == 1;
     }
 
     public boolean canLogin() {

@@ -4,7 +4,7 @@ FROM sys_user su
          LEFT JOIN user_profile up
                    ON su.user_id = up.user_id AND su.campus_id = up.campus_id AND up.deleted = 0
 WHERE su.username = 'admin'
-  AND su.campus_id = 1101
+  AND su.campus_id = 1001
   AND su.status = 1
   AND su.deleted = 0;
 
@@ -13,7 +13,7 @@ FROM sys_user su
          LEFT JOIN user_profile up
                    ON su.user_id = up.user_id AND su.campus_id = up.campus_id AND up.deleted = 0
 WHERE su.username = '12018007'
-  AND su.campus_id = 1101
+  AND su.campus_id = 1001
   AND su.status = 1
   AND su.deleted = 0;
 
@@ -25,7 +25,7 @@ FROM sys_user su
          LEFT JOIN class_info ci
                    ON sp.class_id = ci.class_id AND sp.campus_id = ci.campus_id AND ci.status = 1 AND ci.deleted = 0
 WHERE su.username = '412251401'
-  AND su.campus_id = 1101
+  AND su.campus_id = 1001
   AND su.status = 1
   AND su.deleted = 0;
 
@@ -39,7 +39,7 @@ FROM sys_user su
          LEFT JOIN class_info ci
                    ON tc.class_id = ci.class_id AND tc.campus_id = ci.campus_id AND ci.status = 1 AND ci.deleted = 0
 WHERE su.username = '12018007'
-  AND su.campus_id = 1101
+  AND su.campus_id = 1001
   AND su.status = 1
   AND su.deleted = 0;
 
@@ -48,12 +48,10 @@ WHERE su.username = '12018007'
 -- ============================================================
 -- 【验证 1】查询所有用户及其扩展信息：
 SELECT u.username,
-       u.nickname,
        u.user_type,
        p.gender,
        p.birth_date,
-       p.address,
-       p.last_login_time
+       p.address
 FROM sys_user u
          LEFT JOIN user_profile p ON u.user_id = p.user_id
 WHERE u.deleted = 0
@@ -61,7 +59,6 @@ WHERE u.deleted = 0
 
 -- 【验证 2】查询张建国的完整信息（含任教班级）：
 SELECT u.username,
-       u.nickname,
        tp.teacher_no,
        tp.gender AS teacher_gender,
        ci.class_code,
@@ -77,7 +74,6 @@ WHERE u.username = '12018007'
 
 -- 【验证 3】查询王子轩的完整学籍信息：
 SELECT u.username,
-       u.nickname,
        sp.student_no,
        sp.major,
        sp.id_card,
