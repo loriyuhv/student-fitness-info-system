@@ -3,6 +3,10 @@ package com.wsw.fitnesssystem.user.infrastructure.persistence.converter;
 import com.wsw.fitnesssystem.user.domain.model.UserProfile;
 import com.wsw.fitnesssystem.user.domain.vb.Gender;
 import com.wsw.fitnesssystem.user.infrastructure.persistence.entity.UserProfilePo;
+import org.springframework.util.CollectionUtils;
+
+import java.util.Collections;
+import java.util.List;
 
 /**
  * @author loriyuhv
@@ -22,7 +26,9 @@ public final class UserProfileConverter {
             po.getNickname(),
             po.getPhoneNumber(),
             po.getEmail(),
-            po.getGender() == null ? null : Gender.of(po.getGender()),
+            po.getGender() == null
+                ? null : Gender.of(po.getGender()
+            ),
             po.getBirthDate(),
             po.getAvatarUrl(),
             po.getAddress(),
@@ -44,7 +50,9 @@ public final class UserProfileConverter {
         po.setNickname(profile.getNickname());
         po.setPhoneNumber(profile.getPhoneNumber());
         po.setEmail(profile.getEmail());
-        po.setGender(profile.getGender().getCode());
+        po.setGender(profile.getGender() == null
+            ? null : profile.getGender().getCode()
+        );
         po.setBirthDate(profile.getBirthDate());
         po.setAvatarUrl(profile.getAvatarUrl());
         po.setAddress(profile.getAddress());
@@ -55,6 +63,11 @@ public final class UserProfileConverter {
         po.setUpdateBy(profile.getUpdateBy());
         po.setUpdateTime(profile.getUpdateTime());
         return po;
+    }
+
+    public static List<UserProfile> toDomainList(List<UserProfilePo> poList) {
+        if (CollectionUtils.isEmpty(poList)) return Collections.emptyList();
+        return poList.stream().map(UserProfileConverter::toDomain).toList();
     }
 
 }

@@ -40,7 +40,7 @@ public class StudentQueryService {
     private final StudentProfileRepository studentProfileRepository;
 
     /**
-     * 分页查询学生列表（当前：管理员视角，全校区）。
+     * 分页查询学生列表
      */
     public PageResult<StudentListItemResult> listStudents(StudentListQuery query) {
         PageResult<StudentProfile> profilePage = studentProfileRepository.page(

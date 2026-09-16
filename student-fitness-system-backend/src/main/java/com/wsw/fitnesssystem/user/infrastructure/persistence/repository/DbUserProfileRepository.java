@@ -7,10 +7,11 @@ import com.wsw.fitnesssystem.user.infrastructure.persistence.converter.UserProfi
 import com.wsw.fitnesssystem.user.infrastructure.persistence.entity.UserProfilePo;
 import com.wsw.fitnesssystem.user.infrastructure.persistence.mapper.UserProfileMapper;
 import lombok.RequiredArgsConstructor;
-import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.stereotype.Repository;
+import org.springframework.util.CollectionUtils;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -35,16 +36,14 @@ public class DbUserProfileRepository implements UserProfileRepository {
 
     @Override
     public List<UserProfile> findByUserIds(Collection<Long> userIds) {
-        if (CollectionUtils.isEmpty(userIds)) return List.of();
+        if (CollectionUtils.isEmpty(userIds)) return Collections.emptyList();
 
         LambdaQueryWrapper<UserProfilePo> wrapper = new LambdaQueryWrapper<UserProfilePo>()
             .in(UserProfilePo::getUserId, userIds);
 
-        List<UserProfilePo> pos = mapper.selectList(wrapper);
+        List<UserProfilePo> poList = mapper.selectList(wrapper);
 
-        if (CollectionUtils.isEmpty(pos)) return List.of();
-
-        return pos.stream().map(UserProfileConverter::toDomain).toList();
+        return UserProfileConverter.toDomainList(poList);
     }
 
     @Override

@@ -18,7 +18,7 @@ import java.util.Optional;
  */
 @Repository
 @RequiredArgsConstructor
-public class TeacherProfileRepositoryImpl implements TeacherProfileRepository {
+public class DbTeacherProfileRepository implements TeacherProfileRepository {
 
     private final TeacherProfileMapper mapper;
     private final TeacherProfileConverter converter;

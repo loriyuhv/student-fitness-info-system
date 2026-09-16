@@ -22,7 +22,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 @SpringBootTest
 @Transactional
 @DisplayName("TeacherProfileRepository 单元测试")
-class TeacherProfileRepositoryImplTest {
+class DbTeacherProfileRepositoryTest {
 
     @Autowired
     private TeacherProfileRepository repository;

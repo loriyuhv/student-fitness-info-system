@@ -53,7 +53,6 @@ public class UserInfoQueryService {
             .orElseThrow(() -> new BizException(ResultCode.USER_NOT_FOUND));
 
         // 2. 用户档案（本模块）
-        userProfileRepository.findByUserIdAndCampusId(userId, campusId);
         UserProfile profile = userProfileRepository.findByUserIdAndCampusId(userId, campusId)
             .orElseThrow(() -> new BizException(ResultCode.USER_NOT_FOUND));
 
