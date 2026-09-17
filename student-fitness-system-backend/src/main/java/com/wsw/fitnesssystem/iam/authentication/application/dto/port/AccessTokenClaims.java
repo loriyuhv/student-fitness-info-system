@@ -1,7 +1,7 @@
 package com.wsw.fitnesssystem.iam.authentication.application.dto.port;
 
 import com.wsw.fitnesssystem.iam.authentication.application.port.TokenPort;
-import com.wsw.fitnesssystem.shared.domain.valueobject.Operator;
+import com.wsw.fitnesssystem.shared.domain.vb.Operator;
 import lombok.Builder;
 import lombok.Data;
 

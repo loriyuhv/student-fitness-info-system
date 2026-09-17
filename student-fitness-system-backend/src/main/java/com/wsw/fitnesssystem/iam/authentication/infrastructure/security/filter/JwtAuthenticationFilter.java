@@ -10,7 +10,7 @@ import com.wsw.fitnesssystem.iam.authentication.infrastructure.security.handler.
 import com.wsw.fitnesssystem.iam.authentication.infrastructure.security.model.JwtUserPrincipal;
 import com.wsw.fitnesssystem.shared.context.RequestContext;
 import com.wsw.fitnesssystem.shared.context.RequestContextHolder;
-import com.wsw.fitnesssystem.shared.domain.valueobject.Operator;
+import com.wsw.fitnesssystem.shared.domain.vb.Operator;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;

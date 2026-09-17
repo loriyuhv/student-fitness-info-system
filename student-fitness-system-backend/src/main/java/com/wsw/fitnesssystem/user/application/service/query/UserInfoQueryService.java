@@ -1,6 +1,6 @@
 package com.wsw.fitnesssystem.user.application.service.query;
 
-import com.wsw.fitnesssystem.shared.domain.valueobject.Operator;
+import com.wsw.fitnesssystem.shared.domain.vb.Operator;
 import com.wsw.fitnesssystem.shared.exception.BizException;
 import com.wsw.fitnesssystem.shared.response.ResultCode;
 import com.wsw.fitnesssystem.user.application.dto.result.UserAccountResult;

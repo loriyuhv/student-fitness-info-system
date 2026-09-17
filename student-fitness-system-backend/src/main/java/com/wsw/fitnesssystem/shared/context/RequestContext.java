@@ -1,6 +1,6 @@
 package com.wsw.fitnesssystem.shared.context;
 
-import com.wsw.fitnesssystem.shared.domain.valueobject.Operator;
+import com.wsw.fitnesssystem.shared.domain.vb.Operator;
 
 /**
  * 请求上下文数据载体（不可变对象）

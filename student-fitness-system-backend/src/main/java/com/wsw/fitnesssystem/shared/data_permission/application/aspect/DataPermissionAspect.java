@@ -6,7 +6,7 @@ import com.wsw.fitnesssystem.shared.data_permission.application.port.output.Data
 import com.wsw.fitnesssystem.shared.data_permission.application.port.output.TeacherClassQueryPort;
 import com.wsw.fitnesssystem.shared.data_permission.domain.DataPermissionContext;
 import com.wsw.fitnesssystem.shared.data_permission.domain.DataScope;
-import com.wsw.fitnesssystem.shared.domain.valueobject.Operator;
+import com.wsw.fitnesssystem.shared.domain.vb.Operator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.ProceedingJoinPoint;

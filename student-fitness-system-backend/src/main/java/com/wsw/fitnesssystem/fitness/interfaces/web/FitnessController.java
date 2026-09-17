@@ -7,7 +7,7 @@ import com.wsw.fitnesssystem.fitness.interfaces.web.dto.request.FitnessRecordSub
 import com.wsw.fitnesssystem.fitness.interfaces.web.dto.response.FitnessRecordDetailResponse;
 import com.wsw.fitnesssystem.fitness.interfaces.web.dto.response.FitnessRecordListItemResponse;
 import com.wsw.fitnesssystem.shared.context.RequestContextHolder;
-import com.wsw.fitnesssystem.shared.domain.valueobject.Operator;
+import com.wsw.fitnesssystem.shared.domain.vb.Operator;
 import com.wsw.fitnesssystem.shared.response.ApiResult;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;

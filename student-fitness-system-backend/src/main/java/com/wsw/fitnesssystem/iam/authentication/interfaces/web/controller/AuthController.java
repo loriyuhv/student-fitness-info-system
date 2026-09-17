@@ -10,7 +10,7 @@ import com.wsw.fitnesssystem.iam.authentication.interfaces.web.dto.request.Refre
 import com.wsw.fitnesssystem.iam.authentication.interfaces.web.dto.response.RefreshResponse;
 import com.wsw.fitnesssystem.shared.util.WebUtils;
 import com.wsw.fitnesssystem.shared.context.RequestContextHolder;
-import com.wsw.fitnesssystem.shared.domain.valueobject.Operator;
+import com.wsw.fitnesssystem.shared.domain.vb.Operator;
 import com.wsw.fitnesssystem.shared.response.ApiResult;
 import com.wsw.fitnesssystem.iam.authentication.interfaces.web.dto.request.LoginRequest;
 import com.wsw.fitnesssystem.shared.response.ResultCode;

@@ -17,7 +17,7 @@ import com.wsw.fitnesssystem.iam.audit.domain.valueobject.LogoutReason;
 import com.wsw.fitnesssystem.iam.authentication.application.dto.port.TokenPair;
 import com.wsw.fitnesssystem.iam.authentication.application.dto.port.RefreshTokenClaims;
 import com.wsw.fitnesssystem.iam.authentication.domain.repository.AuthAccountRepository;
-import com.wsw.fitnesssystem.shared.domain.valueobject.Operator;
+import com.wsw.fitnesssystem.shared.domain.vb.Operator;
 import com.wsw.fitnesssystem.shared.exception.BizException;
 import com.wsw.fitnesssystem.shared.response.ResultCode;
 import lombok.RequiredArgsConstructor;

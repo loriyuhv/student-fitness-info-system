@@ -12,7 +12,7 @@ import com.wsw.fitnesssystem.data_exchange.application.service.query.ImportTypeQ
 import com.wsw.fitnesssystem.data_exchange.interfaces.web.adapter.MultipartUploadedFile;
 import com.wsw.fitnesssystem.data_exchange.interfaces.web.dto.ImportProgressResponse;
 import com.wsw.fitnesssystem.shared.context.RequestContextHolder;
-import com.wsw.fitnesssystem.shared.domain.valueobject.Operator;
+import com.wsw.fitnesssystem.shared.domain.vb.Operator;
 import com.wsw.fitnesssystem.shared.exception.BizException;
 import com.wsw.fitnesssystem.shared.exception.SystemException;
 import com.wsw.fitnesssystem.shared.response.ApiResult;

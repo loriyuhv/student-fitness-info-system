@@ -1,7 +1,7 @@
 package com.wsw.fitnesssystem.user.interfaces.web;
 
 import com.wsw.fitnesssystem.shared.context.RequestContextHolder;
-import com.wsw.fitnesssystem.shared.domain.valueobject.Operator;
+import com.wsw.fitnesssystem.shared.domain.vb.Operator;
 import com.wsw.fitnesssystem.shared.response.ApiResult;
 import com.wsw.fitnesssystem.shared.response.PageResult;
 import com.wsw.fitnesssystem.user.application.dto.query.StudentListQuery;
