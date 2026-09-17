@@ -1,17 +1,15 @@
 package com.wsw.fitnesssystem.shared.data_permission.application.builder;
 
-import com.wsw.fitnesssystem.shared.data_permission.application.registry.DataPermissionColumnRegistry;
-import com.wsw.fitnesssystem.shared.data_permission.domain.DataPermissionColumns;
+import com.wsw.fitnesssystem.shared.data_permission.application.registry.DataPermissionRuleRegistry;
 import com.wsw.fitnesssystem.shared.data_permission.domain.DataPermissionContext;
+import com.wsw.fitnesssystem.shared.data_permission.domain.DataPermissionRule;
 import com.wsw.fitnesssystem.shared.data_permission.domain.DataScope;
-import com.wsw.fitnesssystem.shared.data_permission.infrastructure.mybatis.CustomDataPermissionHandler;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.sf.jsqlparser.expression.Expression;
 import net.sf.jsqlparser.expression.LongValue;
 import net.sf.jsqlparser.expression.operators.conditional.AndExpression;
 import net.sf.jsqlparser.expression.operators.relational.EqualsTo;
-import net.sf.jsqlparser.expression.operators.relational.ExpressionList;
 import net.sf.jsqlparser.expression.operators.relational.InExpression;
 import net.sf.jsqlparser.expression.operators.relational.ParenthesedExpressionList;
 import net.sf.jsqlparser.schema.Column;
@@ -22,56 +20,23 @@ import java.util.Set;
 /**
  * 数据权限 SQL 条件构造器。
  *
- * <p><b>职责：</b>根据 {@link DataPermissionContext} 生成 JSqlParser 的 {@link Expression}，
- * 由 {@link CustomDataPermissionHandler} 追加到原 SQL 的 WHERE 子句中。</p>
+ * <p><b>职责：</b>根据 {@link DataPermissionContext} 与目标表的 {@link DataPermissionRule}，
+ * 生成 JSqlParser 的 {@link Expression}，由 {@code CustomDataPermissionHandler} 追加到原 SQL。</p>
  *
- * <p><b>支持的权限维度：</b></p>
- * <table border="1">
- *   <caption>数据权限维度与 SQL 条件对照</caption>
- *   <tr><th>维度</th><th>生成条件</th><th>缺省行为</th></tr>
- *   <tr>
- *     <td>{@link DataScope#SELF SELF}</td>
- *     <td>{@code selfColumn = currentUserId}</td>
- *     <td>currentUserId 缺失 → 拒绝（{@code 1 = 0}）</td>
- *   </tr>
- *   <tr>
- *     <td>{@link DataScope#CLASS CLASS}</td>
- *     <td>{@code classColumn IN (allowedClassIds)}</td>
- *     <td>集合为空 → 拒绝（{@code 1 = 0}）</td>
- *   </tr>
- *   <tr>
- *     <td>{@link DataScope#COLLEGE COLLEGE}</td>
- *     <td>{@code campusColumn = currentCampusId}</td>
- *     <td>字段或值缺失 → 拒绝（{@code 1 = 0}）</td>
- *   </tr>
- *   <tr>
- *     <td>{@link DataScope#ALL ALL}</td>
- *     <td>不加条件</td>
- *     <td>—</td>
- *   </tr>
- *   <tr>
- *     <td>{@link DataScope#CUSTOM CUSTOM}</td>
- *     <td>暂未实现</td>
- *     <td>保守拒绝（{@code 1 = 0}）</td>
- *   </tr>
- * </table>
+ * <p><b>决策流程（按顺序）：</b></p>
+ * <ol>
+ *   <li>ctx 为空 / ALL 可见 → 原样返回，不加条件；</li>
+ *   <li>表未注册 → <b>拒绝</b>（fail-safe）；</li>
+ *   <li>表显式豁免 → 原样返回，不加条件；</li>
+ *   <li>契约不支持当前 scope → <b>拒绝</b>（契约冲突）；</li>
+ *   <li>生成对应 scope 的过滤条件并 AND 到原 WHERE。</li>
+ * </ol>
  *
- * <p><b>实现说明（重要）：</b></p>
- * <ul>
- *   <li><b>直接构造 AST：</b>使用 JSqlParser 5.x 提供的 {@link EqualsTo}、{@link InExpression}、
- *       {@link ExpressionList} 等对象直接构造表达式，不再采用"拼字符串 +
- *       {@code CCJSqlParserUtil.parseCondExpression}"的迂回方案。</li>
- *   <li><b>类型安全：</b>列名通过 {@link Column} 对象承载，值通过 {@link LongValue} 承载，
- *       编译期即可发现拼写错误，无需等到运行时解析失败。</li>
- *   <li><b>无 SQL 注入：</b>值统一封装为 {@code LongValue}，不再进入字符串拼接上下文，
- *       从类型层面消除注入风险。</li>
- *   <li><b>与 JSqlParser 5.x 对齐：</b>{@code ExpressionList} 在 5.x 中直接继承
- *       {@code ArrayList<Expression>}，本节通过其集合语义直接添加元素。</li>
- * </ul>
+ * <p><b>契约一致性保证：</b>由于 {@link DataPermissionRule} 紧凑构造器已校验
+ * "声明支持某 scope 则对应列必非 null"，本类不再需要 {@code if (column == null)} 判断。</p>
  *
- * <p><b>缺省策略：</b>当"用户请求了某个数据权限维度，但该维度所依赖的字段或数据缺失"时，
- * 采用<b>拒绝</b>（{@code 1 = 0}）而非静默放行。原因：静默放行意味着数据越权，
- * 属于安全红线；而拒绝只是查询不到数据，属于可用性问题，可被监控发现并修复。</p>
+ * <p><b>缺省策略：</b>所有无法满足的分支统一拒绝（{@code 1 = 0}），而非静默放行。
+ * 拒绝是可用性问题，可观测、可修复；放行是数据越权，属于安全红线。</p>
  *
  * @author loriyuhv
  * @version 1.0 2026/9/10 12:53
@@ -82,151 +47,89 @@ import java.util.Set;
 @RequiredArgsConstructor
 public class DataPermissionSqlBuilder {
 
-    /**
-     * 数据权限字段注册表。
-     * <p>负责根据表名返回该表在 SELF / CLASS / COLLEGE 三个维度上对应的列名。</p>
-     */
-    private final DataPermissionColumnRegistry columnRegistry;
+    private final DataPermissionRuleRegistry ruleRegistry;
 
     // ==================== 对外入口 ====================
 
     /**
-     * 生成数据权限过滤表达式，并与原 WHERE 条件组合。
-     *
-     * <p><b>组合规则：</b></p>
-     * <ul>
-     *   <li>原 {@code where} 为 null：直接返回权限条件；</li>
-     *   <li>原 {@code where} 非 null：用 {@link AndExpression} 与权限条件做 {@code AND} 合并。</li>
-     * </ul>
-     *
-     * <p><b>快速返回场景（不追加任何过滤）：</b></p>
-     * <ul>
-     *   <li>{@code ctx} 为 null（未登录 / 系统任务）；</li>
-     *   <li>{@code ctx.isAllVisible()} 为 true（{@code data_scope = ALL}）；</li>
-     *   <li>目标表未在 {@link DataPermissionColumnRegistry} 中登记。</li>
-     * </ul>
+     * 生成数据权限过滤表达式，与原 WHERE 条件 AND 组合。
      *
      * @param where       原 WHERE 条件，可能为 {@code null}
      * @param ctx         数据权限上下文，可能为 {@code null}
-     * @param targetTable 目标表名（不带别名），用于查表对应的字段映射
+     * @param targetTable 目标表名（不带别名）
      * @return 组合后的表达式；无需过滤时原样返回 {@code where}
      */
     public Expression build(Expression where, DataPermissionContext ctx, String targetTable) {
+        // 快速返回：ctx 为空 或 ALL 可见
         if (ctx == null || ctx.isAllVisible()) {
             return where;
         }
 
-        DataPermissionColumns columns = columnRegistry.find(targetTable);
-        if (columns == null) {
-            log.debug("Table [{}] not registered for data permission, skip", targetTable);
+        DataPermissionRule rule = ruleRegistry.find(targetTable);
+
+        // 分支 1：表未注册 → 拒绝（fail-safe）
+        if (rule == null) {
+            log.warn("[DP] Table [{}] not registered, deny (fail-safe)", targetTable);
+            return and(where, buildDeny());
+        }
+
+        // 分支 2：显式豁免 → 放行
+        if (rule.exempt()) {
+            log.debug("[DP] Table [{}] is exempt from data permission", targetTable);
             return where;
         }
 
-        Expression condition = switch (ctx.dataScope()) {
-            case SELF -> buildSelf(columns, ctx);
-            case CLASS -> buildClasses(columns, ctx);
-            case COLLEGE -> buildCampus(columns, ctx);
-            case CUSTOM -> buildDeny();
-            default -> null;
+        // 分支 3：契约不支持当前 scope → 拒绝（契约冲突）
+        DataScope scope = ctx.dataScope();
+        if (!rule.supports(scope)) {
+            log.warn("[DP] Table [{}] does not support scope {}, deny (contract violation)",
+                targetTable, scope);
+            return and(where, buildDeny());
+        }
+
+        // 分支 4：按 scope 生成条件
+        Expression condition = switch (scope) {
+            case SELF    -> buildSelf(rule, ctx);
+            case CLASS   -> buildClasses(rule, ctx);
+            case COLLEGE -> buildCampus(rule, ctx);
+            case CUSTOM  -> buildDeny();
+            case ALL     -> null;  // isAllVisible 已处理，此处兜底
         };
 
-        if (condition == null) {
-            return where;
-        }
-        return where == null ? condition : new AndExpression(where, condition);
+        return and(where, condition);
     }
 
     // ==================== 各维度条件构造 ====================
+    // 说明：因契约已校验，rule.xxxColumn() 在此必非 null（由 DataPermissionRule 保证）
 
-    /**
-     * 构造 SELF 维度条件：{@code selfColumn = currentUserId}。
-     *
-     * <p><b>处理分支：</b></p>
-     * <ul>
-     *   <li>表未声明 selfColumn（字段为 {@code null}）→ 返回 {@code null}，外层不追加条件；</li>
-     *   <li>currentUserId 缺失 → 记录 WARN 并返回拒绝条件，防止越权；</li>
-     *   <li>正常情况 → 构造 {@link EqualsTo} 表达式。</li>
-     * </ul>
-     *
-     * @param columns 目标表的数据权限字段映射
-     * @param ctx     数据权限上下文
-     * @return SELF 维度条件；表不支持时返回 {@code null}
-     */
-    private Expression buildSelf(DataPermissionColumns columns, DataPermissionContext ctx) {
-        if (columns.selfColumn() == null) {
-            log.debug("Table doesn't support SELF scope, skip filter");
-            return null;
-        }
+    private Expression buildSelf(DataPermissionRule rule, DataPermissionContext ctx) {
         if (ctx.currentUserId() == null) {
-            log.warn("SELF scope but currentUserId is null, deny all");
+            log.warn("[DP] SELF scope but currentUserId is null, deny");
             return buildDeny();
         }
-        return equals(columns.selfColumn(), ctx.currentUserId());
+        return equals(rule.selfColumn(), ctx.currentUserId());
     }
 
-    /**
-     * 构造 CLASS 维度条件：{@code classColumn IN (allowedClassIds)}。
-     *
-     * <p><b>处理分支：</b></p>
-     * <ul>
-     *   <li>表未声明 classColumn → 返回 {@code null}，外层不追加条件；</li>
-     *   <li>allowedClassIds 为 null 或空集 → 记录 WARN 并返回拒绝条件（教师无任教班级）；</li>
-     *   <li>正常情况 → 构造 {@link InExpression} 表达式。</li>
-     * </ul>
-     *
-     * @param columns 目标表的数据权限字段映射
-     * @param ctx     数据权限上下文
-     * @return CLASS 维度条件；表不支持时返回 {@code null}
-     */
-    private Expression buildClasses(DataPermissionColumns columns, DataPermissionContext ctx) {
-        if (columns.classColumn() == null) {
-            log.debug("Table doesn't support CLASS scope, skip filter");
-            return null;
-        }
+    private Expression buildClasses(DataPermissionRule rule, DataPermissionContext ctx) {
         Set<Long> classIds = ctx.allowedClassIds();
         if (classIds == null || classIds.isEmpty()) {
-            log.warn("CLASS scope but no classes, deny all");
+            log.warn("[DP] CLASS scope but no allowed classes, deny");
             return buildDeny();
         }
-        return in(columns.classColumn(), classIds);
+        return in(rule.classColumn(), classIds);
     }
 
-    /**
-     * 构造 COLLEGE 维度条件：{@code campusColumn = currentCampusId}。
-     *
-     * <p><b>处理分支：</b></p>
-     * <ul>
-     *   <li>表未声明 campusColumn，或当前用户无 campusId → 记录 WARN 并返回拒绝条件；</li>
-     *   <li>正常情况 → 构造 {@link EqualsTo} 表达式。</li>
-     * </ul>
-     *
-     * @param columns 目标表的数据权限字段映射
-     * @param ctx     数据权限上下文
-     * @return COLLEGE 维度条件
-     */
-    private Expression buildCampus(DataPermissionColumns columns, DataPermissionContext ctx) {
-        if (columns.campusColumn() == null) {
-            log.debug("Table doesn't support COLLEGE scope, skip filter");
-            return null;
-        }
+    private Expression buildCampus(DataPermissionRule rule, DataPermissionContext ctx) {
         if (ctx.currentCampusId() == null) {
-            log.warn("COLLEGE scope but currentCampusId is null, deny all");
+            log.warn("[DP] COLLEGE scope but currentCampusId is null, deny");
             return buildDeny();
         }
-        return equals(columns.campusColumn(), ctx.currentCampusId());
+        return equals(rule.campusColumn(), ctx.currentCampusId());
     }
 
     // ==================== 通用表达式构造 ====================
 
-    /**
-     * 构造恒假条件 {@code 1 = 0}，用于"请求了权限但无法满足"的保守拒绝场景。
-     *
-     * <p><b>设计意图：</b>当请求了 SELF/CLASS/COLLEGE/CUSTOM 维度却缺少必要数据时，
-     * 宁可查询结果为空，也不能让原 SQL 无过滤地执行。前者是可观测、可修复的可用性问题；
-     * 后者是数据越权，属于安全红线。</p>
-     *
-     * @return 恒假的 {@link EqualsTo} 表达式
-     */
+    /** 构造恒假条件 {@code 1 = 0}，用于"请求了权限但无法满足"的保守拒绝。 */
     private Expression buildDeny() {
         EqualsTo deny = new EqualsTo();
         deny.setLeftExpression(new LongValue(1));
@@ -234,13 +137,7 @@ public class DataPermissionSqlBuilder {
         return deny;
     }
 
-    /**
-     * 构造等值条件：{@code column = value}。
-     *
-     * @param column 列名（代码内常量，非用户输入）
-     * @param value  值（已确保为 {@code long}）
-     * @return {@link EqualsTo} 表达式
-     */
+    /** 构造等值条件：{@code column = value}。 */
     private static EqualsTo equals(String column, long value) {
         EqualsTo equals = new EqualsTo();
         equals.setLeftExpression(new Column(column));
@@ -251,23 +148,8 @@ public class DataPermissionSqlBuilder {
     /**
      * 构造 IN 条件：{@code column IN (v1, v2, ...)}。
      *
-     * <p><b>JSqlParser 5.x 说明：</b>{@link ExpressionList} 在 5.x 中直接继承
-     * {@code ArrayList<Expression>}，元素通过 {@code add()} 加入即可。</p>
-     *
-     * <p><b>JSqlParser 5.x 关键点：</b>IN 右侧必须使用
-     * {@link ParenthesedExpressionList}，而不是普通的 {@link ExpressionList}。
-     * 在 5.x 中两者已拆分：</p>
-     * <ul>
-     *   <li>{@code ExpressionList} 仅按逗号拼接元素，渲染为 {@code a, b, c}；</li>
-     *   <li>{@code ParenthesedExpressionList} 额外包裹括号，渲染为 {@code (a, b, c)}。</li>
-     * </ul>
-     * 如果误用 {@code ExpressionList}，生成的 SQL 会变成
-     * {@code class_id IN 1, 2, 3}（非法语法），而不是
-     * {@code class_id IN (1, 2, 3)}。
-     *
-     * @param column 列名（代码内常量）
-     * @param values 值集合（非空，由调用方保证）
-     * @return {@link InExpression} 表达式
+     * <p><b>JSqlParser 5.x 关键点：</b>IN 右侧必须用 {@link ParenthesedExpressionList}，
+     * 否则生成的 SQL 会缺少括号，成为非法语法。</p>
      */
     private static InExpression in(String column, Set<Long> values) {
         ParenthesedExpressionList<Expression> valueList = new ParenthesedExpressionList<>();
@@ -278,6 +160,16 @@ public class DataPermissionSqlBuilder {
         in.setLeftExpression(new Column(column));
         in.setRightExpression(valueList);
         return in;
+    }
+
+    /**
+     * AND 组合工具：任一为 {@code null} 时返回另一个。
+     * <p>用于统一"原 WHERE + 权限条件"的合并逻辑，避免重复三元表达式。</p>
+     */
+    private static Expression and(Expression a, Expression b) {
+        if (a == null) return b;
+        if (b == null) return a;
+        return new AndExpression(a, b);
     }
 
 }

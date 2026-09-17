@@ -58,7 +58,8 @@ public class DataPermissionAspect {
 
     private DataPermissionContext buildContext(Operator operator) {
         DataScope scope = dataScopeQueryPort.queryMaxDataScope(
-            operator.userId(), operator.campusId());
+            operator.userId(), operator.campusId()
+        );
         log.debug("[DP-Aspect] scope: {}", scope);
 
         Set<Long> allowedClassIds = (scope == DataScope.CLASS)

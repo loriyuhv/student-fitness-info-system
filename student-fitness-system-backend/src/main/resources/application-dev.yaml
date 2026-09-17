@@ -16,6 +16,11 @@ spring:
           max-idle: 8
           min-idle: 5
           max-wait: 2000ms
+      # 关闭 Spring‑Data‑Redis Repository（@RedisHash对象持久化）扫描
+      # 本项目仅使用 RedisTemplate / StringRedisTemplate，不使用ORM式Redis Repository；
+      # 关闭后消除无关启动日志，规避 JPA+Redis多data‑module严格模式下的歧义解析，不影响原生Redis操作
+      repositories:
+        enabled: false
   servlet:
     multipart:
       max-file-size: 200MB
