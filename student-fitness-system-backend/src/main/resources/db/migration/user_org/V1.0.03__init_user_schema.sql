@@ -9,7 +9,7 @@ CREATE TABLE user_profile
 (
     profile_id      BIGINT PRIMARY KEY AUTO_INCREMENT COMMENT '用户扩展信息唯一标识（自增主键）',
     user_id         BIGINT           NOT NULL COMMENT '关联用户ID（逻辑外键：sys_user.user_id，1:1 关系）',
-    campus_id       BIGINT           NOT NULL DEFAULT 1 COMMENT '所属校区ID（0表示系统级，非0关联校区表，便于多校区数据隔离）',
+    campus_id       BIGINT           NOT NULL DEFAULT 1001 COMMENT '所属校区ID（0表示系统级，非0关联校区表，便于多校区数据隔离）',
     nickname        VARCHAR(50)      NOT NULL COMMENT '显示昵称（可重复，用于界面展示）',
     phone_number    VARCHAR(20) COMMENT '手机号码（可用于登录或找回密码）',
     email           VARCHAR(128) COMMENT '电子邮箱（可用于登录或找回密码）',
@@ -45,7 +45,7 @@ DROP TABLE IF EXISTS class_info;
 CREATE TABLE class_info
 (
     class_id      BIGINT PRIMARY KEY AUTO_INCREMENT COMMENT '班级唯一标识（自增主键）',
-    campus_id     BIGINT      NOT NULL DEFAULT 1 COMMENT '所属校区ID（0表示系统级，非0关联校区表，支持多校区数据隔离）',
+    campus_id     BIGINT      NOT NULL DEFAULT 1001 COMMENT '所属校区ID（0表示系统级，非0关联校区表，支持多校区数据隔离）',
     class_code    VARCHAR(30) NOT NULL COMMENT '班级编码（业务唯一标识，格式：年级+专业代码+班序号，如 20247300101 表示2024级计算机科学技术1班，建议统一编码规范）',
     class_name    VARCHAR(50) NOT NULL COMMENT '班级显示名称（如“2024级体育教育1班”，用于界面展示和导出报表）',
     grade         YEAR        NOT NULL COMMENT '年级（入学年份，格式：YYYY，如 2024，用于按年级筛选和统计）',
@@ -74,7 +74,7 @@ DROP TABLE IF EXISTS student_profile;
 CREATE TABLE student_profile
 (
     student_id     BIGINT PRIMARY KEY AUTO_INCREMENT COMMENT '学生档案唯一标识（自增主键）',
-    campus_id      BIGINT      NOT NULL DEFAULT 1 COMMENT '所属校区ID（0表示系统级，非0关联校区表，支持多校区数据隔离）',
+    campus_id      BIGINT      NOT NULL DEFAULT 1001 COMMENT '所属校区ID（0表示系统级，非0关联校区表，支持多校区数据隔离）',
     user_id        BIGINT      NOT NULL COMMENT '关联用户ID（逻辑外键：sys_user.user_id，1:1 关系，仅 user_type=2 的用户在此有记录）',
     student_no     VARCHAR(20) NOT NULL COMMENT '学号（业务唯一标识，通常与 sys_user.username 保持一致，便于关联查询和统一认证）',
     class_id       BIGINT COMMENT '所属班级ID（逻辑外键：class_info.class_id，可为空，学生可能尚未分班）',
@@ -116,7 +116,7 @@ DROP TABLE IF EXISTS teacher_profile;
 CREATE TABLE teacher_profile
 (
     teacher_id  BIGINT PRIMARY KEY AUTO_INCREMENT COMMENT '教师档案唯一标识（自增主键）',
-    campus_id   BIGINT      NOT NULL DEFAULT 1 COMMENT '所属校区ID（0表示系统级，非0关联校区表，支持多校区数据隔离）',
+    campus_id   BIGINT      NOT NULL DEFAULT 1001 COMMENT '所属校区ID（0表示系统级，非0关联校区表，支持多校区数据隔离）',
     user_id     BIGINT      NOT NULL COMMENT '关联用户ID（逻辑外键：sys_user.user_id，1:1 关系，仅 user_type=1 的用户在此有记录）',
     teacher_no  VARCHAR(20) NOT NULL COMMENT '教师工号（业务唯一标识，通常与 sys_user.username 保持一致，便于关联查询和统一认证）',
     gender      TINYINT UNSIGNED     DEFAULT 0 COMMENT '性别：0-未知，1-男，2-女（冗余字段，与 user_profile.gender 同步，便于教师报表单独查询）',
@@ -151,7 +151,7 @@ DROP TABLE IF EXISTS teacher_class;
 CREATE TABLE teacher_class
 (
     id          BIGINT PRIMARY KEY AUTO_INCREMENT COMMENT '关联记录唯一标识（自增主键）',
-    campus_id   BIGINT NOT NULL DEFAULT 1 COMMENT '所属校区ID（0表示系统级，非0关联校区表，支持多校区数据隔离）',
+    campus_id   BIGINT NOT NULL DEFAULT 1001 COMMENT '所属校区ID（0表示系统级，非0关联校区表，支持多校区数据隔离）',
     teacher_id  BIGINT NOT NULL COMMENT '教师ID（逻辑外键：teacher_profile.teacher_id，标识被分配教学任务的教师）',
     class_id    BIGINT NOT NULL COMMENT '班级ID（逻辑外键：class_info.class_id，标识分配给该教师的班级）',
     status      TINYINT         DEFAULT 1 COMMENT '关联状态：0-无效（该教师不再负责该班级，但不删除历史记录），1-有效（当前正在任教）',

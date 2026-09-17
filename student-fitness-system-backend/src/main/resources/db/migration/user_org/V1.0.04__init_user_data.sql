@@ -1,8 +1,8 @@
 -- ============================================================
--- 三个初始用户模拟数据（V1.0）
+-- 四个初始用户模拟数据（V1.0）
 -- 说明：
 --   1. 本脚本依赖 V1.0_init_auth_data.sql 中已创建的 sys_user 数据
---   2. 为三个核心用户（admin / 12018007 / 412251401）补充完整的扩展信息
+--   2. 为四个核心用户（admin / campus_admin_100101 / 12018007 / 412251401）补充完整的扩展信息
 --   3. 包含：user_profile、class_info、student_profile、teacher_profile、teacher_class
 --   4. 校区 ID 统一为 1001（示例校区）
 --   5. 创建人和更新人统一为 @admin_id（系统初始化）
@@ -29,7 +29,7 @@ INSERT INTO
                   gender, birth_date, avatar_url, address, create_by, update_by)
 VALUES
     ((SELECT user_id FROM sys_user WHERE username = 'admin' AND status = 1 AND deleted = 0),
-     1001,
+     0,
      '系统管理员',
      NULL,
      NULL,
@@ -37,6 +37,24 @@ VALUES
      0, -- 性别：未知
      NULL,
      'https://api.dicebear.com/10.x/adventurer/svg?seed=user001',
+     NULL,
+     @admin_id,
+     @admin_id);
+
+
+INSERT INTO
+    user_profile (user_id, campus_id, nickname, phone_number, email, remark,
+                  gender, birth_date, avatar_url, address, create_by, update_by)
+VALUES
+    ((SELECT user_id FROM sys_user WHERE username = 'campus_admin_100101' AND status = 1 AND deleted = 0),
+     1001,
+     '1001校区管理员01',
+     NULL,
+     NULL,
+     '校区管理员',
+     0, -- 性别：未知
+     NULL,
+     'https://api.dicebear.com/10.x/adventurer/svg?seed=user008',
      NULL,
      @admin_id,
      @admin_id);

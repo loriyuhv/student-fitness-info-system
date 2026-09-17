@@ -19,8 +19,8 @@ import java.util.Set;
 @Slf4j
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/admin/users")
-public class AdminUserController {
+@RequestMapping("/admin/auth/users")
+public class AdminAuthUserController {
 
     private final AuthAppService authAppService;
 

@@ -8,14 +8,14 @@
 --    此处绑定具体校区仅为了在多校区演示中直观区分数据范围。
 -- ============================================================
 
--- 1. 系统管理员账号（角色：ADMIN）
+-- 1. 系统管理员账号，该管理员也是超级管理员（角色：ADMIN）
 -- 说明：拥有系统全部权限，用于系统配置、角色分配及运维管理。
 -- 用户名：admin（固定保留名称，不可删除）
 -- 来源：source=0（IMPORT 导入），create_by=NULL（系统自身）
 INSERT INTO
     sys_user (`campus_id`, `username`, `password`, user_type, source, create_by)
 VALUES
-    (1001,
+    (0,
      'admin',
      '$2a$10$2529vU4WTji.qS6i3LfEYu6s2NUHzeWOnwl.so9CtSJUm7O3QnHp6',
      0, -- user_type: 0-管理员
@@ -32,7 +32,23 @@ SET @admin_id = (SELECT
                        username = 'admin'
                    AND deleted = 0);
 
--- 2. 示例教师账号（角色：TEACHER）
+
+-- 2. 示例校区管理员账号（角色：CAMPUS_ADMIN）
+-- 说明：拥有系统部分权限，用于系统配置、角色分配及运维管理。
+-- 用户名：campus_admin_100101（1001代表校区，01代表校区管理员第一位，固定保留名称，不可删除）
+-- 来源：source=0（IMPORT 导入），create_by=超级管理员user_id（系统自身）
+INSERT INTO
+    sys_user (`campus_id`, `username`, `password`, user_type, source, create_by)
+VALUES
+    (1001,
+     'campus_admin_100101',
+     '$2a$10$2529vU4WTji.qS6i3LfEYu6s2NUHzeWOnwl.so9CtSJUm7O3QnHp6',
+     0, -- user_type: 0-管理员
+     0, -- source: 0-导入
+     @admin_id -- create_by: 大概率是1 代表超级管理员
+    );
+
+-- 3. 示例教师账号（角色：TEACHER）
 -- 说明：体育教师“张建国”，工号 12018007，具备体测数据录入、查看本班汇总等教学权限。
 -- 用户名即工号，便于与教务系统数据对齐。
 INSERT INTO
@@ -43,10 +59,10 @@ VALUES
      '$2a$10$2529vU4WTji.qS6i3LfEYu6s2NUHzeWOnwl.so9CtSJUm7O3QnHp6',
      1, -- user_type: 1-教师
      0, -- source: 0-导入
-     @admin_id -- create_by: 大概率是1 代表系统自身
+     @admin_id -- create_by: 大概率是1 代表超级管理员
     );
 
--- 3. 示例学生账号（角色：STUDENT）
+-- 4. 示例学生账号（角色：STUDENT）
 -- 说明：学生“王子轩”，学号 412251401，仅可登录查看本人体测成绩与历史记录。
 -- 用户名即学号，符合校园信息化场景中的统一身份认证习惯。
 INSERT INTO
@@ -57,7 +73,7 @@ VALUES
      '$2a$10$2529vU4WTji.qS6i3LfEYu6s2NUHzeWOnwl.so9CtSJUm7O3QnHp6',
      2, -- user_type: 2-学生
      0, -- source: 0-导入
-     @admin_id -- create_by: 大概率是1 代表系统自身
+     @admin_id -- create_by: 大概率是1 代表超级管理员
     );
 
 -- ============================================================
@@ -76,13 +92,25 @@ VALUES
 INSERT INTO
     sys_role (campus_id, role_code, role_name, data_scope, remark)
 VALUES
-    (1001,
+    (0,
      'ADMIN',
      '系统管理员',
      0, -- data_scope: 0-全部数据
      '系统最高权限，负责系统配置与用户管理，可跨校区操作');
 
--- 2. 教师角色（TEACHER）
+-- 2. 校区管理员角色（CAMPUS_ADMIN）
+-- 用途：系统部分权限，可管理校区用户、角色、权限配置，并查看所管校区内所有数据。
+-- 数据范围：3-校区数据（跨班级），用于运维与系统配置。
+INSERT INTO
+    sys_role (campus_id, role_code, role_name, data_scope, remark)
+VALUES
+    (1001,
+     'CAMPUS_ADMIN',
+     '校区管理员',
+     3, -- data_scope: 3-校区数据
+     '系统部分权限，负责系统校区内配置与用户管理，可跨班级操作');
+
+-- 3. 教师角色（TEACHER）
 -- 用途：负责学生体测数据的录入、修改及查看，仅限任教班级。
 -- 数据范围：2-本班（通过教师-班级关联表确定任教班级，数据查询时自动过滤）
 INSERT INTO
@@ -94,7 +122,7 @@ VALUES
      2, -- data_scope: 2-本班
      '负责学生体测数据的录入与管理，仅可操作自己任教班级的学生数据');
 
--- 3. 学生角色（STUDENT）
+-- 4. 学生角色（STUDENT）
 -- 用途：登录后仅可查看本人体测成绩与历史记录，无录入/修改权限。
 -- 数据范围：1-仅本人（通过当前登录用户 user_id 过滤数据）
 INSERT INTO
@@ -138,6 +166,7 @@ VALUES
  '编辑用户基本信息（昵称/手机号/邮箱/状态）及重新分配角色，不可直接修改密码，密码重置需走独立流程'),
 ('system:user:delete', '删除用户',
  '逻辑删除用户（deleted=1），删除后用户无法登录系统，但历史数据（如体测记录）保留用于审计追溯'),
+('system:user:reset-password', '重置用户密码', '管理员重置其他用户的密码，生成随机临时密码，用户首次登录强制修改'),
 
 -- 1.2 角色管理（system:role:*）
 --    功能：定义和管理系统中的所有角色，角色是权限的集合
@@ -247,6 +276,27 @@ WHERE
     u.username = 'admin';
 
 -- ============================================================
+-- 校区管理员账号 → CAMPUS_ADMIN 角色绑定
+-- 说明：将示例校区管理员账号 campus_admin_100101 与 CAMPUS_ADMIN 角色关联。
+-- 数据范围：由 CAMPUS_ADMIN 角色的 data_scope=3（本校区）控制。
+-- 安全提示：初始密码为默认值，生产环境部署前必须修改或禁用。
+-- ============================================================
+INSERT INTO
+    sys_user_role (user_id, role_id)
+SELECT
+    u.user_id,
+    r.role_id
+FROM
+    sys_user u
+    JOIN sys_role r
+         ON r.role_code = 'CAMPUS_ADMIN'
+             AND r.campus_id = u.campus_id
+             AND r.deleted = 0
+WHERE
+      u.username = 'campus_admin_100101'
+  AND u.deleted = 0;
+
+-- ============================================================
 -- 教师 → TEACHER 角色绑定
 -- 说明：将示例教师账号（12018007 张建国）与 TEACHER 角色关联，
 --       授予体测数据录入、修改及本班数据查看等教学管理权限
@@ -328,6 +378,63 @@ FROM
     CROSS JOIN sys_permission p -- CROSS JOIN = 笛卡尔积，将 ADMIN 与每个权限点逐一配对
 WHERE
     r.role_code = 'ADMIN';
+
+-- ============================================================
+-- CAMPUS_ADMIN 角色 → 权限绑定（最小可用集）
+-- 设计原则：
+--   1. 只管理本校区数据，数据范围由 sys_role.data_scope=3 控制；
+--   2. 可管理本校区用户，但不开放删除用户；
+--   3. 可查看角色与权限，但不开放权限定义的新增/修改/删除；
+--   4. 可管理本校区体测记录与汇总，但不开放体测记录删除；
+--   5. 可查看并修改本校区学生/教师档案的非敏感扩展信息。
+-- 如需更少权限，可删掉 system:user:add、system:user:reset-password、
+-- fitness:record:export、fitness:summary:export 等。
+-- ============================================================
+INSERT INTO
+    sys_role_permission (role_id, perm_id)
+SELECT
+    r.role_id,
+    p.perm_id
+FROM
+    sys_role r
+    JOIN sys_permission p
+         ON p.perm_code IN (
+             -- 用户管理：本校区用户可查、新增、编辑、重置密码；不开放删除
+                            'system:user:view',
+                            'system:user:add',
+                            'system:user:update',
+                            'system:user:reset-password',
+
+             -- 角色与权限：只读查看，便于分配已有角色；不开放权限定义维护
+                            'system:role:view',
+                            'system:permission:view',
+
+             -- 体测记录：本校区可查、录入、修改、删除、导出；
+                            'fitness:record:view',
+                            'fitness:record:add',
+                            'fitness:record:update',
+                            'fitness:record:delete',
+                            'fitness:record:export',
+
+             -- 体测汇总：本校区可查看、导出
+                            'fitness:summary:view',
+                            'fitness:summary:export',
+
+             -- 学生档案：本校区可查、可改非敏感字段
+                            'user:student:view',
+                            'user:student:update',
+
+             -- 教师档案：本校区可查、可改非敏感字段
+                            'user:teacher:view',
+                            'user:teacher:update'
+             )
+             AND p.deleted = 0
+             AND p.status = 1
+WHERE
+      r.role_code = 'CAMPUS_ADMIN'
+  AND r.campus_id = 1001
+  AND r.deleted = 0
+  AND r.status = 1;
 
 -- ============================================================
 -- TEACHER 角色 → 权限绑定

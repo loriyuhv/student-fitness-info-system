@@ -3,7 +3,7 @@ DROP TABLE IF EXISTS sys_user;
 CREATE TABLE sys_user
 (
     `user_id`     BIGINT PRIMARY KEY AUTO_INCREMENT COMMENT '用户唯一标识（自增主键）',
-    `campus_id`   BIGINT       NOT NULL DEFAULT 0 COMMENT '所属校区ID（0表示系统级管理员，非0关联校区表）',
+    `campus_id`   BIGINT       NOT NULL DEFAULT 1001 COMMENT '所属校区ID（0表示系统级管理员，非0关联校区表，校区表暂时没有扩展）',
     `username`    VARCHAR(32)  NOT NULL COMMENT '登录账号（学生用学号，教师用工号，管理员自定义）',
     `password`    VARCHAR(255) NOT NULL COMMENT '登录密码（使用Bcrypt加密存储）',
     `user_type`   TINYINT      NOT NULL DEFAULT 2 COMMENT '用户类型：0-管理员 1-教师 2-学生（决定档案表归属，不可变，与角色正交）',
@@ -55,9 +55,9 @@ CREATE TABLE sys_role
 (
     `role_id`     BIGINT PRIMARY KEY AUTO_INCREMENT COMMENT '角色唯一标识（自增主键）',
     `campus_id`   BIGINT      NOT NULL DEFAULT 0 COMMENT '所属校区ID（0表示系统级角色，可在所有校区生效；非0表示校区自定义角色，仅本校区可用）',
-    `role_code`   VARCHAR(30) NOT NULL COMMENT '角色编码（系统内部唯一标识，通常用于代码硬编码判断，如 ADMIN/TEACHER/STUDENT，不可随意变更）',
+    `role_code`   VARCHAR(30) NOT NULL COMMENT '角色编码（系统内部唯一标识，通常用于代码硬编码判断，如 ADMIN/CAMPUS_ADMIN/TEACHER/STUDENT，不可随意变更）',
     `role_name`   VARCHAR(50) NOT NULL COMMENT '角色显示名称（用于界面展示，业务上唯一，管理员可根据业务调整名称，不影响系统逻辑）',
-    `data_scope`  TINYINT     NOT NULL DEFAULT 1 COMMENT '数据行级权限范围（配合权限编码中的按钮权限共同控制数据可见性）：0-全部数据（跨校区/跨班级），1-仅本人（仅查看自己创建的数据），2-本班（仅查看本班学生数据），3-本学院（仅查看本学院数据），4-自定义（预留扩展，需额外配置数据规则）',
+    `data_scope`  TINYINT     NOT NULL DEFAULT 1 COMMENT '数据行级权限范围（配合权限编码中的按钮权限共同控制数据可见性）：0-全部数据（跨校区/跨班级），1-仅本人（仅查看自己创建的数据），2-本班（仅查看本班学生数据），3-本校区（仅查看本校区数据），4-自定义（预留扩展，需额外配置数据规则）',
     `remark`      VARCHAR(200) COMMENT '角色备注说明（描述该角色的适用场景或权限边界，如“负责体测数据录入的教师”）',
     `status`      TINYINT     NOT NULL DEFAULT 1 COMMENT '业务启用状态：0-禁用（该角色不可被分配，已有用户该角色权限失效），1-启用（可正常分配与使用）',
     `deleted`     TINYINT     NOT NULL DEFAULT 0 COMMENT '逻辑删除标记：0-未删除，1-已删除（参与唯一索引，允许回收后重建同名角色）',
