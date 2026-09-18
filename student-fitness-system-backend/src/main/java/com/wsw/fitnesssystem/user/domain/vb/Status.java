@@ -1,6 +1,12 @@
 package com.wsw.fitnesssystem.user.domain.vb;
 
+import com.wsw.fitnesssystem.shared.domain.exception.DomainValidationException;
 import lombok.Getter;
+
+import java.util.Arrays;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 /**
  * 用户状态（业务可见性）
@@ -15,19 +21,24 @@ public enum Status {
     DISABLED(0, "禁用"),
     ENABLED(1, "启用");
 
-    private final int code;
+    private final Integer code;
     private final String desc;
 
-    Status(int code, String desc) {
+    Status(Integer code, String desc) {
         this.code = code;
         this.desc = desc;
     }
 
-    public static Status of(int code) {
-        for (Status status : values()) {
-            if (status.code == code) return status;
+    private static final Map<Integer, Status> CODE_MAP = Arrays.stream(values())
+        .collect(Collectors.toMap(Status::getCode, Function.identity()));
+
+    public static Status of(Integer code) {
+        if (code == null) throw new DomainValidationException("用户状态不能为空");
+        Status status = CODE_MAP.get(code);
+        if (status == null) {
+            throw new DomainValidationException("无效的用户状态编码：" + code);
         }
-        throw new IllegalArgumentException("无效的用户状态编码：" + code);
+        return status;
     }
 
 }

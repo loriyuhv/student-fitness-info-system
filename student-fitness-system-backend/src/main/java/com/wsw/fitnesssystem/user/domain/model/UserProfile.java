@@ -1,7 +1,12 @@
 package com.wsw.fitnesssystem.user.domain.model;
 
+import com.wsw.fitnesssystem.shared.domain.exception.DomainConflictException;
+import com.wsw.fitnesssystem.shared.domain.exception.DomainValidationException;
+import com.wsw.fitnesssystem.shared.exception.BizException;
+import com.wsw.fitnesssystem.shared.response.ResultCode;
 import com.wsw.fitnesssystem.user.domain.vb.Gender;
 import lombok.Getter;
+import org.apache.commons.lang3.StringUtils;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -62,8 +67,8 @@ public class UserProfile {
         if (campusId == null) {
             throw new IllegalArgumentException("campusId 不能为空");
         }
-        if (nickname == null || nickname.isBlank()) {
-            throw new IllegalArgumentException("昵称不能为空");
+        if (StringUtils.isBlank(nickname)) {
+            throw new DomainValidationException("昵称不能为空");
         }
         if (operatorId == null) {
             throw new IllegalArgumentException("operatorId 不能为空");
@@ -114,8 +119,8 @@ public class UserProfile {
 
     /** 更新昵称（非空） */
     public void updateNickname(String nickname, Long operatorId) {
-        if (nickname == null || nickname.isBlank()) {
-            throw new IllegalArgumentException("昵称不能为空");
+        if (StringUtils.isBlank(nickname)) {
+            throw new BizException(ResultCode.PARAM_INVALID, "昵称不能为空");
         }
         this.nickname = nickname.trim();
         this.updateBy = operatorId;
@@ -123,10 +128,10 @@ public class UserProfile {
 
     /** 更新手机号（允许 null / 空串表示清空） */
     public void updatePhoneNumber(String phoneNumber, Long operatorId) {
-        if (phoneNumber != null && !phoneNumber.isBlank()) {
+        if (StringUtils.isBlank(phoneNumber)) {
             String trimmed = phoneNumber.trim();
             if (!trimmed.matches("^1[3-9]\\d{9}$")) {
-                throw new IllegalArgumentException("手机号格式不正确");
+                throw new DomainValidationException("手机号格式不正确");
             }
             this.phoneNumber = trimmed;
         } else {
@@ -137,10 +142,10 @@ public class UserProfile {
 
     /** 更新邮箱（允许 null / 空串表示清空） */
     public void updateEmail(String email, Long operatorId) {
-        if (email != null && !email.isBlank()) {
+        if (StringUtils.isBlank(email)) {
             String trimmed = email.trim();
             if (!trimmed.matches("^[\\w.+-]+@[\\w-]+\\.[\\w.-]+$")) {
-                throw new IllegalArgumentException("邮箱格式不正确");
+                throw new DomainValidationException("邮箱格式不正确");
             }
             this.email = trimmed;
         } else {
@@ -158,7 +163,7 @@ public class UserProfile {
     /** 更新出生日期（不能晚于今天） */
     public void updateBirthDate(LocalDate birthDate, Long operatorId) {
         if (birthDate != null && birthDate.isAfter(LocalDate.now())) {
-            throw new IllegalArgumentException("出生日期不能晚于今天");
+            throw new DomainValidationException("出生日期不能晚于今天");
         }
         this.birthDate = birthDate;
         this.updateBy = operatorId;
@@ -185,7 +190,7 @@ public class UserProfile {
     /** 逻辑删除 */
     public void softDelete(Long operatorId) {
         if (this.deleted) {
-            throw new IllegalStateException("档案已删除");
+            throw new DomainConflictException("档案已删除，无法重复操作");
         }
         this.deleted = true;
         this.updateBy = operatorId;

@@ -1,5 +1,8 @@
 package com.wsw.fitnesssystem.shared.exception;
 
+import com.wsw.fitnesssystem.shared.domain.exception.DomainConflictException;
+import com.wsw.fitnesssystem.shared.domain.exception.DomainException;
+import com.wsw.fitnesssystem.shared.infrastructure.persistence.ConstraintResultCodeMapper;
 import jakarta.servlet.ServletException;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
@@ -7,6 +10,7 @@ import lombok.extern.slf4j.Slf4j;
 import com.wsw.fitnesssystem.shared.response.ApiResult;
 import com.wsw.fitnesssystem.shared.response.ResultCode;
 import org.springframework.beans.TypeMismatchException;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authorization.AuthorizationDeniedException;
@@ -423,6 +427,29 @@ public class GlobalExceptionHandler {
         String finalMsg = buildCombineMessage(defaultMsg, customMsg);
         log.warn("认证失败: {}", finalMsg);
         return ApiResult.error(ResultCode.AUTH_CREDENTIAL_INVALID, finalMsg);
+    }
+
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ApiResult<Object> handleDataIntegrityViolation(DataIntegrityViolationException e) {
+        // 理想情况下，能在 Repository 层转成 BizException 的都已经转了。
+        // 走到这里说明：约束未识别，或转换切面未覆盖。
+        ResultCode rc = ConstraintResultCodeMapper.resolve(e.getMessage());
+        if (rc != null) {
+            // 再兜一次，防止漏网
+            log.warn("唯一约束冲突（兜底命中）: {}", rc.getMessage());
+            return ApiResult.error(rc);
+        }
+        log.error("数据完整性异常（未识别的约束）", e);
+        return ApiResult.error(ResultCode.DATABASE_ERROR);
+    }
+
+    @ExceptionHandler(DomainException.class)
+    public ApiResult<Object> handleDomainException(DomainException e) {
+        log.warn("领域异常（未被应用层翻译，兜底处理）: {}", e.getMessage());
+        ResultCode rc = (e instanceof DomainConflictException)
+            ? ResultCode.DATA_ALREADY_EXISTS
+            : ResultCode.PARAM_INVALID;
+        return ApiResult.error(rc, e.getMessage());
     }
 
     // ================================================================

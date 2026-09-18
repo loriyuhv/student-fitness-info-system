@@ -24,6 +24,9 @@ public interface StudentProfileRepository {
      */
     Optional<StudentProfile> findByStudentNo(String studentNo);
 
+
+    Optional<StudentProfile> findByUserId(Long userId);
+
     // ==================== 写入（保留） ====================
 
     /**

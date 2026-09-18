@@ -59,6 +59,15 @@ public class DbAuthAccountRepository implements AuthAccountRepository {
         return Optional.ofNullable(mapper.selectOne(wrapper)).map(AuthAccountConverter::toDomain);
     }
 
+    @Override
+    public Optional<AuthAccount> findByUserId(Long userId) {
+        LambdaQueryWrapper<SysUserPo> wrapper = new LambdaQueryWrapper<SysUserPo>()
+            .eq(SysUserPo::getUserId, userId);
+        // ⚠️ 不显式加 campus_id 条件，由数据权限拦截器追加
+        return Optional.ofNullable(mapper.selectOne(wrapper))
+            .map(AuthAccountConverter::toDomain);
+    }
+
     /**
      * 根据一批用户名，查询数据库中已经存在的用户名集合
      * @param usernames 待校验的用户名集合

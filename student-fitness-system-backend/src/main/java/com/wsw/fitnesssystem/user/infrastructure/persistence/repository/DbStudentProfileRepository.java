@@ -46,6 +46,15 @@ public class DbStudentProfileRepository implements StudentProfileRepository {
     }
 
     @Override
+    public Optional<StudentProfile> findByUserId(Long userId) {
+        LambdaQueryWrapper<StudentProfilePo> wrapper = new LambdaQueryWrapper<StudentProfilePo>()
+            .eq(StudentProfilePo::getUserId, userId);
+        // ⚠️ 不显式加 campus_id 条件，由数据权限拦截器追加
+        return Optional.ofNullable(mapper.selectOne(wrapper))
+            .map(converter::toDomain);
+    }
+
+    @Override
     public void save(StudentProfile student) {
         StudentProfilePo po = converter.toPo(student);
         if (po.getStudentId() == null) {

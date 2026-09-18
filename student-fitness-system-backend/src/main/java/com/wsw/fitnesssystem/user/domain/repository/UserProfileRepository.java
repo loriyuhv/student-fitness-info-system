@@ -33,4 +33,10 @@ public interface UserProfileRepository {
      */
     void save(UserProfile profile);
 
+    /**
+     * 按 userId 查询（不带 campusId）。
+     * <p><b>数据范围：</b>由 {@code user_profile} 表的 COLLEGE 契约控制。</p>
+     */
+    Optional<UserProfile> findByUserId(Long userId);
+
 }

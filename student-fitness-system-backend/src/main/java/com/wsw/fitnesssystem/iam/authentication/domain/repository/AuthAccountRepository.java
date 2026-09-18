@@ -19,6 +19,8 @@ public interface AuthAccountRepository {
 
     Optional<AuthAccount> findByUsername(String username);
 
+    Optional<AuthAccount> findByUserId(Long userId);
+
     Set<String> findExistingUsernames(Collection<String> usernames);
 
     boolean existsByUsername(String username);

@@ -1,12 +1,17 @@
 package com.wsw.fitnesssystem.user.infrastructure.persistence.repository;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.wsw.fitnesssystem.shared.exception.BizException;
+import com.wsw.fitnesssystem.shared.exception.SystemException;
+import com.wsw.fitnesssystem.shared.infrastructure.persistence.ConstraintResultCodeMapper;
+import com.wsw.fitnesssystem.shared.response.ResultCode;
 import com.wsw.fitnesssystem.user.domain.model.UserProfile;
 import com.wsw.fitnesssystem.user.domain.repository.UserProfileRepository;
 import com.wsw.fitnesssystem.user.infrastructure.persistence.converter.UserProfileConverter;
 import com.wsw.fitnesssystem.user.infrastructure.persistence.entity.UserProfilePo;
 import com.wsw.fitnesssystem.user.infrastructure.persistence.mapper.UserProfileMapper;
 import lombok.RequiredArgsConstructor;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Repository;
 import org.springframework.util.CollectionUtils;
 
@@ -47,13 +52,36 @@ public class DbUserProfileRepository implements UserProfileRepository {
     }
 
     @Override
+    public Optional<UserProfile> findByUserId(Long userId) {
+        LambdaQueryWrapper<UserProfilePo> wrapper = new LambdaQueryWrapper<UserProfilePo>()
+            .eq(UserProfilePo::getUserId, userId);
+        // ⚠️ 不显式加 campus_id 条件，由数据权限拦截器追加
+        return Optional.ofNullable(mapper.selectOne(wrapper))
+            .map(UserProfileConverter::toDomain);
+    }
+
+    @Override
     public void save(UserProfile profile) {
         UserProfilePo po = UserProfileConverter.toPo(profile);
         if (po.getProfileId() == null) {
             mapper.insert(po);
         } else {
-            mapper.updateById(po);
+            try {
+                mapper.updateById(po);
+            } catch (DataIntegrityViolationException e) {
+                throw translate(e);
+            }
         }
+    }
+
+    private RuntimeException translate(DataIntegrityViolationException e) {
+        ResultCode rc = ConstraintResultCodeMapper.resolve(e.getMessage());
+        if (rc != null) {
+            // 业务冲突：400/409 级别
+            return new BizException(rc);
+        }
+        // 未识别约束：保持系统异常，让全局 handler 归 500
+        return new SystemException(ResultCode.DATABASE_ERROR, e);
     }
 
 }

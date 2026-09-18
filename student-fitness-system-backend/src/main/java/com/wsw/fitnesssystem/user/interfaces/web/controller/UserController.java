@@ -3,14 +3,15 @@ package com.wsw.fitnesssystem.user.interfaces.web.controller;
 import com.wsw.fitnesssystem.shared.context.RequestContextHolder;
 import com.wsw.fitnesssystem.shared.domain.vb.Operator;
 import com.wsw.fitnesssystem.shared.response.ApiResult;
+import com.wsw.fitnesssystem.user.application.dto.command.UpdateMyProfileCommand;
 import com.wsw.fitnesssystem.user.application.dto.result.UserInfoResult;
+import com.wsw.fitnesssystem.user.application.service.command.UserProfileCommandService;
 import com.wsw.fitnesssystem.user.application.service.query.UserInfoQueryService;
 import com.wsw.fitnesssystem.user.interfaces.web.dto.UserInfoResponse;
+import com.wsw.fitnesssystem.user.interfaces.web.dto.request.UpdateMyProfileRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 /**
  * 个人中心控制器。
@@ -38,6 +39,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class UserController {
 
     private final UserInfoQueryService userInfoQueryService;
+    private final UserProfileCommandService userProfileCommandService;
 
     /**
      * A1：获取当前登录用户个人信息。
@@ -70,6 +72,30 @@ public class UserController {
             .build();
 
         return ApiResult.success(response);
+    }
+
+    /**
+     * A2：修改本人画像。
+     *
+     * <p><b>可修改字段：</b>nickname、phoneNumber、email、gender、birthDate、address、avatarUrl</p>
+     * <p><b>不可修改：</b>username、userType、campusId、studentNo、idCard、teacherNo</p>
+     */
+    @PutMapping("/me")
+    public ApiResult<Void> updateMyProfile(@RequestBody UpdateMyProfileRequest request) {
+        Operator operator = RequestContextHolder.getRequiredOperator();
+
+        UpdateMyProfileCommand command = UpdateMyProfileCommand.builder()
+            .nickname(request.getNickname())
+            .phoneNumber(request.getPhoneNumber())
+            .email(request.getEmail())
+            .gender(request.getGender())
+            .birthDate(request.getBirthDate())
+            .address(request.getAddress())
+            .avatarUrl(request.getAvatarUrl())
+            .build();
+
+        userProfileCommandService.updateMyProfile(operator, command);
+        return ApiResult.success();
     }
 
 }

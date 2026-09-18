@@ -13,18 +13,25 @@ import lombok.Getter;
 @Getter
 public enum DataScope {
 
-    ALL(0, "全部数据"),
-    SELF(1, "仅本人"),
-    CLASS(2, "本班"),
-    COLLEGE(3, "本学院"),
-    CUSTOM(4, "自定义");
+    ALL(0, "全部数据", 4),
+    SELF(1, "仅本人", 1),
+    CLASS(2, "本班", 2),
+    COLLEGE(3, "本学院", 3),
+    CUSTOM(4, "自定义", 0);
 
     private final int code;
     private final String desc;
+    private final int breadth;
 
-    DataScope(int code, String desc) {
+    DataScope(int code, String desc, int breadth) {
         this.code = code;
         this.desc = desc;
+        this.breadth = breadth;
+    }
+
+    /** this 是否比 other 更宽 */
+    public boolean isWiderThan(DataScope other) {
+        return this.breadth > other.breadth;
     }
 
     public static DataScope of(Integer code) {

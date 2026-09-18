@@ -38,6 +38,11 @@ public class UserAccountQueryLocalAdapter implements UserAccountQueryPort {
     }
 
     @Override
+    public Optional<UserAccountResult> findByUserId(Long userId) {
+        return repository.findByUserId(userId).map(this::buildResult);
+    }
+
+    @Override
     public Set<String> findExistingUsernames(Collection<String> usernames) {
         if (usernames == null || usernames.isEmpty()) {
             return Collections.emptySet();

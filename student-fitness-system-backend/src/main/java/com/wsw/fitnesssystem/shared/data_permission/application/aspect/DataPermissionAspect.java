@@ -1,6 +1,7 @@
 package com.wsw.fitnesssystem.shared.data_permission.application.aspect;
 
 import com.wsw.fitnesssystem.shared.context.RequestContextHolder;
+import com.wsw.fitnesssystem.shared.data_permission.DataPermissionScope;
 import com.wsw.fitnesssystem.shared.data_permission.context.DataPermissionContextHolder;
 import com.wsw.fitnesssystem.shared.data_permission.application.port.output.DataScopeQueryPort;
 import com.wsw.fitnesssystem.shared.data_permission.application.port.output.TeacherClassQueryPort;
@@ -12,8 +13,11 @@ import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
+import org.aspectj.lang.reflect.MethodSignature;
+import org.springframework.core.annotation.AnnotatedElementUtils;
 import org.springframework.stereotype.Component;
 
+import java.lang.reflect.Method;
 import java.util.Set;
 
 /**
@@ -37,7 +41,9 @@ public class DataPermissionAspect {
     private final DataScopeQueryPort dataScopeQueryPort;
     private final TeacherClassQueryPort teacherClassQueryPort;
 
-    @Around("@annotation(org.springframework.transaction.annotation.Transactional) " +
+    @Around("@annotation(com.wsw.fitnesssystem.shared.data_permission.DataPermissionScope) " +
+        "|| @within(com.wsw.fitnesssystem.shared.data_permission.DataPermissionScope) " +
+        "|| @annotation(org.springframework.transaction.annotation.Transactional) " +
         "|| execution(* com.wsw.fitnesssystem..application.service.query..*(..))")
     public Object around(ProceedingJoinPoint pjp) throws Throwable {
         Operator operator = RequestContextHolder.getOperator();
@@ -48,7 +54,7 @@ public class DataPermissionAspect {
         }
 
         try {
-            DataPermissionContext ctx = buildContext(operator);
+            DataPermissionContext ctx = buildContext(pjp, operator);
             DataPermissionContextHolder.setContext(ctx);
             return pjp.proceed();
         } finally {
@@ -56,20 +62,57 @@ public class DataPermissionAspect {
         }
     }
 
-    private DataPermissionContext buildContext(Operator operator) {
-        DataScope scope = dataScopeQueryPort.queryMaxDataScope(
-            operator.userId(), operator.campusId()
-        );
-        log.debug("[DP-Aspect] scope: {}", scope);
+    private DataPermissionContext buildContext(ProceedingJoinPoint pjp, Operator operator) {
+        DataScope scope = resolveScope(pjp, operator);
+        log.debug("[DP-Aspect] resolved scope: {}", scope);
 
-        Set<Long> allowedClassIds = (scope == DataScope.CLASS)
-            ? teacherClassQueryPort.queryClassIdsByUserIdAndCampusId(operator.userId(), operator.campusId())
-            : Set.of();
-        log.debug("[DP-Aspect] allowed class ids: {}", allowedClassIds);
+        Set<Long> allowedClassIds = Set.of();
+        if (scope == DataScope.CLASS) {
+            allowedClassIds = teacherClassQueryPort
+                .queryClassIdsByUserIdAndCampusId(operator.userId(), operator.campusId());
+            log.debug("[DP-Aspect] allowed class ids: {}", allowedClassIds);
+        }
 
         return new DataPermissionContext(
             scope, operator.userId(), operator.campusId(), allowedClassIds
         );
+    }
+
+    private DataScope resolveScope(ProceedingJoinPoint pjp, Operator operator) {
+        MethodSignature sig = (MethodSignature) pjp.getSignature();
+        Method method = sig.getMethod();
+
+        DataPermissionScope ann = AnnotatedElementUtils
+            .findMergedAnnotation(method, DataPermissionScope.class);
+        if (ann == null) {
+            ann = AnnotatedElementUtils
+                .findMergedAnnotation(method.getDeclaringClass(), DataPermissionScope.class);
+        }
+
+        DataScope userMax = dataScopeQueryPort
+            .queryMaxDataScope(operator.userId(), operator.campusId());
+
+        if (ann == null) {
+            log.debug("[DP-Aspect] method={}, no annotation, fallback userMax={}",
+                method.getName(), userMax);
+            return userMax;
+        }
+
+        DataScope declared = ann.value();
+        log.debug("[DP-Aspect] method={}, declared={}, userMax={}",
+            method.getName(), declared, userMax);
+
+        if (declared == DataScope.CUSTOM) {
+            log.warn("[DP-Aspect] CUSTOM not allowed in annotation, fallback userMax={}", userMax);
+            return userMax;
+        }
+        if (declared.isWiderThan(userMax)) {
+            log.warn("[DP-Aspect] declared={} wider than userMax={}, downgrade",
+                declared, userMax);
+            return userMax;
+        }
+        log.debug("[DP-Aspect] use declared={}", declared);
+        return declared;
     }
 
 }

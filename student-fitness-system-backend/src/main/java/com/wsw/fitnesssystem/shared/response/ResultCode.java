@@ -128,6 +128,16 @@ public enum ResultCode {
 
     TASK_CANCELLED(409002, HttpStatus.CONFLICT, "导入任务已被用户取消"),
 
+    /* ================= USER 唯一约束冲突 409xxx ================= */
+    USER_PHONE_ALREADY_EXISTS(409201, HttpStatus.CONFLICT, "手机号已被使用"),
+    USER_EMAIL_ALREADY_EXISTS(409202, HttpStatus.CONFLICT, "邮箱已被使用"),
+    USER_USERNAME_ALREADY_EXISTS(409203, HttpStatus.CONFLICT, "用户名已被占用"),
+    ROLE_CODE_ALREADY_EXISTS(409204, HttpStatus.CONFLICT, "角色编码已存在"),
+    ROLE_NAME_ALREADY_EXISTS(409205, HttpStatus.CONFLICT, "角色名称已存在"),
+    PERM_CODE_ALREADY_EXISTS(409206, HttpStatus.CONFLICT, "权限编码已存在"),
+    PERM_NAME_ALREADY_EXISTS(409207, HttpStatus.CONFLICT, "权限名称已存在"),
+    DATA_ALREADY_EXISTS(409208, HttpStatus.CONFLICT, "数据已存在，请勿重复提交"),
+
     /* ================= 体测业务错误 422xxx ================= */
 
     FITNESS_SCORE_CALCULATE_ERROR(422101, HttpStatus.UNPROCESSABLE_ENTITY, "成绩计算失败"),

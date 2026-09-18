@@ -3,17 +3,17 @@ package com.wsw.fitnesssystem.user.interfaces.web.controller;
 import com.wsw.fitnesssystem.shared.response.ApiResult;
 import com.wsw.fitnesssystem.shared.response.PageResult;
 import com.wsw.fitnesssystem.user.application.dto.query.StudentListQuery;
+import com.wsw.fitnesssystem.user.application.dto.result.AdminUserDetailResult;
 import com.wsw.fitnesssystem.user.application.dto.result.StudentListItemResult;
 import com.wsw.fitnesssystem.user.application.service.query.StudentQueryService;
+import com.wsw.fitnesssystem.user.application.service.query.UserInfoQueryService;
+import com.wsw.fitnesssystem.user.interfaces.web.dto.response.AdminUserDetailResponse;
 import com.wsw.fitnesssystem.user.interfaces.web.dto.response.StudentListItemResponse;
 import com.wsw.fitnesssystem.user.interfaces.web.dto.response.StudentListPageResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -47,6 +47,7 @@ import java.util.List;
 public class AdminUserController {
 
     private final StudentQueryService studentQueryService;
+    private final UserInfoQueryService userInfoQueryService;
 
     /**
      * C1：分页查询用户列表。
@@ -69,6 +70,20 @@ public class AdminUserController {
             studentQueryService.listStudents(query);
 
         return ApiResult.success(buildResponse(result));
+    }
+
+    /**
+     * C2：查询用户详情。
+     *
+     * <p><b>功能权限：</b>{@code system:user:view}。</p>
+     * <p><b>数据范围：</b>校区管理员 → 本校区；超管 → 全部。</p>
+     * <p><b>脱敏：</b>id_card 返回时已脱敏。</p>
+     */
+    @GetMapping("/{userId}")
+    @PreAuthorize("hasAuthority('system:user:view')")
+    public ApiResult<AdminUserDetailResponse> getUserDetail(@PathVariable Long userId) {
+        AdminUserDetailResult result = userInfoQueryService.getUserDetailForAdmin(userId);
+        return ApiResult.success(AdminUserDetailResponse.from(result));
     }
 
     // ==================== 响应转换 ====================

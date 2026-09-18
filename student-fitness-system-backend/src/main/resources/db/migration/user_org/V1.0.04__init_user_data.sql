@@ -41,7 +41,6 @@ VALUES
      @admin_id,
      @admin_id);
 
-
 INSERT INTO
     user_profile (user_id, campus_id, nickname, phone_number, email, remark,
                   gender, birth_date, avatar_url, address, create_by, update_by)
@@ -49,6 +48,23 @@ VALUES
     ((SELECT user_id FROM sys_user WHERE username = 'campus_admin_100101' AND status = 1 AND deleted = 0),
      1001,
      '1001校区管理员01',
+     NULL,
+     NULL,
+     '校区管理员',
+     0, -- 性别：未知
+     NULL,
+     'https://api.dicebear.com/10.x/adventurer/svg?seed=user008',
+     NULL,
+     @admin_id,
+     @admin_id);
+
+INSERT INTO
+    user_profile (user_id, campus_id, nickname, phone_number, email, remark,
+                  gender, birth_date, avatar_url, address, create_by, update_by)
+VALUES
+    ((SELECT user_id FROM sys_user WHERE username = 'campus_admin_100201' AND status = 1 AND deleted = 0),
+     1002,
+     '1002校区管理员01',
      NULL,
      NULL,
      '校区管理员',

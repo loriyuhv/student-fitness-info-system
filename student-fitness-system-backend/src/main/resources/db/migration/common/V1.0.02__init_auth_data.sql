@@ -48,6 +48,18 @@ VALUES
      @admin_id -- create_by: 大概率是1 代表超级管理员
     );
 
+-- 用户名：campus_admin_100201（1002代表校区，01代表校区管理员第一位，固定保留名称，不可删除）
+INSERT INTO
+    sys_user (`campus_id`, `username`, `password`, user_type, source, create_by)
+VALUES
+    (1002,
+     'campus_admin_100201',
+     '$2a$10$2529vU4WTji.qS6i3LfEYu6s2NUHzeWOnwl.so9CtSJUm7O3QnHp6',
+     0, -- user_type: 0-管理员
+     0, -- source: 0-导入
+     @admin_id -- create_by: 大概率是1 代表超级管理员
+    );
+
 -- 3. 示例教师账号（角色：TEACHER）
 -- 说明：体育教师“张建国”，工号 12018007，具备体测数据录入、查看本班汇总等教学权限。
 -- 用户名即工号，便于与教务系统数据对齐。
@@ -105,6 +117,15 @@ INSERT INTO
     sys_role (campus_id, role_code, role_name, data_scope, remark)
 VALUES
     (1001,
+     'CAMPUS_ADMIN',
+     '校区管理员',
+     3, -- data_scope: 3-校区数据
+     '系统部分权限，负责系统校区内配置与用户管理，可跨班级操作');
+
+INSERT INTO
+    sys_role (campus_id, role_code, role_name, data_scope, remark)
+VALUES
+    (1002,
      'CAMPUS_ADMIN',
      '校区管理员',
      3, -- data_scope: 3-校区数据
@@ -293,7 +314,7 @@ FROM
              AND r.campus_id = u.campus_id
              AND r.deleted = 0
 WHERE
-      u.username = 'campus_admin_100101'
+    u.username IN ('campus_admin_100101', 'campus_admin_100201')
   AND u.deleted = 0;
 
 -- ============================================================
@@ -432,7 +453,6 @@ FROM
              AND p.status = 1
 WHERE
       r.role_code = 'CAMPUS_ADMIN'
-  AND r.campus_id = 1001
   AND r.deleted = 0
   AND r.status = 1;
 

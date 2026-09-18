@@ -21,6 +21,8 @@ public interface TeacherProfileRepository {
      */
     Optional<TeacherProfile> findByTeacherNo(String teacherNo);
 
+    Optional<TeacherProfile> findByUserId(Long userId);
+
     /**
      * 保存教师信息
      */

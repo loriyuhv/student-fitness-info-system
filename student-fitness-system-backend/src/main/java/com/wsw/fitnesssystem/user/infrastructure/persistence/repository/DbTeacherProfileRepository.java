@@ -45,6 +45,15 @@ public class DbTeacherProfileRepository implements TeacherProfileRepository {
     }
 
     @Override
+    public Optional<TeacherProfile> findByUserId(Long userId) {
+        LambdaQueryWrapper<TeacherProfilePo> wrapper = new LambdaQueryWrapper<TeacherProfilePo>()
+            .eq(TeacherProfilePo::getUserId, userId);
+        // ⚠️ 不显式加 campus_id 条件，由数据权限拦截器追加
+        return Optional.ofNullable(mapper.selectOne(wrapper))
+            .map(converter::toDomain);
+    }
+
+    @Override
     public void save(TeacherProfile teacher) {
         TeacherProfilePo po = converter.toPo(teacher);
         if (po.getTeacherId() == null) {

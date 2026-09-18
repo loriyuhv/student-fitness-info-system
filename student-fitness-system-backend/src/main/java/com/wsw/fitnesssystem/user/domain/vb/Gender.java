@@ -1,6 +1,12 @@
 package com.wsw.fitnesssystem.user.domain.vb;
 
+import com.wsw.fitnesssystem.shared.domain.exception.DomainValidationException;
 import lombok.Getter;
+
+import java.util.Arrays;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 /**
  * @author loriyuhv
@@ -14,19 +20,26 @@ public enum Gender {
     MALE(1, "男"),
     FEMALE(2, "女");
 
-    private final int code;
+    private final Integer code;
     private final String desc;
 
-    Gender(int code, String desc) {
+    Gender(Integer code, String desc) {
         this.code = code;
         this.desc = desc;
     }
 
-    public static Gender of(int code) {
-        for (Gender gender : values()) {
-            if (gender.code == code) return gender;
+    private static final Map<Integer, Gender> CODE_MAP = Arrays.stream(values())
+        .collect(Collectors.toMap(Gender::getCode, Function.identity()));
+
+    public static Gender of(Integer code) {
+        if (code == null) {
+            throw new DomainValidationException("性别不能为空");
         }
-        throw new IllegalArgumentException("无效的性别编码：" + code);
+        Gender gender = CODE_MAP.get(code);
+        if (gender == null) {
+            throw new DomainValidationException("无效的性别编码：" + code);
+        }
+        return gender;
     }
 
 }
