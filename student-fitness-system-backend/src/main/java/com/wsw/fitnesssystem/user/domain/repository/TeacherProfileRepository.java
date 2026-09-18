@@ -2,6 +2,8 @@ package com.wsw.fitnesssystem.user.domain.repository;
 
 import com.wsw.fitnesssystem.user.domain.model.TeacherProfile;
 
+import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -22,6 +24,13 @@ public interface TeacherProfileRepository {
     Optional<TeacherProfile> findByTeacherNo(String teacherNo);
 
     Optional<TeacherProfile> findByUserId(Long userId);
+
+    /**
+     * 按用户 ID 集合批量查询（避免 N+1）。
+     *
+     * @param userIds 用户 ID 集合；为空返回空列表
+     */
+    List<TeacherProfile> findByUserIds(Collection<Long> userIds);
 
     /**
      * 保存教师信息

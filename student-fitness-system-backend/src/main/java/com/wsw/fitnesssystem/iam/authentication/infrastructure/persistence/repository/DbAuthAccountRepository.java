@@ -1,23 +1,27 @@
 package com.wsw.fitnesssystem.iam.authentication.infrastructure.persistence.repository;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.wsw.fitnesssystem.iam.authentication.domain.model.AuthAccount;
+import com.wsw.fitnesssystem.iam.authentication.domain.query.AuthAccountQuery;
 import com.wsw.fitnesssystem.iam.authentication.domain.repository.AuthAccountRepository;
 import com.wsw.fitnesssystem.iam.authentication.infrastructure.persistence.converter.AuthAccountConverter;
 import com.wsw.fitnesssystem.iam.authentication.infrastructure.persistence.entity.SysUserPo;
 import com.wsw.fitnesssystem.iam.authentication.infrastructure.persistence.mapper.SysUserMapper;
+import com.wsw.fitnesssystem.shared.domain.pagination.PageSlice;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.stereotype.Repository;
+import org.springframework.util.StringUtils;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
  * AuthAccountRepository 的 MySQL 实现
+ *
+ * <p><b>职责：</b>把 iam 领域模型 ⇄ PO 做转换，处理 MyBatis-Plus 分页，
+ * 返回领域分页切片 {@link PageSlice}。</p>
  *
  * @author loriyuhv
  * @version 1.0 2026/9/16 15:17
@@ -92,6 +96,38 @@ public class DbAuthAccountRepository implements AuthAccountRepository {
         LambdaQueryWrapper<SysUserPo> wrapper = new LambdaQueryWrapper<SysUserPo>()
             .eq(SysUserPo::getUsername, username);
         return mapper.selectCount(wrapper) > 0;
+    }
+
+    /**
+     * 分页查询账号。
+     *
+     * <p><b>实现要点：</b></p>
+     * <ol>
+     *   <li>MyBatis-Plus 的 {@link Page} 是持久化框架分页对象，在此处使用，
+     *       不向领域层泄漏；</li>
+     *   <li>查询条件根据 {@link AuthAccountQuery} 的可选字段动态拼接；</li>
+     *   <li>不显式加 {@code campus_id}，交由数据权限拦截器自动追加；</li>
+     *   <li>返回 {@link PageSlice}，由 Adapter 负责翻译为对外的 {@code PageResult}。</li>
+     * </ol>
+     * @param query iam 领域层查询条件
+     * @return 分页数据
+     */
+    @Override
+    public PageSlice<AuthAccount> page(AuthAccountQuery query) {
+        Page<SysUserPo> mpPage = new Page<>(query.pageNum(), query.pageSize());
+
+        LambdaQueryWrapper<SysUserPo> wrapper = new LambdaQueryWrapper<SysUserPo>()
+            .eq(query.userType() != null, SysUserPo::getUserType, query.userType())
+            .eq(query.status() != null, SysUserPo::getStatus, query.status())
+            .like(StringUtils.hasText(query.keyword()), SysUserPo::getUsername, query.keyword())
+            .orderByDesc(SysUserPo::getUserId);
+        // ⚠️ 不显式加 campus_id，由数据权限拦截器追加
+        Page<SysUserPo> result = mapper.selectPage(mpPage, wrapper);
+
+        List<AuthAccount> accounts = result.getRecords().stream()
+            .map(AuthAccountConverter::toDomain).toList();
+
+        return PageSlice.of(accounts, result.getTotal(), query.pageNum(), query.pageSize());
     }
 
 }

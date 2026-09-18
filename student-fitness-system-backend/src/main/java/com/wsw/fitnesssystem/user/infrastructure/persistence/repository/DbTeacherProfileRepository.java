@@ -8,7 +8,11 @@ import com.wsw.fitnesssystem.user.infrastructure.persistence.entity.TeacherProfi
 import com.wsw.fitnesssystem.user.infrastructure.persistence.mapper.TeacherProfileMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
+import org.springframework.util.CollectionUtils;
 
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -51,6 +55,20 @@ public class DbTeacherProfileRepository implements TeacherProfileRepository {
         // ⚠️ 不显式加 campus_id 条件，由数据权限拦截器追加
         return Optional.ofNullable(mapper.selectOne(wrapper))
             .map(converter::toDomain);
+    }
+
+    @Override
+    public List<TeacherProfile> findByUserIds(Collection<Long> userIds) {
+        if (CollectionUtils.isEmpty(userIds)) return Collections.emptyList();
+
+        LambdaQueryWrapper<TeacherProfilePo> wrapper = new LambdaQueryWrapper<TeacherProfilePo>()
+            .in(TeacherProfilePo::getUserId, userIds);
+
+        List<TeacherProfilePo> poList = mapper.selectList(wrapper);
+
+        if (CollectionUtils.isEmpty(poList)) return Collections.emptyList();
+
+        return poList.stream().map(converter::toDomain).toList();
     }
 
     @Override

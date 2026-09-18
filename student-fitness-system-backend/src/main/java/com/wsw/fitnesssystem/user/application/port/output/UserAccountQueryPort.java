@@ -1,5 +1,7 @@
 package com.wsw.fitnesssystem.user.application.port.output;
 
+import com.wsw.fitnesssystem.shared.response.PageResult;
+import com.wsw.fitnesssystem.user.application.dto.query.UserListQuery;
 import com.wsw.fitnesssystem.user.application.dto.result.UserAccountResult;
 
 import java.util.Collection;
@@ -25,5 +27,14 @@ public interface UserAccountQueryPort {
      * 校区管理员自动追加 {@code campus_id = 本校区}。</p>
      */
     Optional<UserAccountResult> findByUserId(Long userId);
+
+    /**
+     * C1：分页查询用户账号。
+     *
+     * <p><b>数据范围：</b>由 {@code sys_user} 表的 COLLEGE 契约控制，
+     * 校区管理员自动追加 {@code campus_id = 本校区}。</p>
+     * <p><b>职责：</b>只返回账号基本字段，不含画像和扩展表信息。</p>
+     */
+    PageResult<UserAccountResult> page(UserListQuery query);
 
 }

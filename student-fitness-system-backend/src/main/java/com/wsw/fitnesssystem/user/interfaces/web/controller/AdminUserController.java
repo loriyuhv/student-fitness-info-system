@@ -2,20 +2,17 @@ package com.wsw.fitnesssystem.user.interfaces.web.controller;
 
 import com.wsw.fitnesssystem.shared.response.ApiResult;
 import com.wsw.fitnesssystem.shared.response.PageResult;
-import com.wsw.fitnesssystem.user.application.dto.query.StudentListQuery;
+import com.wsw.fitnesssystem.user.application.dto.query.UserListQuery;
 import com.wsw.fitnesssystem.user.application.dto.result.AdminUserDetailResult;
-import com.wsw.fitnesssystem.user.application.dto.result.StudentListItemResult;
-import com.wsw.fitnesssystem.user.application.service.query.StudentQueryService;
+import com.wsw.fitnesssystem.user.application.dto.result.UserListItemResult;
+import com.wsw.fitnesssystem.user.application.service.query.UserQueryService;
 import com.wsw.fitnesssystem.user.application.service.query.UserInfoQueryService;
 import com.wsw.fitnesssystem.user.interfaces.web.dto.response.AdminUserDetailResponse;
-import com.wsw.fitnesssystem.user.interfaces.web.dto.response.StudentListItemResponse;
-import com.wsw.fitnesssystem.user.interfaces.web.dto.response.StudentListPageResponse;
+import com.wsw.fitnesssystem.user.interfaces.web.dto.response.UserListPageResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 /**
  * 用户管理控制器（管理员专属）。
@@ -46,7 +43,7 @@ import java.util.List;
 @RequestMapping("/admin/users")
 public class AdminUserController {
 
-    private final StudentQueryService studentQueryService;
+    private final UserQueryService userQueryService;
     private final UserInfoQueryService userInfoQueryService;
 
     /**
@@ -55,21 +52,23 @@ public class AdminUserController {
      * <p><b>功能权限：</b>{@code system:user:view}。教师、学生无权访问。</p>
      * <p><b>数据范围：</b>校区管理员 → 本校区；超级管理员 → 全部。</p>
      *
-     * <p><b>当前阶段：</b>列表仅返回学生（由 {@code StudentQueryService} 提供）。
+     * <p><b>当前阶段：</b>列表仅返回学生（由 {@code UserQueryService} 提供）。
      * 后续扩展为"支持按 userType 过滤"。</p>
      */
     @GetMapping
     @PreAuthorize("hasAuthority('system:user:view')")
-    public ApiResult<StudentListPageResponse> listUsers(
+    public ApiResult<UserListPageResponse> listUsers(
         @RequestParam(required = false) Integer pageNum,
-        @RequestParam(required = false) Integer pageSize
+        @RequestParam(required = false) Integer pageSize,
+        @RequestParam(required = false) Integer userType,
+        @RequestParam(required = false) Integer status,
+        @RequestParam(required = false) String keyword
     ) {
-        StudentListQuery query = StudentListQuery.of(pageNum, pageSize);
+        UserListQuery query = UserListQuery.of(pageNum, pageSize, userType, status, keyword);
 
-        PageResult<StudentListItemResult> result =
-            studentQueryService.listStudents(query);
+        PageResult<UserListItemResult> result = userQueryService.listUsers(query);
 
-        return ApiResult.success(buildResponse(result));
+        return ApiResult.success(UserListPageResponse.from(result));
     }
 
     /**
@@ -84,37 +83,6 @@ public class AdminUserController {
     public ApiResult<AdminUserDetailResponse> getUserDetail(@PathVariable Long userId) {
         AdminUserDetailResult result = userInfoQueryService.getUserDetailForAdmin(userId);
         return ApiResult.success(AdminUserDetailResponse.from(result));
-    }
-
-    // ==================== 响应转换 ====================
-
-    private StudentListPageResponse buildResponse(PageResult<StudentListItemResult> result) {
-        List<StudentListItemResponse> items = result.getItems().stream()
-            .map(this::buildItemResponse)
-            .toList();
-
-        return StudentListPageResponse.builder()
-            .total(result.getTotal())
-            .pageNum(result.getPageNum())
-            .pageSize(result.getPageSize())
-            .items(items)
-            .build();
-    }
-
-    private StudentListItemResponse buildItemResponse(StudentListItemResult r) {
-        return StudentListItemResponse.builder()
-            .studentId(r.getStudentId())
-            .userId(r.getUserId())
-            .studentNo(r.getStudentNo())
-            .classId(r.getClassId())
-            .enrollYear(r.getEnrollYear())
-            .major(r.getMajor())
-            .gender(r.getGender())
-            .familyAddress(r.getFamilyAddress())
-            .nickname(r.getNickname())
-            .phoneNumber(r.getPhoneNumber())
-            .email(r.getEmail())
-            .build();
     }
 
 }
