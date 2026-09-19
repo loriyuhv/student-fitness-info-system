@@ -2,8 +2,8 @@ package com.wsw.fitnesssystem.iam.authentication.interfaces.web.controller;
 
 import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 import com.wsw.fitnesssystem.iam.authentication.application.AuthAppService;
-import com.wsw.fitnesssystem.shared.response.ApiResult;
-import com.wsw.fitnesssystem.shared.response.ResultCode;
+import com.wsw.fitnesssystem.shared.interfaces.web.response.ApiResult;
+import com.wsw.fitnesssystem.shared.interfaces.web.response.ResultCode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.access.prepost.PreAuthorize;

@@ -2,8 +2,8 @@ package com.wsw.fitnesssystem.user.domain.model;
 
 import com.wsw.fitnesssystem.shared.domain.exception.DomainConflictException;
 import com.wsw.fitnesssystem.shared.domain.exception.DomainValidationException;
-import com.wsw.fitnesssystem.shared.exception.BizException;
-import com.wsw.fitnesssystem.shared.response.ResultCode;
+import com.wsw.fitnesssystem.shared.application.exception.BizException;
+import com.wsw.fitnesssystem.shared.interfaces.web.response.ResultCode;
 import com.wsw.fitnesssystem.user.domain.vb.Gender;
 import lombok.Getter;
 import org.apache.commons.lang3.StringUtils;

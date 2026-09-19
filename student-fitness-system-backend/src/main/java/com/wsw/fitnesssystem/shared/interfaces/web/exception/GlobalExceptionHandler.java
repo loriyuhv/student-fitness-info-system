@@ -1,5 +1,7 @@
-package com.wsw.fitnesssystem.shared.exception;
+package com.wsw.fitnesssystem.shared.interfaces.web.exception;
 
+import com.wsw.fitnesssystem.shared.application.exception.BizException;
+import com.wsw.fitnesssystem.shared.application.exception.SystemException;
 import com.wsw.fitnesssystem.shared.domain.exception.DomainConflictException;
 import com.wsw.fitnesssystem.shared.domain.exception.DomainException;
 import com.wsw.fitnesssystem.shared.infrastructure.persistence.ConstraintResultCodeMapper;
@@ -7,8 +9,8 @@ import jakarta.servlet.ServletException;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
-import com.wsw.fitnesssystem.shared.response.ApiResult;
-import com.wsw.fitnesssystem.shared.response.ResultCode;
+import com.wsw.fitnesssystem.shared.interfaces.web.response.ApiResult;
+import com.wsw.fitnesssystem.shared.interfaces.web.response.ResultCode;
 import org.springframework.beans.TypeMismatchException;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.converter.HttpMessageNotReadableException;

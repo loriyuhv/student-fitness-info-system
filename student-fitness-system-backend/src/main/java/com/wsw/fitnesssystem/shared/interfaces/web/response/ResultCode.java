@@ -1,4 +1,4 @@
-package com.wsw.fitnesssystem.shared.response;
+package com.wsw.fitnesssystem.shared.interfaces.web.response;
 
 import lombok.Getter;
 import org.springframework.http.HttpStatus;

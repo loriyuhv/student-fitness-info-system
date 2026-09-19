@@ -1,4 +1,4 @@
-package com.wsw.fitnesssystem.shared.context;
+package com.wsw.fitnesssystem.shared.application.context;
 
 import com.wsw.fitnesssystem.shared.domain.vb.Operator;
 

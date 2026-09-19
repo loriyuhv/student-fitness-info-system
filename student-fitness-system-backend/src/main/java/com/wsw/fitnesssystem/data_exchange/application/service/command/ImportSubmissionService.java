@@ -9,8 +9,8 @@ import com.wsw.fitnesssystem.data_exchange.application.scheduler.AsyncImportSche
 import com.wsw.fitnesssystem.data_exchange.application.port.output.DistributedLockPort;
 import com.wsw.fitnesssystem.data_exchange.application.port.output.RateLimiterPort;
 import com.wsw.fitnesssystem.data_exchange.application.enums.ImportBizType;
-import com.wsw.fitnesssystem.shared.exception.BizException;
-import com.wsw.fitnesssystem.shared.response.ResultCode;
+import com.wsw.fitnesssystem.shared.application.exception.BizException;
+import com.wsw.fitnesssystem.shared.interfaces.web.response.ResultCode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;

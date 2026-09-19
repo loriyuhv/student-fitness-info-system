@@ -1,7 +1,7 @@
-package com.wsw.fitnesssystem.shared.config;
+package com.wsw.fitnesssystem.shared.infrastructure.config;
 
 import com.baomidou.mybatisplus.core.handlers.MetaObjectHandler;
-import com.wsw.fitnesssystem.shared.context.RequestContextHolder;
+import com.wsw.fitnesssystem.shared.application.context.RequestContextHolder;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.ibatis.reflection.MetaObject;
 import org.springframework.stereotype.Component;

@@ -11,8 +11,8 @@ import com.wsw.fitnesssystem.fitness.domain.model.StudentFitnessSummary;
 import com.wsw.fitnesssystem.fitness.domain.port.FitnessItemRepository;
 import com.wsw.fitnesssystem.fitness.domain.port.FitnessRecordRepository;
 import com.wsw.fitnesssystem.fitness.domain.port.FitnessSummaryRepository;
-import com.wsw.fitnesssystem.shared.exception.BizException;
-import com.wsw.fitnesssystem.shared.response.ResultCode;
+import com.wsw.fitnesssystem.shared.application.exception.BizException;
+import com.wsw.fitnesssystem.shared.interfaces.web.response.ResultCode;
 import com.wsw.fitnesssystem.user.domain.model.StudentProfile;
 import com.wsw.fitnesssystem.user.domain.repository.StudentProfileRepository;
 import com.wsw.fitnesssystem.user.domain.vb.Gender;
@@ -26,10 +26,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -158,7 +155,7 @@ public class FitnessRecordSubmitServiceImpl implements FitnessRecordSubmitServic
      */
     private Integer resolveGenderCode(StudentProfile profile) {
         Gender gender = profile.getGender();
-        if (gender == null || gender.getCode() == Gender.UNKNOWN.getCode()) {
+        if (gender == null || Objects.equals(gender.getCode(), Gender.UNKNOWN.getCode())) {
             throw new BizException(ResultCode.PARAM_INVALID,
                 "学生 " + profile.getStudentNo() + " 未设置性别，无法进行体测评分");
         }

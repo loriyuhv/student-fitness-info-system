@@ -1,6 +1,6 @@
 package com.wsw.fitnesssystem.shared.infrastructure.persistence;
 
-import com.wsw.fitnesssystem.shared.response.ResultCode;
+import com.wsw.fitnesssystem.shared.interfaces.web.response.ResultCode;
 
 import java.util.Map;
 import java.util.regex.Matcher;

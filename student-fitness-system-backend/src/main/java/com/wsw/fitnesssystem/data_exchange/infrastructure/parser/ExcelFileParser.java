@@ -5,8 +5,8 @@ import cn.idev.excel.context.AnalysisContext;
 import cn.idev.excel.read.listener.ReadListener;
 import com.wsw.fitnesssystem.data_exchange.application.port.output.FileParsingPort;
 import com.wsw.fitnesssystem.data_exchange.domain.exception.ImportCancelledException;
-import com.wsw.fitnesssystem.shared.exception.BizException;
-import com.wsw.fitnesssystem.shared.response.ResultCode;
+import com.wsw.fitnesssystem.shared.application.exception.BizException;
+import com.wsw.fitnesssystem.shared.interfaces.web.response.ResultCode;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 

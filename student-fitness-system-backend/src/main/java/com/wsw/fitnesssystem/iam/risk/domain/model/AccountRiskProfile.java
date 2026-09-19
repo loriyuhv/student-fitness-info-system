@@ -2,8 +2,8 @@ package com.wsw.fitnesssystem.iam.risk.domain.model;
 
 import com.wsw.fitnesssystem.iam.risk.domain.valueobject.AccountIdentifier;
 import com.wsw.fitnesssystem.iam.risk.domain.valueobject.AccountLock;
-import com.wsw.fitnesssystem.shared.exception.BizException;
-import com.wsw.fitnesssystem.shared.response.ResultCode;
+import com.wsw.fitnesssystem.shared.application.exception.BizException;
+import com.wsw.fitnesssystem.shared.interfaces.web.response.ResultCode;
 import lombok.Getter;
 
 /**

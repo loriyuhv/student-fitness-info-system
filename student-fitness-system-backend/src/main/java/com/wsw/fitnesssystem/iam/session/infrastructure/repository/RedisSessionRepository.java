@@ -2,9 +2,9 @@ package com.wsw.fitnesssystem.iam.session.infrastructure.repository;
 
 import com.wsw.fitnesssystem.iam.session.domain.port.SessionRepository;
 import com.wsw.fitnesssystem.iam.session.infrastructure.config.SessionProperties;
-import com.wsw.fitnesssystem.shared.config.properties.AuthRedisKeys;
-import com.wsw.fitnesssystem.shared.exception.BizException;
-import com.wsw.fitnesssystem.shared.response.ResultCode;
+import com.wsw.fitnesssystem.shared.infrastructure.properties.AuthRedisKeys;
+import com.wsw.fitnesssystem.shared.application.exception.BizException;
+import com.wsw.fitnesssystem.shared.interfaces.web.response.ResultCode;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

@@ -1,5 +1,8 @@
 package com.wsw.fitnesssystem.iam.authentication.domain.query;
 
+import com.wsw.fitnesssystem.shared.domain.exception.DomainValidationException;
+import com.wsw.fitnesssystem.shared.domain.pagination.PageQuery;
+
 /**
  * 账号分页查询条件（iam 领域层自有模型）。
  *
@@ -26,19 +29,29 @@ package com.wsw.fitnesssystem.iam.authentication.domain.query;
  * @since 1.0
  */
 public record AuthAccountQuery(
-    Integer pageNum,
-    Integer pageSize,
+    int pageNum,
+    int pageSize,
     Integer userType,
     Integer status,
     String keyword
-) {
+) implements PageQuery {
 
+    /**
+     * 紧凑构造器：契约不变量校验。
+     *
+     * <p>正常情况下，{@code pageNum} / {@code pageSize} 由应用层从
+     * {@code PageRequest} 的子类翻译而来，已经被上层兜底保护。
+     * 此处的校验是<b>领域层最后一道防线</b>：防止应用层误传或未来新增调用方绕过校验。</p>
+     *
+     * <p>违反不变量时抛 {@link DomainValidationException}，
+     * 由应用层统一翻译为 400 / PARAM_INVALID。</p>
+     */
     public AuthAccountQuery {
         if (pageNum < 1) {
-            throw new IllegalArgumentException("pageNum must be >= 1");
+            throw new DomainValidationException("页码必须大于等于 1，当前值：" + pageNum);
         }
         if (pageSize < 1) {
-            throw new IllegalArgumentException("pageSize must be >= 1");
+            throw new DomainValidationException("每页条数必须大于等于 1，当前值：" + pageSize);
         }
     }
 

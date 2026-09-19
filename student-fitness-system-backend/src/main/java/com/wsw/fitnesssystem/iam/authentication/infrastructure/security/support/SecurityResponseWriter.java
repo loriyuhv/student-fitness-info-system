@@ -1,8 +1,8 @@
 package com.wsw.fitnesssystem.iam.authentication.infrastructure.security.support;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.wsw.fitnesssystem.shared.response.ApiResult;
-import com.wsw.fitnesssystem.shared.response.ResultCode;
+import com.wsw.fitnesssystem.shared.interfaces.web.response.ApiResult;
+import com.wsw.fitnesssystem.shared.interfaces.web.response.ResultCode;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;

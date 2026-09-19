@@ -1,8 +1,8 @@
 package com.wsw.fitnesssystem.user.interfaces.web.controller;
 
-import com.wsw.fitnesssystem.shared.context.RequestContextHolder;
+import com.wsw.fitnesssystem.shared.application.context.RequestContextHolder;
 import com.wsw.fitnesssystem.shared.domain.vb.Operator;
-import com.wsw.fitnesssystem.shared.response.ApiResult;
+import com.wsw.fitnesssystem.shared.interfaces.web.response.ApiResult;
 import com.wsw.fitnesssystem.user.application.dto.command.UpdateMyProfileCommand;
 import com.wsw.fitnesssystem.user.application.dto.result.UserInfoResult;
 import com.wsw.fitnesssystem.user.application.service.command.UserProfileCommandService;

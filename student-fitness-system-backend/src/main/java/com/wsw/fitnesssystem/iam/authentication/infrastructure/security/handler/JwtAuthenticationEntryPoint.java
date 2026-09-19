@@ -1,7 +1,7 @@
 package com.wsw.fitnesssystem.iam.authentication.infrastructure.security.handler;
 
 import com.wsw.fitnesssystem.iam.authentication.infrastructure.security.support.SecurityResponseWriter;
-import com.wsw.fitnesssystem.shared.response.ResultCode;
+import com.wsw.fitnesssystem.shared.interfaces.web.response.ResultCode;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;

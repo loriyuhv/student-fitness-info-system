@@ -1,6 +1,6 @@
 package com.wsw.fitnesssystem.shared.data_permission.application.aspect;
 
-import com.wsw.fitnesssystem.shared.context.RequestContextHolder;
+import com.wsw.fitnesssystem.shared.application.context.RequestContextHolder;
 import com.wsw.fitnesssystem.shared.data_permission.DataPermissionScope;
 import com.wsw.fitnesssystem.shared.data_permission.context.DataPermissionContextHolder;
 import com.wsw.fitnesssystem.shared.data_permission.application.port.output.DataScopeQueryPort;

@@ -12,8 +12,8 @@ import com.wsw.fitnesssystem.data_exchange.domain.exception.ImportCancelledExcep
 import com.wsw.fitnesssystem.data_exchange.application.collector.ErrorRecord;
 import com.wsw.fitnesssystem.data_exchange.domain.repository.ImportTaskRepository;
 import com.wsw.fitnesssystem.data_exchange.application.generator.ErrorFileGenerator;
-import com.wsw.fitnesssystem.shared.exception.BizException;
-import com.wsw.fitnesssystem.shared.response.ResultCode;
+import com.wsw.fitnesssystem.shared.application.exception.BizException;
+import com.wsw.fitnesssystem.shared.interfaces.web.response.ResultCode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;

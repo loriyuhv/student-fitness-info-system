@@ -1,7 +1,7 @@
 package com.wsw.fitnesssystem.data_exchange.application.port.output;
 
 import com.wsw.fitnesssystem.data_exchange.domain.vo.ImportTemplate;
-import com.wsw.fitnesssystem.shared.exception.BizException;
+import com.wsw.fitnesssystem.shared.application.exception.BizException;
 
 /**
  * Excel 模板数据端口

@@ -1,7 +1,7 @@
-package com.wsw.fitnesssystem.shared.exception;
+package com.wsw.fitnesssystem.shared.application.exception;
 
 import lombok.Getter;
-import com.wsw.fitnesssystem.shared.response.ResultCode;
+import com.wsw.fitnesssystem.shared.interfaces.web.response.ResultCode;
 
 /**
  * 异常基类。

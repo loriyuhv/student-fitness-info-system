@@ -1,6 +1,6 @@
 package com.wsw.fitnesssystem.user.application.port.output;
 
-import com.wsw.fitnesssystem.shared.response.PageResult;
+import com.wsw.fitnesssystem.shared.domain.pagination.PageSlice;
 import com.wsw.fitnesssystem.user.application.dto.query.UserListQuery;
 import com.wsw.fitnesssystem.user.application.dto.result.UserAccountResult;
 
@@ -34,7 +34,10 @@ public interface UserAccountQueryPort {
      * <p><b>数据范围：</b>由 {@code sys_user} 表的 COLLEGE 契约控制，
      * 校区管理员自动追加 {@code campus_id = 本校区}。</p>
      * <p><b>职责：</b>只返回账号基本字段，不含画像和扩展表信息。</p>
+     *
+     * @param query 分页查询条件
+     * @return 分页结果
      */
-    PageResult<UserAccountResult> page(UserListQuery query);
+    PageSlice<UserAccountResult> page(UserListQuery query);
 
 }

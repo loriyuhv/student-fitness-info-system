@@ -1,14 +1,17 @@
 package com.wsw.fitnesssystem.user.interfaces.web.controller;
 
-import com.wsw.fitnesssystem.shared.response.ApiResult;
-import com.wsw.fitnesssystem.shared.response.PageResult;
+import com.wsw.fitnesssystem.shared.domain.pagination.PageSlice;
+import com.wsw.fitnesssystem.shared.interfaces.web.response.ApiResult;
 import com.wsw.fitnesssystem.user.application.dto.query.UserListQuery;
 import com.wsw.fitnesssystem.user.application.dto.result.AdminUserDetailResult;
 import com.wsw.fitnesssystem.user.application.dto.result.UserListItemResult;
 import com.wsw.fitnesssystem.user.application.service.query.UserQueryService;
 import com.wsw.fitnesssystem.user.application.service.query.UserInfoQueryService;
+import com.wsw.fitnesssystem.user.interfaces.web.assembler.UserListWebAssembler;
+import com.wsw.fitnesssystem.user.interfaces.web.dto.request.UserListRequest;
 import com.wsw.fitnesssystem.user.interfaces.web.dto.response.AdminUserDetailResponse;
 import com.wsw.fitnesssystem.user.interfaces.web.dto.response.UserListPageResponse;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -52,23 +55,18 @@ public class AdminUserController {
      * <p><b>功能权限：</b>{@code system:user:view}。教师、学生无权访问。</p>
      * <p><b>数据范围：</b>校区管理员 → 本校区；超级管理员 → 全部。</p>
      *
-     * <p><b>当前阶段：</b>列表仅返回学生（由 {@code UserQueryService} 提供）。
-     * 后续扩展为"支持按 userType 过滤"。</p>
+     * <p><b>请求方式：</b>POST + JSON Body，便于复杂筛选条件与蛇形字段统一。</p>
      */
-    @GetMapping
+    @PostMapping("/query")
     @PreAuthorize("hasAuthority('system:user:view')")
-    public ApiResult<UserListPageResponse> listUsers(
-        @RequestParam(required = false) Integer pageNum,
-        @RequestParam(required = false) Integer pageSize,
-        @RequestParam(required = false) Integer userType,
-        @RequestParam(required = false) Integer status,
-        @RequestParam(required = false) String keyword
-    ) {
-        UserListQuery query = UserListQuery.of(pageNum, pageSize, userType, status, keyword);
+    public ApiResult<UserListPageResponse> listUsers(@Valid @RequestBody UserListRequest request) {
+        UserListQuery query = UserListWebAssembler.toQuery(request);
 
-        PageResult<UserListItemResult> result = userQueryService.listUsers(query);
+        PageSlice<UserListItemResult> result = userQueryService.listUsers(query);
 
-        return ApiResult.success(UserListPageResponse.from(result));
+        UserListPageResponse response = UserListWebAssembler.toResponse(result);
+
+        return ApiResult.success(response);
     }
 
     /**

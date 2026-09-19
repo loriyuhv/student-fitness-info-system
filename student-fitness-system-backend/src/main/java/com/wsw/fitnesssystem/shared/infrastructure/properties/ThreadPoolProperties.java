@@ -1,4 +1,4 @@
-package com.wsw.fitnesssystem.shared.config.properties;
+package com.wsw.fitnesssystem.shared.infrastructure.properties;
 
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;

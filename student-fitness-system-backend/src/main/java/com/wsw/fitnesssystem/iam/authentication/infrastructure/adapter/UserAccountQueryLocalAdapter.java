@@ -4,7 +4,6 @@ import com.wsw.fitnesssystem.iam.authentication.domain.model.AuthAccount;
 import com.wsw.fitnesssystem.iam.authentication.domain.query.AuthAccountQuery;
 import com.wsw.fitnesssystem.iam.authentication.domain.repository.AuthAccountRepository;
 import com.wsw.fitnesssystem.shared.domain.pagination.PageSlice;
-import com.wsw.fitnesssystem.shared.response.PageResult;
 import com.wsw.fitnesssystem.user.application.dto.query.UserListQuery;
 import com.wsw.fitnesssystem.user.application.dto.result.UserAccountResult;
 import com.wsw.fitnesssystem.user.application.port.output.UserAccountQueryPort;
@@ -53,18 +52,17 @@ public class UserAccountQueryLocalAdapter implements UserAccountQueryPort {
 
 
     @Override
-    public PageResult<UserAccountResult> page(UserListQuery query) {
+    public PageSlice<UserAccountResult> page(UserListQuery query) {
         // 1. 入向翻译：user DTO → iam 领域查询对象
         AuthAccountQuery iamQuery = new AuthAccountQuery(
-            query.getPageNum(), query.getPageSize(),
-            query.getUserType(), query.getStatus(), query.getKeyword()
+            query.pageNum(), query.pageSize(), query.userType(), query.status(), query.keyword()
         );
 
         // 2. 调用 iam 领域仓储
         PageSlice<AuthAccount> slice = repository.page(iamQuery);
 
-        // 3. 出向翻译：iam PageSlice → 对外 PageResult，元素级 iam → user
-        return PageResult.of(
+        // 3. 出项翻译
+        return PageSlice.of(
             slice.items().stream().map(this::buildResult).toList(),
             slice.total(), slice.pageNum(), slice.pageSize()
         );

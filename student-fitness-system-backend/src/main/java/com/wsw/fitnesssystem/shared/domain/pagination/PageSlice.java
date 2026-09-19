@@ -1,19 +1,17 @@
 package com.wsw.fitnesssystem.shared.domain.pagination;
 
+import com.wsw.fitnesssystem.shared.domain.exception.DomainValidationException;
+
 import java.util.List;
 
 /**
- * 领域分页切片（读模型专用）。
+ * 领域分页切片（通用分页结果容器）。
  *
- * <p><b>职责：</b>承载领域层/仓储层的分页结果，只表达"一页数据 + 总数 + 页码"，
+ * <p><b>职责：</b>承载分页查询的通用结果，只表达"一页数据 + 总数 + 页码"，
  * 不携带任何传输层语义（无 HTTP、无响应码、无序列化依赖）。</p>
  *
- * <p><b>与 {@code shared.response.PageResult} 的区别：</b></p>
- * <ul>
- *   <li>{@code PageSlice} 属于领域原语，供 domain / repository 使用；</li>
- *   <li>{@code PageResult} 属于响应结构，供应用层对外返回；</li>
- *   <li>翻译职责在 Adapter（Infrastructure），不污染领域层。</li>
- * </ul>
+ * <p><b>使用范围：</b>作为分页结果原语，被 domain / application / interfaces
+ * 三层共享。全链路统一使用本类，不再为各层重复定义字段相同的分页结果类。</p>
  *
  * <p><b>不变量：</b></p>
  * <ul>
@@ -40,33 +38,27 @@ public record PageSlice<T>(
      * 避免非法分页对象在系统内流转。</p>
      */
     public PageSlice {
+        // 校验集合不能为null
         if (items == null) {
-            throw new IllegalArgumentException("items must not be null");
+            throw new DomainValidationException("items不能为null");
         }
+        // 页码必须大于等于1
         if (pageNum < 1) {
-            throw new IllegalArgumentException("pageNum must be >= 1, but was " + pageNum);
+            throw new DomainValidationException("页码必须 >= 1，当前值：" + pageNum);
         }
+        // 每页条数必须大于等于1
         if (pageSize < 1) {
-            throw new IllegalArgumentException("pageSize must be >= 1, but was " + pageSize);
+            throw new DomainValidationException("每页条数必须 >= 1，当前值：" + pageSize);
         }
+        // 总记录数不能为负数
         if (total < 0) {
-            throw new IllegalArgumentException("total must be >= 0, but was " + total);
+            throw new DomainValidationException("总记录数必须 >= 0，当前值：" + total);
         }
     }
 
     /** 当前页是否无数据 */
     public boolean isEmpty() {
         return items.isEmpty();
-    }
-
-    /** 总页数（向上取整，至少 1 页） */
-    public int totalPages() {
-        return (int) Math.max(1, (total + pageSize - 1) / pageSize);
-    }
-
-    /** 是否为最后一页 */
-    public boolean isLast() {
-        return pageNum >= totalPages();
     }
 
     // ==================== 工厂方法 ====================

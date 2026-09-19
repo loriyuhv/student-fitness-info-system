@@ -1,8 +1,6 @@
 package com.wsw.fitnesssystem.user.infrastructure.persistence.repository;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.wsw.fitnesssystem.shared.response.PageResult;
 import com.wsw.fitnesssystem.user.domain.model.StudentProfile;
 import com.wsw.fitnesssystem.user.domain.repository.StudentProfileRepository;
 import com.wsw.fitnesssystem.user.infrastructure.persistence.converter.StudentProfileConverter;
@@ -80,23 +78,6 @@ public class DbStudentProfileRepository implements StudentProfileRepository {
         } else {
             mapper.updateById(po);
         }
-    }
-
-    @Override
-    public PageResult<StudentProfile> page(int pageNum, int pageSize) {
-        Page<StudentProfilePo> mpPage = new Page<>(pageNum, pageSize);
-
-        LambdaQueryWrapper<StudentProfilePo> wrapper = new LambdaQueryWrapper<StudentProfilePo>()
-            .eq(StudentProfilePo::getStatus, 1)
-            .orderByDesc(StudentProfilePo::getStudentId);
-
-        Page<StudentProfilePo> result = mapper.selectPage(mpPage, wrapper);
-
-        List<StudentProfile> items = result.getRecords().stream()
-            .map(converter::toDomain)
-            .toList();
-
-        return PageResult.of(items, result.getTotal(), pageNum, pageSize);
     }
 
 }

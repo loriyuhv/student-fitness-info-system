@@ -2,8 +2,8 @@ package com.wsw.fitnesssystem.data_exchange.infrastructure.cache;
 
 import com.wsw.fitnesssystem.data_exchange.application.port.output.RateLimiterPort;
 import com.wsw.fitnesssystem.data_exchange.infrastructure.config.ImportInfrastructureProperties;
-import com.wsw.fitnesssystem.shared.exception.BizException;
-import com.wsw.fitnesssystem.shared.response.ResultCode;
+import com.wsw.fitnesssystem.shared.application.exception.BizException;
+import com.wsw.fitnesssystem.shared.interfaces.web.response.ResultCode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.StringRedisTemplate;

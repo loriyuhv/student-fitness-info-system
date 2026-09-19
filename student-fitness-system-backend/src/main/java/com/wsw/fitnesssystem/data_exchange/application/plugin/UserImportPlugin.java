@@ -8,7 +8,7 @@ import com.wsw.fitnesssystem.data_exchange.application.dto.command.UserImportCom
 import com.wsw.fitnesssystem.data_exchange.application.dto.result.UserImportResult;
 import com.wsw.fitnesssystem.data_exchange.application.port.output.UserProvisioningPort;
 import com.wsw.fitnesssystem.data_exchange.application.enums.ImportBizType;
-import com.wsw.fitnesssystem.shared.util.ValidationUtils;
+import com.wsw.fitnesssystem.shared.interfaces.web.util.ValidationUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;

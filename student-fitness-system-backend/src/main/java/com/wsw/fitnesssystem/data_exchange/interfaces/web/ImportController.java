@@ -11,12 +11,12 @@ import com.wsw.fitnesssystem.data_exchange.application.service.query.ImportTaskQ
 import com.wsw.fitnesssystem.data_exchange.application.service.query.ImportTypeQueryService;
 import com.wsw.fitnesssystem.data_exchange.interfaces.web.adapter.MultipartUploadedFile;
 import com.wsw.fitnesssystem.data_exchange.interfaces.web.dto.ImportProgressResponse;
-import com.wsw.fitnesssystem.shared.context.RequestContextHolder;
+import com.wsw.fitnesssystem.shared.application.context.RequestContextHolder;
 import com.wsw.fitnesssystem.shared.domain.vb.Operator;
-import com.wsw.fitnesssystem.shared.exception.BizException;
-import com.wsw.fitnesssystem.shared.exception.SystemException;
-import com.wsw.fitnesssystem.shared.response.ApiResult;
-import com.wsw.fitnesssystem.shared.response.ResultCode;
+import com.wsw.fitnesssystem.shared.application.exception.BizException;
+import com.wsw.fitnesssystem.shared.application.exception.SystemException;
+import com.wsw.fitnesssystem.shared.interfaces.web.response.ApiResult;
+import com.wsw.fitnesssystem.shared.interfaces.web.response.ResultCode;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.constraints.NotBlank;
 import lombok.RequiredArgsConstructor;

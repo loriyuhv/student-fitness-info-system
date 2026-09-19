@@ -2,9 +2,9 @@ package com.wsw.fitnesssystem.data_exchange.application.generator;
 
 import cn.idev.excel.FastExcel;
 import com.wsw.fitnesssystem.data_exchange.application.collector.ErrorRecord;
-import com.wsw.fitnesssystem.shared.exception.BizException;
-import com.wsw.fitnesssystem.shared.exception.SystemException;
-import com.wsw.fitnesssystem.shared.response.ResultCode;
+import com.wsw.fitnesssystem.shared.application.exception.BizException;
+import com.wsw.fitnesssystem.shared.application.exception.SystemException;
+import com.wsw.fitnesssystem.shared.interfaces.web.response.ResultCode;
 import lombok.extern.slf4j.Slf4j;
 import org.jspecify.annotations.NonNull;
 import org.springframework.stereotype.Service;
@@ -13,7 +13,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.wsw.fitnesssystem.shared.response.ResultCode.PARAM_INVALID;
+import static com.wsw.fitnesssystem.shared.interfaces.web.response.ResultCode.PARAM_INVALID;
 
 /**
  * @author loriyuhv

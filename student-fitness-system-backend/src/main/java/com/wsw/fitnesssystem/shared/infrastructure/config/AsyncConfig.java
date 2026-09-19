@@ -1,6 +1,6 @@
-package com.wsw.fitnesssystem.shared.config;
+package com.wsw.fitnesssystem.shared.infrastructure.config;
 
-import com.wsw.fitnesssystem.shared.config.properties.ThreadPoolProperties;
+import com.wsw.fitnesssystem.shared.infrastructure.properties.ThreadPoolProperties;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jspecify.annotations.NonNull;

@@ -8,12 +8,12 @@ import com.wsw.fitnesssystem.iam.authentication.application.dto.result.RefreshRe
 import com.wsw.fitnesssystem.iam.authentication.interfaces.web.dto.response.LoginResponse;
 import com.wsw.fitnesssystem.iam.authentication.interfaces.web.dto.request.RefreshRequest;
 import com.wsw.fitnesssystem.iam.authentication.interfaces.web.dto.response.RefreshResponse;
-import com.wsw.fitnesssystem.shared.util.WebUtils;
-import com.wsw.fitnesssystem.shared.context.RequestContextHolder;
+import com.wsw.fitnesssystem.shared.interfaces.web.util.WebUtils;
+import com.wsw.fitnesssystem.shared.application.context.RequestContextHolder;
 import com.wsw.fitnesssystem.shared.domain.vb.Operator;
-import com.wsw.fitnesssystem.shared.response.ApiResult;
+import com.wsw.fitnesssystem.shared.interfaces.web.response.ApiResult;
 import com.wsw.fitnesssystem.iam.authentication.interfaces.web.dto.request.LoginRequest;
-import com.wsw.fitnesssystem.shared.response.ResultCode;
+import com.wsw.fitnesssystem.shared.interfaces.web.response.ResultCode;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;

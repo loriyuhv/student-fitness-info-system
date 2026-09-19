@@ -1,6 +1,6 @@
-package com.wsw.fitnesssystem.shared.exception;
+package com.wsw.fitnesssystem.shared.application.exception;
 
-import com.wsw.fitnesssystem.shared.response.ResultCode;
+import com.wsw.fitnesssystem.shared.interfaces.web.response.ResultCode;
 
 /**
  * 系统异常（兜底）。

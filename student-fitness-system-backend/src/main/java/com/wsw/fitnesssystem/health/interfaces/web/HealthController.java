@@ -2,7 +2,7 @@ package com.wsw.fitnesssystem.health.interfaces.web;
 
 import com.wsw.fitnesssystem.health.interfaces.web.dto.response.DiagnosisReportResponse;
 import com.wsw.fitnesssystem.health.interfaces.web.dto.response.StudentDashboardResponse;
-import com.wsw.fitnesssystem.shared.response.ApiResult;
+import com.wsw.fitnesssystem.shared.interfaces.web.response.ApiResult;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.access.prepost.PreAuthorize;

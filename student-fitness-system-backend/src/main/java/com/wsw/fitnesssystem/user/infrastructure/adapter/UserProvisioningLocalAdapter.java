@@ -3,7 +3,7 @@ package com.wsw.fitnesssystem.user.infrastructure.adapter;
 import com.wsw.fitnesssystem.data_exchange.application.dto.command.UserImportCommand;
 import com.wsw.fitnesssystem.data_exchange.application.dto.result.UserImportResult;
 import com.wsw.fitnesssystem.data_exchange.application.port.output.UserProvisioningPort;
-import com.wsw.fitnesssystem.shared.exception.BizException;
+import com.wsw.fitnesssystem.shared.application.exception.BizException;
 import com.wsw.fitnesssystem.user.application.service.command.UserRegistrationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

@@ -1,4 +1,4 @@
-package com.wsw.fitnesssystem.shared.util;
+package com.wsw.fitnesssystem.shared.interfaces.web.util;
 
 import java.util.regex.Pattern;
 

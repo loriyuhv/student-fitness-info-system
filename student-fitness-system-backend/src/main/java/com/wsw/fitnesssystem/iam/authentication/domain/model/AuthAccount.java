@@ -4,8 +4,8 @@ import com.wsw.fitnesssystem.iam.authentication.domain.port.PasswordEncryptor;
 import com.wsw.fitnesssystem.iam.authentication.domain.vb.AccountStatus;
 import com.wsw.fitnesssystem.iam.authentication.domain.vb.UserSource;
 import com.wsw.fitnesssystem.iam.authentication.domain.vb.UserType;
-import com.wsw.fitnesssystem.shared.exception.BizException;
-import com.wsw.fitnesssystem.shared.response.ResultCode;
+import com.wsw.fitnesssystem.shared.application.exception.BizException;
+import com.wsw.fitnesssystem.shared.interfaces.web.response.ResultCode;
 import lombok.Getter;
 
 /**

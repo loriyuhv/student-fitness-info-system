@@ -1,6 +1,6 @@
 package com.wsw.fitnesssystem.user.application.service.query;
 
-import com.wsw.fitnesssystem.shared.response.PageResult;
+import com.wsw.fitnesssystem.shared.domain.pagination.PageSlice;
 import com.wsw.fitnesssystem.user.application.dto.query.UserListQuery;
 import com.wsw.fitnesssystem.user.application.dto.result.UserAccountResult;
 import com.wsw.fitnesssystem.user.application.dto.result.UserListItemResult;
@@ -54,15 +54,18 @@ public class UserQueryService {
      *   <li>按 userType 分组，批量补 student_profile / teacher_profile</li>
      *   <li>批量补 user_profile（画像）</li>
      * </ol>
+     *
+     * @param query 查询条件
+     * @return 分页结果（{@link PageSlice}，与 domain 层共用的分页结果原语）
      */
-    public PageResult<UserListItemResult> listUsers(UserListQuery query) {
+    public PageSlice<UserListItemResult> listUsers(UserListQuery query) {
         // 1. 主表分页
-        PageResult<UserAccountResult> accountPage = userAccountQueryPort.page(query);
+        PageSlice<UserAccountResult> accountPage = userAccountQueryPort.page(query);
         if (accountPage.isEmpty()) {
-            return PageResult.empty(query.getPageNum(), query.getPageSize());
+            return PageSlice.empty(query.pageNum(), query.pageSize());
         }
 
-        List<UserAccountResult> accounts = accountPage.getItems();
+        List<UserAccountResult> accounts = accountPage.items();
 
         // 2. 按 userType 分组收集 userId
         Set<Long> allUserIds = accounts.stream()
@@ -99,8 +102,8 @@ public class UserQueryService {
             .map(acc -> assemble(acc, profileMap, studentMap, teacherMap))
             .toList();
 
-        return PageResult.of(items, accountPage.getTotal(),
-            query.getPageNum(), query.getPageSize());
+        return PageSlice.of(items, accountPage.total(),
+            query.pageNum(), query.pageSize());
     }
 
     private UserListItemResult assemble(

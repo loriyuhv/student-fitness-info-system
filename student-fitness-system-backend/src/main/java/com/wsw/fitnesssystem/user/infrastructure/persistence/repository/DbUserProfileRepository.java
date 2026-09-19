@@ -1,10 +1,10 @@
 package com.wsw.fitnesssystem.user.infrastructure.persistence.repository;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.wsw.fitnesssystem.shared.exception.BizException;
-import com.wsw.fitnesssystem.shared.exception.SystemException;
+import com.wsw.fitnesssystem.shared.application.exception.BizException;
+import com.wsw.fitnesssystem.shared.application.exception.SystemException;
 import com.wsw.fitnesssystem.shared.infrastructure.persistence.ConstraintResultCodeMapper;
-import com.wsw.fitnesssystem.shared.response.ResultCode;
+import com.wsw.fitnesssystem.shared.interfaces.web.response.ResultCode;
 import com.wsw.fitnesssystem.user.domain.model.UserProfile;
 import com.wsw.fitnesssystem.user.domain.repository.UserProfileRepository;
 import com.wsw.fitnesssystem.user.infrastructure.persistence.converter.UserProfileConverter;

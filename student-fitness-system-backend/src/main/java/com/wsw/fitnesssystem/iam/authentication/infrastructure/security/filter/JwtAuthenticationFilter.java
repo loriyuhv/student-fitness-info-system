@@ -8,8 +8,8 @@ import com.wsw.fitnesssystem.iam.authentication.infrastructure.config.SecurityPr
 import com.wsw.fitnesssystem.iam.authentication.application.dto.port.AccessTokenClaims;
 import com.wsw.fitnesssystem.iam.authentication.infrastructure.security.handler.JwtAuthenticationEntryPoint;
 import com.wsw.fitnesssystem.iam.authentication.infrastructure.security.model.JwtUserPrincipal;
-import com.wsw.fitnesssystem.shared.context.RequestContext;
-import com.wsw.fitnesssystem.shared.context.RequestContextHolder;
+import com.wsw.fitnesssystem.shared.application.context.RequestContext;
+import com.wsw.fitnesssystem.shared.application.context.RequestContextHolder;
 import com.wsw.fitnesssystem.shared.domain.vb.Operator;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;

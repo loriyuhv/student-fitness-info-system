@@ -1,8 +1,8 @@
 package com.wsw.fitnesssystem.iam.audit.domain.model;
 
 import com.wsw.fitnesssystem.iam.audit.domain.valueobject.*;
-import com.wsw.fitnesssystem.shared.exception.BizException;
-import com.wsw.fitnesssystem.shared.response.ResultCode;
+import com.wsw.fitnesssystem.shared.application.exception.BizException;
+import com.wsw.fitnesssystem.shared.interfaces.web.response.ResultCode;
 import lombok.Getter;
 import lombok.Setter;
 
