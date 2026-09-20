@@ -2,8 +2,9 @@ package com.wsw.fitnesssystem.iam.authentication.interfaces.web.controller;
 
 import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 import com.wsw.fitnesssystem.iam.authentication.application.AuthAppService;
+import com.wsw.fitnesssystem.iam.error.IamAuthNErrorCode;
 import com.wsw.fitnesssystem.shared.interfaces.web.response.ApiResult;
-import com.wsw.fitnesssystem.shared.interfaces.web.response.ErrorCode;
+import com.wsw.fitnesssystem.shared.kernel.error.CommonErrorCode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -40,12 +41,12 @@ public class AdminAuthUserController {
 
         String msg;
         if (CollectionUtils.isEmpty(onlineSessions)) {
-            msg = ErrorCode.SUCCESS.getMessage() + "，该用户当前无在线会话";
-            return ApiResult.success(ErrorCode.SUCCESS, msg);
+            msg = CommonErrorCode.SUCCESS.message() + "，该用户当前无在线会话";
+            return ApiResult.success(msg);
         }
 
-        msg = ErrorCode.KICKOUT_SUCCESS.getMessage() + "，已踢出" + onlineSessions.size() + "个会话";
-        return ApiResult.success(ErrorCode.KICKOUT_SUCCESS, msg);
+        msg = IamAuthNErrorCode.KICKOUT_SUCCESS.message() + "，已踢出" + onlineSessions.size() + "个会话";
+        return ApiResult.success(msg);
     }
 
 }

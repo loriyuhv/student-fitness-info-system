@@ -1,19 +1,21 @@
 package com.wsw.fitnesssystem.shared.interfaces.web.response;
 
+import com.wsw.fitnesssystem.shared.kernel.error.CommonErrorCode;
+import com.wsw.fitnesssystem.shared.kernel.error.ErrorCode;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
  * 统一 API 响应对象。
- * <p>
- * <b>设计目标：</b>
+ *
+ * <p><b>设计目标：</b></p>
  * <ul>
  *   <li>统一前后端交互协议，所有接口返回相同结构</li>
  *   <li>区分 HTTP 状态码（传输层）与业务状态码（应用层）</li>
  *   <li>包含时间戳，便于问题追踪与性能分析</li>
  * </ul>
- * <p>
- * <b>字段说明：</b>
+ *
+ * <p><b>字段说明：</b></p>
  * <ul>
  *   <li>{@code httpCode}：HTTP 状态码（200/400/401/403/500），用于网关/浏览器</li>
  *   <li>{@code bizCode}：业务状态码（来自 {@link ErrorCode}），供前端识别具体错误类型</li>
@@ -21,13 +23,8 @@ import lombok.NoArgsConstructor;
  *   <li>{@code data}：业务数据（成功时返回）</li>
  *   <li>{@code timestamp}：响应生成时间（毫秒时间戳）</li>
  * </ul>
- * <p>
- * <b>使用方式：</b>
- * <ul>
- *   <li>成功响应：使用 {@link #success()} 或 {@link #success(Object)}</li>
- *   <li>失败响应：使用 {@link #error(ErrorCode)} 或 {@link #error(ErrorCode, String)}</li>
- *   <li>不建议直接实例化，统一使用静态工厂方法</li>
- * </ul>
+ *
+ * <p><b>当前阶段：</b>P3 阶段 {@code bizCode} 仍为 int（数字码）。P5 阶段迁移为 String。</p>
  *
  * @author loriyuhv
  * @version 1.0 2026/1/14 18:10
@@ -71,61 +68,109 @@ public class ApiResult<T> {
     /* ================= 成功响应 ================= */
 
     public static <T> ApiResult<T> success() {
-        return success(ErrorCode.SUCCESS);
+        return success(null);
     }
 
     public static <T> ApiResult<T> success(T data) {
-        return from(ErrorCode.SUCCESS, data);
-    }
-
-    public static <T> ApiResult<T> success(ErrorCode errorCode) {
-        return from(errorCode, null);
-    }
-
-
-    public static <T> ApiResult<T> success(ErrorCode errorCode, String message) {
-        return from(errorCode, null, message);
+        return new ApiResult<>(
+            CommonErrorCode.SUCCESS.httpStatus().value(),
+            CommonErrorCode.SUCCESS.code(),
+            CommonErrorCode.SUCCESS.message(),
+            data,
+            System.currentTimeMillis()
+        );
     }
 
     public static <T> ApiResult<T> success(String message, T data) {
         return new ApiResult<>(
-            ErrorCode.SUCCESS.httpCode(),
-            ErrorCode.SUCCESS.getCode(),
-            message, data,
+            CommonErrorCode.SUCCESS.httpStatus().value(),
+            CommonErrorCode.SUCCESS.code(),
+            message,
+            data,
             System.currentTimeMillis()
         );
     }
 
     /* ================= 失败响应 ================= */
 
-    public static <T> ApiResult<T> error(ErrorCode errorCode) {
-        return from(errorCode, null);
+    /**
+     * 构造失败响应。
+     *
+     * @param httpCode HTTP 状态码（由 {@code HttpStatusResolver} 解析）
+     * @param ec       错误码契约
+     */
+    public static <T> ApiResult<T> error(int httpCode, ErrorCode ec) {
+        return error(httpCode, ec, ec.message());
     }
 
-    public static <T> ApiResult<T> error(ErrorCode errorCode, String message) {
-        return from(errorCode, null, message);
-    }
-
-    /* ================= 核心工厂方法 ================= */
-
-    public static <T> ApiResult<T> from(ErrorCode errorCode, T data) {
+    public static <T> ApiResult<T> error(int httpCode, ErrorCode ec, String message) {
         return new ApiResult<>(
-            errorCode.httpCode(),
-            errorCode.getCode(),
-            errorCode.getMessage(),
-            data,
+            httpCode,
+            ec.code(),
+            message,
+            null,
             System.currentTimeMillis()
         );
     }
 
-    public static <T> ApiResult<T> from(ErrorCode errorCode, T data, String message) {
-        return new ApiResult<>(
-                errorCode.httpCode(),
-                errorCode.getCode(),
-                message,
-                data,
-                System.currentTimeMillis()
-        );
-    }
+    // /* ================= 成功响应 ================= */
+    //
+    // public static <T> ApiResult<T> success() {
+    //     return success(ErrorCode.SUCCESS);
+    // }
+    //
+    // public static <T> ApiResult<T> success(T data) {
+    //     return from(ErrorCode.SUCCESS, data);
+    // }
+    //
+    // public static <T> ApiResult<T> success(ErrorCode errorCode) {
+    //     return from(errorCode, null);
+    // }
+    //
+    //
+    // public static <T> ApiResult<T> success(ErrorCode errorCode, String message) {
+    //     return from(errorCode, null, message);
+    // }
+    //
+    // public static <T> ApiResult<T> success(String message, T data) {
+    //     return new ApiResult<>(
+    //         ErrorCode.SUCCESS.httpCode(),
+    //         ErrorCode.SUCCESS.getCode(),
+    //         message, data,
+    //         System.currentTimeMillis()
+    //     );
+    // }
+    //
+    // /* ================= 失败响应 ================= */
+    //
+    // public static <T> ApiResult<T> error(ErrorCode errorCode) {
+    //     return from(errorCode, null);
+    // }
+    //
+    // public static <T> ApiResult<T> error(ErrorCode errorCode, String message) {
+    //     return from(errorCode, null, message);
+    // }
+    //
+    // /* ================= 核心工厂方法 ================= */
+    //
+    // public static <T> ApiResult<T> from(ErrorCode errorCode, T data) {
+    //     return new ApiResult<>(
+    //         errorCode.httpCode(),
+    //         errorCode.getCode(),
+    //         errorCode.getMessage(),
+    //         data,
+    //         System.currentTimeMillis()
+    //     );
+    // }
+    //
+    // public static <T> ApiResult<T> from(ErrorCode errorCode, T data, String message) {
+    //     return new ApiResult<>(
+    //             errorCode.httpCode(),
+    //             errorCode.getCode(),
+    //             message,
+    //             data,
+    //             System.currentTimeMillis()
+    //     );
+    // }
 
 }

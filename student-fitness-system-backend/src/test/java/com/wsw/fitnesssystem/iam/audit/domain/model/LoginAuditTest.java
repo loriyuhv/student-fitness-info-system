@@ -1,8 +1,9 @@
 package com.wsw.fitnesssystem.iam.audit.domain.model;
 
 import com.wsw.fitnesssystem.iam.audit.domain.valueobject.*;
+import com.wsw.fitnesssystem.iam.error.IamAuthNErrorCode;
+import com.wsw.fitnesssystem.iam.error.IamSessionErrorCode;
 import com.wsw.fitnesssystem.shared.application.exception.BizException;
-import com.wsw.fitnesssystem.shared.interfaces.web.response.ErrorCode;
 import org.junit.jupiter.api.Test;
 
 import java.time.LocalDateTime;
@@ -58,7 +59,7 @@ class LoginAuditTest {
             () -> LoginAudit.recordSuccess(null, USERNAME, TOKEN_ID, EXPIRE_TIME, DEVICE, IP))
             .isInstanceOf(BizException.class)
             .extracting("errorCode")
-            .isEqualTo(ErrorCode.AUTH_USER_NOT_FOUND);
+            .isEqualTo(IamAuthNErrorCode.USER_NOT_FOUND);
     }
 
     @Test
@@ -67,7 +68,7 @@ class LoginAuditTest {
             () -> LoginAudit.recordSuccess(USER_ID, USERNAME, "", EXPIRE_TIME, DEVICE, IP))
             .isInstanceOf(BizException.class)
             .extracting("errorCode")
-            .isEqualTo(ErrorCode.TOKEN_INVALID);
+            .isEqualTo(IamAuthNErrorCode.TOKEN_INVALID);
     }
 
     // ========== 测试 recordFailure ==========
@@ -122,7 +123,7 @@ class LoginAuditTest {
         assertThatThrownBy(() -> audit.terminate(LogoutReason.KICK))
             .isInstanceOf(BizException.class)
             .extracting("errorCode")
-            .isEqualTo(ErrorCode.SESSION_ALREADY_OFFLINE);
+            .isEqualTo(IamSessionErrorCode.SESSION_ALREADY_OFFLINE);
     }
 
     @Test
@@ -134,7 +135,7 @@ class LoginAuditTest {
         assertThatThrownBy(() -> audit.terminate(LogoutReason.LOGOUT))
             .isInstanceOf(BizException.class)
             .extracting("errorCode")
-            .isEqualTo(ErrorCode.AUTH_USER_NOT_LOGIN);
+            .isEqualTo(IamAuthNErrorCode.USER_NOT_LOGIN);
     }
 
     // ========== 测试 markOffline ==========

@@ -4,7 +4,8 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.wsw.fitnesssystem.shared.application.exception.BizException;
 import com.wsw.fitnesssystem.shared.application.exception.SystemException;
 import com.wsw.fitnesssystem.shared.infrastructure.persistence.ConstraintResultCodeMapper;
-import com.wsw.fitnesssystem.shared.interfaces.web.response.ErrorCode;
+import com.wsw.fitnesssystem.shared.kernel.error.CommonErrorCode;
+import com.wsw.fitnesssystem.shared.kernel.error.ErrorCode;
 import com.wsw.fitnesssystem.user.domain.model.UserProfile;
 import com.wsw.fitnesssystem.user.domain.repository.UserProfileRepository;
 import com.wsw.fitnesssystem.user.infrastructure.persistence.converter.UserProfileConverter;
@@ -81,7 +82,7 @@ public class DbUserProfileRepository implements UserProfileRepository {
             return new BizException(rc);
         }
         // 未识别约束：保持系统异常，让全局 handler 归 500
-        return new SystemException(ErrorCode.DATABASE_ERROR, e);
+        return new SystemException(CommonErrorCode.DATABASE_ERROR, e);
     }
 
 }

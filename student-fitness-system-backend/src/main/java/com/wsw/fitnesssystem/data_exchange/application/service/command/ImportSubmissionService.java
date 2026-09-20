@@ -10,7 +10,7 @@ import com.wsw.fitnesssystem.data_exchange.application.port.output.DistributedLo
 import com.wsw.fitnesssystem.data_exchange.application.port.output.RateLimiterPort;
 import com.wsw.fitnesssystem.data_exchange.application.enums.ImportBizType;
 import com.wsw.fitnesssystem.shared.application.exception.BizException;
-import com.wsw.fitnesssystem.shared.interfaces.web.response.ErrorCode;
+import com.wsw.fitnesssystem.shared.kernel.error.CommonErrorCode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -72,7 +72,7 @@ public class ImportSubmissionService {
             // 防重失败：清理已转存的临时文件，避免磁盘泄漏
             fileStoragePort.cleanup(tempFile);
             log.warn("[{}] Duplicate file submission rejected, md5={}, userId={}", taskId, md5, userId);
-            throw new BizException(ErrorCode.PARAM_INVALID, "该文件正在导入中，请勿重复提交");
+            throw new BizException(CommonErrorCode.PARAM_INVALID, "该文件正在导入中，请勿重复提交");
         }
 
         // 6. 提交异步任务（文件路径 + 业务插件 + MD5）
@@ -97,13 +97,13 @@ public class ImportSubmissionService {
     private void validateFile(UploadedFile file) {
         // 1. 非空校验（包含空文件）
         if (file == null || file.getSize() == 0) {
-            throw new BizException(ErrorCode.PARAM_INVALID, "文件不能为空");
+            throw new BizException(CommonErrorCode.PARAM_INVALID, "文件不能为空");
         }
 
         String originalFilename = file.getOriginalFilename();
         // 2. 文件名校验（防御性检查，理论上不会为 null）
         if (originalFilename == null || originalFilename.isBlank()) {
-            throw new BizException(ErrorCode.PARAM_INVALID, "文件名不能为空");
+            throw new BizException(CommonErrorCode.PARAM_INVALID, "文件名不能为空");
         }
 
         // 3. 扩展名校验（取真实后缀，防止 file.xlsx.exe 绕过）
@@ -117,14 +117,14 @@ public class ImportSubmissionService {
         }
         if (!validExt) {
             throw new BizException(
-                ErrorCode.PARAM_TYPE_ERROR,
+                CommonErrorCode.PARAM_TYPE_ERROR,
                 "不支持的文件格式，仅允许" + appProperties.getFile().getAllowedExtensions()
             );
         }
 
         // 4. 大小校验（默认 200MB）
         if (file.getSize() > appProperties.getFile().getMaxSizeInBytes()) {
-            throw new BizException(ErrorCode.PARAM_INVALID,
+            throw new BizException(CommonErrorCode.PARAM_INVALID,
                 "文件大小超过限制（最大 %s）".formatted(
                     appProperties.getFile().getMaxSize()
                 )

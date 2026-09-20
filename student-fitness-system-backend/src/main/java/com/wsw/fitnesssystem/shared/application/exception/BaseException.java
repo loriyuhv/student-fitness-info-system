@@ -1,6 +1,6 @@
 package com.wsw.fitnesssystem.shared.application.exception;
 
-import com.wsw.fitnesssystem.shared.interfaces.web.response.ErrorCode;
+import com.wsw.fitnesssystem.shared.kernel.error.ErrorCode;
 import lombok.Getter;
 
 /**
@@ -32,7 +32,7 @@ public abstract class BaseException extends RuntimeException {
     protected final ErrorCode errorCode;
 
     protected BaseException(ErrorCode errorCode) {
-        super(errorCode.getMessage());
+        super(errorCode.message());
         this.errorCode = errorCode;
     }
 
@@ -42,7 +42,7 @@ public abstract class BaseException extends RuntimeException {
     }
 
     protected BaseException(ErrorCode errorCode, Throwable cause) {
-        super(errorCode.getMessage(), cause);
+        super(errorCode.message(), cause);
         this.errorCode = errorCode;
     }
 

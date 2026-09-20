@@ -1,9 +1,9 @@
 package com.wsw.fitnesssystem.iam.risk.domain.model;
 
+import com.wsw.fitnesssystem.iam.error.IamRiskErrorCode;
 import com.wsw.fitnesssystem.iam.risk.domain.valueobject.AccountIdentifier;
 import com.wsw.fitnesssystem.iam.risk.domain.valueobject.AccountLock;
 import com.wsw.fitnesssystem.shared.application.exception.BizException;
-import com.wsw.fitnesssystem.shared.interfaces.web.response.ErrorCode;
 import lombok.Getter;
 
 /**
@@ -69,7 +69,7 @@ public class AccountRiskProfile {
      */
     public void checkBeforeLogin() {
         if (lock.status()) {
-            throw new BizException(ErrorCode.RISK_ACCOUNT_LOCKED);
+            throw new BizException(IamRiskErrorCode.ACCOUNT_LOCKED);
         }
     }
 

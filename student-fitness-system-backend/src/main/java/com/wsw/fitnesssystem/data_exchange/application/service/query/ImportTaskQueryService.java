@@ -3,8 +3,8 @@ package com.wsw.fitnesssystem.data_exchange.application.service.query;
 import com.wsw.fitnesssystem.data_exchange.application.dto.result.ImportProgressResult;
 import com.wsw.fitnesssystem.data_exchange.domain.model.ImportTask;
 import com.wsw.fitnesssystem.data_exchange.domain.repository.ImportTaskRepository;
+import com.wsw.fitnesssystem.data_exchange.error.DataExchangeErrorCode;
 import com.wsw.fitnesssystem.shared.application.exception.BizException;
-import com.wsw.fitnesssystem.shared.interfaces.web.response.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -27,7 +27,7 @@ public class ImportTaskQueryService {
         return importTaskRepository.findById(taskId)
             .map(this::buildResult)
             .orElseThrow(
-                () -> new BizException(ErrorCode.IMPORT_TASK_NOT_FOUND, "任务不存在，taskId=" + taskId)
+                () -> new BizException(DataExchangeErrorCode.IMPORT_TASK_NOT_FOUND, "任务不存在，taskId=" + taskId)
             );
     }
 

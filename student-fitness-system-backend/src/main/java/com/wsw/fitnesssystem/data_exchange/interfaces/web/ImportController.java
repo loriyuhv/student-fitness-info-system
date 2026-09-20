@@ -16,7 +16,7 @@ import com.wsw.fitnesssystem.shared.domain.vb.Operator;
 import com.wsw.fitnesssystem.shared.application.exception.BizException;
 import com.wsw.fitnesssystem.shared.application.exception.SystemException;
 import com.wsw.fitnesssystem.shared.interfaces.web.response.ApiResult;
-import com.wsw.fitnesssystem.shared.interfaces.web.response.ErrorCode;
+import com.wsw.fitnesssystem.shared.kernel.error.CommonErrorCode;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.constraints.NotBlank;
 import lombok.RequiredArgsConstructor;
@@ -119,11 +119,11 @@ public class ImportController {
     public void downloadErrorFile(@RequestParam String taskId, HttpServletResponse response) {
         String filePath = importTaskQueryService.getErrorFilePath(taskId);
         if (filePath == null) {
-            throw new BizException(ErrorCode.FILE_NOT_FOUND, "该任务没有错误文件");
+            throw new BizException(CommonErrorCode.FILE_NOT_FOUND, "该任务没有错误文件");
         }
         File file = new File(filePath);
         if (!file.exists()) {
-            throw new BizException(ErrorCode.FILE_NOT_FOUND, "错误文件已过期或已被移除");
+            throw new BizException(CommonErrorCode.FILE_NOT_FOUND, "错误文件已过期或已被移除");
         }
         try {
             response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
@@ -132,7 +132,7 @@ public class ImportController {
             response.flushBuffer();
         } catch (IOException e) {
             log.error("Failed to download error file: taskId={}", taskId, e);
-            throw new BizException(ErrorCode.SYSTEM_ERROR, "错误文件下载失败");
+            throw new BizException(CommonErrorCode.SYSTEM_ERROR, "错误文件下载失败");
         }
     }
 
@@ -176,7 +176,7 @@ public class ImportController {
             response.flushBuffer();
         } catch (IOException e) {
             log.error("Failed to write template response, bizType={}", bizType, e);
-            throw new SystemException(ErrorCode.FILE_GENERATE_ERROR, e);
+            throw new SystemException(CommonErrorCode.FILE_GENERATE_ERROR, e);
         }
     }
 

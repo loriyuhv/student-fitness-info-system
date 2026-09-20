@@ -1,7 +1,7 @@
 package com.wsw.fitnesssystem.data_exchange.domain.exception;
 
 import com.wsw.fitnesssystem.shared.application.exception.BizException;
-import com.wsw.fitnesssystem.shared.interfaces.web.response.ErrorCode;
+import com.wsw.fitnesssystem.shared.kernel.error.ErrorCode;
 
 /**
  * 导入任务被用户主动取消异常

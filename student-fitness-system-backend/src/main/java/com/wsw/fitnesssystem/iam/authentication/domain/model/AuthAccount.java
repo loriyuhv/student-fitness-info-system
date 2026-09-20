@@ -4,8 +4,9 @@ import com.wsw.fitnesssystem.iam.authentication.domain.port.PasswordEncryptor;
 import com.wsw.fitnesssystem.iam.authentication.domain.vb.AccountStatus;
 import com.wsw.fitnesssystem.iam.authentication.domain.vb.UserSource;
 import com.wsw.fitnesssystem.iam.authentication.domain.vb.UserType;
+import com.wsw.fitnesssystem.iam.error.IamAuthNErrorCode;
+import com.wsw.fitnesssystem.iam.error.IamRiskErrorCode;
 import com.wsw.fitnesssystem.shared.application.exception.BizException;
-import com.wsw.fitnesssystem.shared.interfaces.web.response.ErrorCode;
 import lombok.Getter;
 
 /**
@@ -144,11 +145,11 @@ public class AuthAccount {
      */
     public void verifyPassword(String rawPassword, PasswordEncryptor encryptor) {
         if (!canLogin()) {
-            throw new BizException(ErrorCode.RISK_ACCOUNT_DISABLED);
+            throw new BizException(IamRiskErrorCode.ACCOUNT_DISABLED);
         }
         boolean matches = encryptor.matches(rawPassword, this.passwordHash);
         if (!matches) {
-            throw new BizException(ErrorCode.AUTH_PASSWORD_ERROR);
+            throw new BizException(IamAuthNErrorCode.PASSWORD_ERROR);
         }
     }
 

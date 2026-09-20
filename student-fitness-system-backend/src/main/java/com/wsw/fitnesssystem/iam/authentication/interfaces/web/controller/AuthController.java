@@ -8,7 +8,7 @@ import com.wsw.fitnesssystem.iam.authentication.application.dto.result.RefreshRe
 import com.wsw.fitnesssystem.iam.authentication.interfaces.web.dto.response.LoginResponse;
 import com.wsw.fitnesssystem.iam.authentication.interfaces.web.dto.request.RefreshRequest;
 import com.wsw.fitnesssystem.iam.authentication.interfaces.web.dto.response.RefreshResponse;
-import com.wsw.fitnesssystem.shared.interfaces.web.response.ErrorCode;
+import com.wsw.fitnesssystem.iam.error.IamAuthNErrorCode;
 import com.wsw.fitnesssystem.shared.interfaces.web.util.WebUtils;
 import com.wsw.fitnesssystem.shared.application.context.RequestContextHolder;
 import com.wsw.fitnesssystem.shared.domain.vb.Operator;
@@ -77,11 +77,16 @@ public class AuthController {
             authAppService.logout(operator, accessTokenId);
 
             // 3. 返回成功
-            return ApiResult.success(ErrorCode.LOGOUT_SUCCESS);
+            // TODO
+            return ApiResult.success(IamAuthNErrorCode.LOGOUT_SUCCESS.message(), null);
 
         } catch (Exception e) {
-            log.error(ErrorCode.LOGOUT_FAILED.getMessage(), e);
-            return ApiResult.error(ErrorCode.LOGOUT_FAILED);
+            log.error(IamAuthNErrorCode.LOGOUT_FAILED.message(), e);
+            // TODO
+            return ApiResult.error(
+                IamAuthNErrorCode.LOGOUT_FAILED.httpStatus().value(),
+                IamAuthNErrorCode.LOGOUT_FAILED
+            );
         }
     }
 

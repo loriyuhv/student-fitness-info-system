@@ -4,16 +4,16 @@ import cn.idev.excel.FastExcel;
 import com.wsw.fitnesssystem.data_exchange.application.collector.ErrorRecord;
 import com.wsw.fitnesssystem.shared.application.exception.BizException;
 import com.wsw.fitnesssystem.shared.application.exception.SystemException;
-import com.wsw.fitnesssystem.shared.interfaces.web.response.ErrorCode;
+import com.wsw.fitnesssystem.shared.kernel.error.CommonErrorCode;
 import lombok.extern.slf4j.Slf4j;
 import org.jspecify.annotations.NonNull;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.wsw.fitnesssystem.shared.interfaces.web.response.ErrorCode.PARAM_INVALID;
 
 /**
  * @author loriyuhv
@@ -28,8 +28,8 @@ public class ErrorFileGenerator {
      * 生成错误 Excel 文件
      */
     public File generateErrorFile(List<ErrorRecord> errors, List<String> headers) {
-        if (errors == null || errors.isEmpty()) {
-            throw new BizException(PARAM_INVALID, "错误列表为空");
+        if (CollectionUtils.isEmpty(errors)) {
+            throw new BizException(CommonErrorCode.PARAM_INVALID, "错误列表为空");
         }
 
         // 列头：行号 + 原始列头 + 错误原因
@@ -51,7 +51,7 @@ public class ErrorFileGenerator {
             return tempFile;
         } catch (Exception e) {
             log.error("Failed to generate error excel file", e);
-            throw new SystemException(ErrorCode.FILE_GENERATE_ERROR, e);
+            throw new SystemException(CommonErrorCode.FILE_GENERATE_ERROR, e);
         }
     }
 

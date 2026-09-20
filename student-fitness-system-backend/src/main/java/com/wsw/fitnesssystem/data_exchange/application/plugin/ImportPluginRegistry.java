@@ -2,7 +2,7 @@ package com.wsw.fitnesssystem.data_exchange.application.plugin;
 
 import com.wsw.fitnesssystem.data_exchange.application.orchestrator.ImportOrchestrator;
 import com.wsw.fitnesssystem.shared.application.exception.BizException;
-import com.wsw.fitnesssystem.shared.interfaces.web.response.ErrorCode;
+import com.wsw.fitnesssystem.shared.kernel.error.CommonErrorCode;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
@@ -76,7 +76,7 @@ public class ImportPluginRegistry {
     public ImportPlugin<?, ?> getPlugin(String bizType) {
         ImportPlugin<?, ?> plugin = pluginMap.get(bizType);
         if (plugin == null) {
-            throw new BizException(ErrorCode.PARAM_INVALID,
+            throw new BizException(CommonErrorCode.PARAM_INVALID,
                 "不支持的导入类型：%s，已注册类型：%s".formatted(
                     bizType, String.join(", ", pluginMap.keySet())
                 )

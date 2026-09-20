@@ -1,7 +1,7 @@
 package com.wsw.fitnesssystem.iam.audit.domain.valueobject;
 
 import com.wsw.fitnesssystem.shared.application.exception.BizException;
-import com.wsw.fitnesssystem.shared.interfaces.web.response.ErrorCode;
+import com.wsw.fitnesssystem.shared.kernel.error.CommonErrorCode;
 
 /**
  * IP 地址
@@ -13,7 +13,7 @@ import com.wsw.fitnesssystem.shared.interfaces.web.response.ErrorCode;
 public record IpAddress(String value) {
     public IpAddress {
         if (value == null || value.isBlank()) {
-            throw new BizException(ErrorCode.PARAM_INVALID, "IP cannot be blank");
+            throw new BizException(CommonErrorCode.PARAM_INVALID, "IP cannot be blank");
         }
     }
 }

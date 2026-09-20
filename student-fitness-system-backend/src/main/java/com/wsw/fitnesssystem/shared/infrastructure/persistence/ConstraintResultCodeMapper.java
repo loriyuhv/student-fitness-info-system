@@ -1,6 +1,8 @@
 package com.wsw.fitnesssystem.shared.infrastructure.persistence;
 
-import com.wsw.fitnesssystem.shared.interfaces.web.response.ErrorCode;
+import com.wsw.fitnesssystem.iam.error.IamAuthZErrorCode;
+import com.wsw.fitnesssystem.shared.kernel.error.ErrorCode;
+import com.wsw.fitnesssystem.user.error.UserErrorCode;
 
 import java.util.Map;
 import java.util.regex.Matcher;
@@ -23,16 +25,16 @@ public final class ConstraintResultCodeMapper {
     /** 约束名（不含表前缀）→ 业务错误码 */
     private static final Map<String, ErrorCode> RULES = Map.ofEntries(
         // user_profile
-        Map.entry("uk_phone_deleted",       ErrorCode.USER_PHONE_ALREADY_EXISTS),
-        Map.entry("uk_email_deleted",       ErrorCode.USER_EMAIL_ALREADY_EXISTS),
+        Map.entry("uk_phone_deleted",       UserErrorCode.PHONE_ALREADY_EXISTS),
+        Map.entry("uk_email_deleted",       UserErrorCode.EMAIL_ALREADY_EXISTS),
         // sys_user
-        Map.entry("uk_username_deleted",    ErrorCode.USER_USERNAME_ALREADY_EXISTS),
+        Map.entry("uk_username_deleted",    UserErrorCode.USERNAME_ALREADY_EXISTS),
         // sys_role
-        Map.entry("uk_role_code_deleted",   ErrorCode.ROLE_CODE_ALREADY_EXISTS),
-        Map.entry("uk_role_name_deleted",   ErrorCode.ROLE_NAME_ALREADY_EXISTS),
+        Map.entry("uk_role_code_deleted",   IamAuthZErrorCode.ROLE_CODE_ALREADY_EXISTS),
+        Map.entry("uk_role_name_deleted",   IamAuthZErrorCode.ROLE_NAME_ALREADY_EXISTS),
         // sys_permission
-        Map.entry("uk_perm_code_deleted",   ErrorCode.PERM_CODE_ALREADY_EXISTS),
-        Map.entry("uk_perm_name_deleted",   ErrorCode.PERM_NAME_ALREADY_EXISTS)
+        Map.entry("uk_perm_code_deleted",   IamAuthZErrorCode.PERM_CODE_ALREADY_EXISTS),
+        Map.entry("uk_perm_name_deleted",   IamAuthZErrorCode.PERM_NAME_ALREADY_EXISTS)
     );
 
     private ConstraintResultCodeMapper() {}

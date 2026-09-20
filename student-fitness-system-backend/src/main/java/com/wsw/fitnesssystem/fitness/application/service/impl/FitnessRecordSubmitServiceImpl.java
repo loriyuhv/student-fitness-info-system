@@ -11,8 +11,9 @@ import com.wsw.fitnesssystem.fitness.domain.model.StudentFitnessSummary;
 import com.wsw.fitnesssystem.fitness.domain.port.FitnessItemRepository;
 import com.wsw.fitnesssystem.fitness.domain.port.FitnessRecordRepository;
 import com.wsw.fitnesssystem.fitness.domain.port.FitnessSummaryRepository;
+import com.wsw.fitnesssystem.iam.error.IamAuthNErrorCode;
 import com.wsw.fitnesssystem.shared.application.exception.BizException;
-import com.wsw.fitnesssystem.shared.interfaces.web.response.ErrorCode;
+import com.wsw.fitnesssystem.shared.kernel.error.CommonErrorCode;
 import com.wsw.fitnesssystem.user.domain.model.StudentProfile;
 import com.wsw.fitnesssystem.user.domain.repository.StudentProfileRepository;
 import com.wsw.fitnesssystem.user.domain.vb.Gender;
@@ -79,31 +80,31 @@ public class FitnessRecordSubmitServiceImpl implements FitnessRecordSubmitServic
     public FitnessRecordSubmitResult submit(FitnessRecordSubmitCommand command) {
         // ========== 1. 参数校验 ==========
         if (command == null) {
-            throw new BizException(ErrorCode.PARAM_INVALID, "提交数据不能为空");
+            throw new BizException(CommonErrorCode.PARAM_INVALID, "提交数据不能为空");
         }
         String studentNo = command.getStudentNo();
         if (StringUtils.isBlank(studentNo)) {
-            throw new BizException(ErrorCode.PARAM_INVALID, "学号不能为空");
+            throw new BizException(CommonErrorCode.PARAM_INVALID, "学号不能为空");
         }
         if (command.getOperatorUserId() == null) {
-            throw new BizException(ErrorCode.PARAM_INVALID, "缺少操作人信息");
+            throw new BizException(CommonErrorCode.PARAM_INVALID, "缺少操作人信息");
         }
         Map<String, Double> rawScores = command.getRawScores();
         if (rawScores == null || rawScores.isEmpty()) {
-            throw new BizException(ErrorCode.PARAM_INVALID, "体测原始成绩不能为空");
+            throw new BizException(CommonErrorCode.PARAM_INVALID, "体测原始成绩不能为空");
         }
         // 必测项目完整性校验：缺项会拉低总分，必须显式报错而不是静默按 0 处理
         Set<String> missingItems = REQUIRED_ITEM_CODES.stream()
             .filter(code -> rawScores.get(code) == null)
             .collect(Collectors.toSet());
         if (!missingItems.isEmpty()) {
-            throw new BizException(ErrorCode.PARAM_INVALID,
+            throw new BizException(CommonErrorCode.PARAM_INVALID,
                 "体测成绩缺少必测项目: " + String.join(", ", missingItems));
         }
 
         // ========== 2. 学号 → 学生档案 ==========
         StudentProfile profile = studentProfileRepository.findByStudentNo(studentNo.trim())
-            .orElseThrow(() -> new BizException(ErrorCode.USER_NOT_FOUND,
+            .orElseThrow(() -> new BizException(IamAuthNErrorCode.USER_NOT_FOUND,
                 "未找到学号为 " + studentNo + " 的学生档案"));
         Integer gender = resolveGenderCode(profile);
         Integer grade = resolveGrade(profile.getEnrollYear());
@@ -156,7 +157,7 @@ public class FitnessRecordSubmitServiceImpl implements FitnessRecordSubmitServic
     private Integer resolveGenderCode(StudentProfile profile) {
         Gender gender = profile.getGender();
         if (gender == null || Objects.equals(gender.getCode(), Gender.UNKNOWN.getCode())) {
-            throw new BizException(ErrorCode.PARAM_INVALID,
+            throw new BizException(CommonErrorCode.PARAM_INVALID,
                 "学生 " + profile.getStudentNo() + " 未设置性别，无法进行体测评分");
         }
         return gender.getCode();
@@ -189,7 +190,7 @@ public class FitnessRecordSubmitServiceImpl implements FitnessRecordSubmitServic
         try {
             return LocalDateTime.parse(testTime.trim(), TEST_TIME_FORMATTER);
         } catch (Exception e) {
-            throw new BizException(ErrorCode.PARAM_INVALID,
+            throw new BizException(CommonErrorCode.PARAM_INVALID,
                 "体测时间格式不正确，应为 yyyy-MM-dd HH:mm:ss");
         }
     }
@@ -209,7 +210,7 @@ public class FitnessRecordSubmitServiceImpl implements FitnessRecordSubmitServic
             Double rawValue = entry.getValue();
 
             Long itemId = fitnessItemRepository.findIdByCode(itemCode)
-                .orElseThrow(() -> new BizException(ErrorCode.PARAM_INVALID,
+                .orElseThrow(() -> new BizException(CommonErrorCode.PARAM_INVALID,
                     "未知的体测项目: " + itemCode));
 
             Integer score = itemScores.getOrDefault(itemCode, 0);

@@ -1,7 +1,7 @@
 package com.wsw.fitnesssystem.data_exchange.application.enums;
 
 import com.wsw.fitnesssystem.shared.application.exception.BizException;
-import com.wsw.fitnesssystem.shared.interfaces.web.response.ErrorCode;
+import com.wsw.fitnesssystem.shared.kernel.error.CommonErrorCode;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
@@ -35,7 +35,7 @@ public enum ImportBizType {
             .filter(item -> item.getCode().equals(code))
             .findFirst()
             .orElseThrow(
-                () -> new BizException(ErrorCode.PARAM_INVALID, "不支持导入类型: " + code)
+                () -> new BizException(CommonErrorCode.PARAM_INVALID, "不支持导入类型: " + code)
             );
     }
 

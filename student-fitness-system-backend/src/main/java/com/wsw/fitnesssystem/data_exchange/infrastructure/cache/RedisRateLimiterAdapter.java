@@ -3,7 +3,7 @@ package com.wsw.fitnesssystem.data_exchange.infrastructure.cache;
 import com.wsw.fitnesssystem.data_exchange.application.port.output.RateLimiterPort;
 import com.wsw.fitnesssystem.data_exchange.infrastructure.config.ImportInfrastructureProperties;
 import com.wsw.fitnesssystem.shared.application.exception.BizException;
-import com.wsw.fitnesssystem.shared.interfaces.web.response.ErrorCode;
+import com.wsw.fitnesssystem.shared.kernel.error.CommonErrorCode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -72,7 +72,7 @@ public class RedisRateLimiterAdapter implements RateLimiterPort {
             log.warn("User {} exceeded rate limit: {} requests in {} seconds",
                 userId, current, infraProps.getRateLimit().getWindowSeconds()
             );
-            throw new BizException(ErrorCode.PARAM_INVALID,
+            throw new BizException(CommonErrorCode.PARAM_INVALID,
                 "请求过于频繁，请等待 " + infraProps.getRateLimit().getWindowSeconds() + " 秒后再试"
             );
         }

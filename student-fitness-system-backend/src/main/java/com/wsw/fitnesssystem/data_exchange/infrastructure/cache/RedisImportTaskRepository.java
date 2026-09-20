@@ -5,7 +5,7 @@ import com.wsw.fitnesssystem.data_exchange.domain.repository.ImportTaskRepositor
 import com.wsw.fitnesssystem.data_exchange.domain.enums.ImportStatus;
 import com.wsw.fitnesssystem.data_exchange.infrastructure.config.ImportInfrastructureProperties;
 import com.wsw.fitnesssystem.shared.application.exception.SystemException;
-import com.wsw.fitnesssystem.shared.interfaces.web.response.ErrorCode;
+import com.wsw.fitnesssystem.shared.kernel.error.CommonErrorCode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -78,7 +78,7 @@ public class RedisImportTaskRepository implements ImportTaskRepository {
             if (isInitialCreate) {
                 log.error("[{}] Failed to create ImportTask in Redis", task.getTaskId(), e);
                 throw new SystemException(
-                    ErrorCode.CACHE_ERROR,
+                    CommonErrorCode.CACHE_ERROR,
                     "创建导入任务进度记录失败，taskId=" + task.getTaskId(),
                     e
                 );
@@ -127,7 +127,7 @@ public class RedisImportTaskRepository implements ImportTaskRepository {
         } catch (Exception e) {
             log.error("[{}] Failed to request cancel", taskId, e);
             throw new SystemException(
-                ErrorCode.CACHE_ERROR,
+                CommonErrorCode.CACHE_ERROR,
                 "标记导入任务取消状态失败，taskId=" + taskId,
                 e
             );
@@ -143,7 +143,7 @@ public class RedisImportTaskRepository implements ImportTaskRepository {
         } catch (Exception e) {
             log.error("[{}] Failed to check cancel flag", taskId, e);
             throw new SystemException(
-                ErrorCode.CACHE_ERROR,
+                CommonErrorCode.CACHE_ERROR,
                 "读取导入任务取消状态失败，taskId=" + taskId,
                 e
             );

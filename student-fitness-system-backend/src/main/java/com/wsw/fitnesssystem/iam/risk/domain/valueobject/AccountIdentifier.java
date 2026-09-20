@@ -1,7 +1,7 @@
 package com.wsw.fitnesssystem.iam.risk.domain.valueobject;
 
 import com.wsw.fitnesssystem.shared.application.exception.BizException;
-import com.wsw.fitnesssystem.shared.interfaces.web.response.ErrorCode;
+import com.wsw.fitnesssystem.shared.kernel.error.CommonErrorCode;
 
 /**
  * 账号标识 - 值对象
@@ -17,7 +17,7 @@ public record AccountIdentifier(String username) {
 
     public AccountIdentifier {
         if (username == null || username.isBlank()) {
-            throw new BizException(ErrorCode.PARAM_INVALID);
+            throw new BizException(CommonErrorCode.PARAM_INVALID);
         }
     }
 

@@ -6,7 +6,7 @@ import com.wsw.fitnesssystem.data_exchange.domain.vo.ImportTemplate;
 import com.wsw.fitnesssystem.data_exchange.application.port.output.TemplateConfigPort;
 import com.wsw.fitnesssystem.shared.application.exception.BizException;
 import com.wsw.fitnesssystem.shared.application.exception.SystemException;
-import com.wsw.fitnesssystem.shared.interfaces.web.response.ErrorCode;
+import com.wsw.fitnesssystem.shared.kernel.error.CommonErrorCode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -53,7 +53,7 @@ public class ImportTemplateQueryService {
     public ImportTemplateDownloadResult getTemplateFile(String bizType) {
         // 1. 校验类型是否被模板体系支持
         if (!templateConfigPort.isTemplateSupported(bizType)) {
-            throw new BizException(ErrorCode.PARAM_TYPE_ERROR, "模板不支持此类型");
+            throw new BizException(CommonErrorCode.PARAM_TYPE_ERROR, "模板不支持此类型");
         }
 
         // 2. 获取模板配置（列头 / 示例数据 / sheet 名）
@@ -62,7 +62,7 @@ public class ImportTemplateQueryService {
         // 3. 兜底校验：Port 层已校验，此处作为第二道防线
         if (!template.isValid()) {
             log.error("Invalid template config, bizType={}", bizType);
-            throw new BizException(ErrorCode.SYSTEM_ERROR, "模板配置不完整");
+            throw new BizException(CommonErrorCode.SYSTEM_ERROR, "模板配置不完整");
         }
 
         // 4. 生成 Excel 到内存（不落盘，直接返回字节）
@@ -83,7 +83,7 @@ public class ImportTemplateQueryService {
                 .build();
         } catch (IOException e) {
             log.error("Failed to generate template, bizType={}", bizType, e);
-            throw new SystemException(ErrorCode.FILE_GENERATE_ERROR, e);
+            throw new SystemException(CommonErrorCode.FILE_GENERATE_ERROR, e);
         }
     }
 
