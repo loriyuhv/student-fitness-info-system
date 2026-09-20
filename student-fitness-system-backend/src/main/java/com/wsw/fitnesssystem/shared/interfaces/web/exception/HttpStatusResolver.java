@@ -38,7 +38,7 @@ import java.util.Map;
 @Component
 public class HttpStatusResolver {
 
-    private final Map<Integer, HttpStatus> registry = new HashMap<>();
+    private final Map<String, HttpStatus> registry = new HashMap<>();
 
     @PostConstruct
     public void init() {

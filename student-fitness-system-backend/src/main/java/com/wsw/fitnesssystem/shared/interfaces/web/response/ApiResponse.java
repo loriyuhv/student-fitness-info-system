@@ -1,5 +1,6 @@
 package com.wsw.fitnesssystem.shared.interfaces.web.response;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.wsw.fitnesssystem.shared.kernel.error.CommonErrorCode;
 import com.wsw.fitnesssystem.shared.kernel.error.ErrorCode;
 import lombok.Data;
@@ -34,30 +35,46 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class ApiResponse<T> {
 
-    /** HTTP 状态码 */
+    /**
+     * HTTP 状态码
+     */
+    @JsonProperty("http_code")
     private Integer httpCode;
 
-    /** 业务状态码（前端识别） */
-    private Integer bizCode;
+    /**
+     * 业务状态码（前端识别）
+     */
+    @JsonProperty("biz_code")
+    private String bizCode;
 
-    /** 提示信息 */
+    /**
+     * 提示信息
+     */
+    @JsonProperty("message")
     private String message;
 
-    /** 响应数据 */
+    /**
+     * 响应数据
+     */
+    @JsonProperty("data")
     private T data;
 
-    /** 时间戳 */
+    /**
+     * 时间戳
+     */
+    @JsonProperty("timestamp")
     private Long timestamp;
 
     /**
      * 私有全参构造，强制使用静态工厂方法构建实例
-     * @param httpCode HTTP 状态码
-     * @param bizCode 业务状态码
-     * @param message 提示信息
-     * @param data 响应数据
+     *
+     * @param httpCode  HTTP 状态码
+     * @param bizCode   业务状态码
+     * @param message   提示信息
+     * @param data      响应数据
      * @param timestamp 时间戳
      */
-    private ApiResponse(Integer httpCode, Integer bizCode, String message, T data, Long timestamp) {
+    private ApiResponse(Integer httpCode, String bizCode, String message, T data, Long timestamp) {
         this.httpCode = httpCode;
         this.bizCode = bizCode;
         this.message = message;
@@ -112,65 +129,5 @@ public class ApiResponse<T> {
             System.currentTimeMillis()
         );
     }
-
-    // /* ================= 成功响应 ================= */
-    //
-    // public static <T> ApiResponse<T> success() {
-    //     return success(ErrorCode.SUCCESS);
-    // }
-    //
-    // public static <T> ApiResponse<T> success(T data) {
-    //     return from(ErrorCode.SUCCESS, data);
-    // }
-    //
-    // public static <T> ApiResponse<T> success(ErrorCode errorCode) {
-    //     return from(errorCode, null);
-    // }
-    //
-    //
-    // public static <T> ApiResponse<T> success(ErrorCode errorCode, String message) {
-    //     return from(errorCode, null, message);
-    // }
-    //
-    // public static <T> ApiResponse<T> success(String message, T data) {
-    //     return new ApiResponse<>(
-    //         ErrorCode.SUCCESS.httpCode(),
-    //         ErrorCode.SUCCESS.getCode(),
-    //         message, data,
-    //         System.currentTimeMillis()
-    //     );
-    // }
-    //
-    // /* ================= 失败响应 ================= */
-    //
-    // public static <T> ApiResponse<T> error(ErrorCode errorCode) {
-    //     return from(errorCode, null);
-    // }
-    //
-    // public static <T> ApiResponse<T> error(ErrorCode errorCode, String message) {
-    //     return from(errorCode, null, message);
-    // }
-    //
-    // /* ================= 核心工厂方法 ================= */
-    //
-    // public static <T> ApiResponse<T> from(ErrorCode errorCode, T data) {
-    //     return new ApiResponse<>(
-    //         errorCode.httpCode(),
-    //         errorCode.getCode(),
-    //         errorCode.getMessage(),
-    //         data,
-    //         System.currentTimeMillis()
-    //     );
-    // }
-    //
-    // public static <T> ApiResponse<T> from(ErrorCode errorCode, T data, String message) {
-    //     return new ApiResponse<>(
-    //             errorCode.httpCode(),
-    //             errorCode.getCode(),
-    //             message,
-    //             data,
-    //             System.currentTimeMillis()
-    //     );
-    // }
 
 }

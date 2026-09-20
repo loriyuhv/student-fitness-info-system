@@ -6,30 +6,41 @@ import org.springframework.http.HttpStatus;
 /**
  * iam.risk 子域错误码（登录风控）。
  *
+ * <p><b>命名规范：</b>{@code iam.risk.*}。</p>
+ *
  * @author loriyuhv
- * @version 1.0 2026/9/20 18:04
+ * @version 1.0 2026/9/20 17:58
  * @since 1.0
  */
 public enum IamRiskErrorCode implements ErrorCode {
 
-    ACCOUNT_LOCKED(403101, HttpStatus.FORBIDDEN, "账号已被锁定"),
-    ACCOUNT_DISABLED(403102, HttpStatus.FORBIDDEN, "账号已被禁用"),
-    FAIL_THRESHOLD_EXCEEDED(403103, HttpStatus.FORBIDDEN, "失败次数已达上限"),
-    CHECK_FAILED(403105, HttpStatus.FORBIDDEN, "风控检查不通过");
+    ACCOUNT_LOCKED("iam.risk.account_locked", HttpStatus.FORBIDDEN, "账号已被锁定"),
+    ACCOUNT_DISABLED("iam.risk.account_disabled", HttpStatus.FORBIDDEN, "账号已被禁用"),
+    FAIL_THRESHOLD_EXCEEDED("iam.risk.fail_threshold_exceeded", HttpStatus.FORBIDDEN, "失败次数已达上限"),
+    CHECK_FAILED("iam.risk.check_failed", HttpStatus.FORBIDDEN, "风控检查不通过");
 
-    private final int code;
+    private final String code;
     private final HttpStatus httpStatus;
     private final String message;
 
-    IamRiskErrorCode(int code, HttpStatus httpStatus, String message) {
+    IamRiskErrorCode(String code, HttpStatus httpStatus, String message) {
         this.code = code;
         this.httpStatus = httpStatus;
         this.message = message;
     }
 
-    @Override public int code()       { return code; }
-    @Override public String message() { return message; }
+    @Override
+    public String code() {
+        return code;
+    }
 
-    public HttpStatus httpStatus() { return httpStatus; }
+    @Override
+    public String message() {
+        return message;
+    }
+
+    public HttpStatus httpStatus() {
+        return httpStatus;
+    }
 
 }

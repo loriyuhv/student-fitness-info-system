@@ -13,8 +13,8 @@ package com.wsw.fitnesssystem.shared.kernel.error;
  *   <li><b>领域层不引用：</b>领域层使用独立的 {@code DomainErrorCode}</li>
  * </ul>
  *
- * <p><b>当前阶段：</b>P1 阶段仅建立契约，{@code code()} 返回 {@code int}。
- * 后续阶段（P5）将迁移为 {@code String} 字符串码。</p>
+ * <p><b>P5 变更：</b>{@code code()} 返回类型从 {@code int} 迁移为 {@code String}，
+ * 采用 {@code {域}.{子域}.{错误}} 命名规范，与 HTTP 语义解耦。</p>
  *
  * @author loriyuhv
  * @version 1.0 2026/9/20 17:22
@@ -25,14 +25,12 @@ public interface ErrorCode {
     /**
      * 业务错误码（前端识别）。
      *
-     * @return 全局唯一的业务错误码
+     * @return 全局唯一的字符串错误码，形如 {@code "iam.token.expired"}
      */
-    int code();
+    String code();
 
     /**
      * 默认提示信息（面向终端用户）。
-     *
-     * <p>不应包含技术细节（堆栈、SQL、类名等）。</p>
      *
      * @return 默认的、可直接展示的消息
      */
