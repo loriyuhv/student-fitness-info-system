@@ -1,4 +1,4 @@
-package com.wsw.fitnesssystem.shared.application.exception;
+package com.wsw.fitnesssystem.shared.kernel.exception;
 
 import com.wsw.fitnesssystem.shared.kernel.error.ErrorCode;
 import lombok.Getter;

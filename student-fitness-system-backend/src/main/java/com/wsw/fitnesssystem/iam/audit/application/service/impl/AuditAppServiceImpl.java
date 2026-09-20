@@ -7,7 +7,7 @@ import com.wsw.fitnesssystem.iam.audit.domain.valueobject.DeviceInfo;
 import com.wsw.fitnesssystem.iam.audit.domain.valueobject.IpAddress;
 import com.wsw.fitnesssystem.iam.audit.domain.valueobject.LogoutReason;
 import com.wsw.fitnesssystem.iam.error.IamSessionErrorCode;
-import com.wsw.fitnesssystem.shared.application.exception.BizException;
+import com.wsw.fitnesssystem.shared.kernel.exception.BizException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;

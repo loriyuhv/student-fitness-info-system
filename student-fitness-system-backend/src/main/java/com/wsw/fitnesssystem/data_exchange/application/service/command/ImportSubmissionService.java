@@ -9,7 +9,7 @@ import com.wsw.fitnesssystem.data_exchange.application.scheduler.AsyncImportSche
 import com.wsw.fitnesssystem.data_exchange.application.port.output.DistributedLockPort;
 import com.wsw.fitnesssystem.data_exchange.application.port.output.RateLimiterPort;
 import com.wsw.fitnesssystem.data_exchange.application.enums.ImportBizType;
-import com.wsw.fitnesssystem.shared.application.exception.BizException;
+import com.wsw.fitnesssystem.shared.kernel.exception.BizException;
 import com.wsw.fitnesssystem.shared.kernel.error.CommonErrorCode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

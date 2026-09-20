@@ -1,6 +1,6 @@
 package com.wsw.fitnesssystem.data_exchange.application.enums;
 
-import com.wsw.fitnesssystem.shared.application.exception.BizException;
+import com.wsw.fitnesssystem.shared.kernel.exception.BizException;
 import com.wsw.fitnesssystem.shared.kernel.error.CommonErrorCode;
 import lombok.AllArgsConstructor;
 import lombok.Getter;

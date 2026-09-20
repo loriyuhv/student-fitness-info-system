@@ -12,7 +12,7 @@ import com.wsw.fitnesssystem.data_exchange.domain.model.ImportTask;
 import com.wsw.fitnesssystem.data_exchange.application.collector.ErrorRecord;
 import com.wsw.fitnesssystem.data_exchange.domain.repository.ImportTaskRepository;
 import com.wsw.fitnesssystem.data_exchange.application.generator.ErrorFileGenerator;
-import com.wsw.fitnesssystem.shared.application.exception.BizException;
+import com.wsw.fitnesssystem.shared.kernel.exception.BizException;
 import com.wsw.fitnesssystem.shared.kernel.error.CommonErrorCode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

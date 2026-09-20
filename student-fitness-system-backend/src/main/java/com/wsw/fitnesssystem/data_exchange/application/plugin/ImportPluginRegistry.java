@@ -1,7 +1,7 @@
 package com.wsw.fitnesssystem.data_exchange.application.plugin;
 
 import com.wsw.fitnesssystem.data_exchange.application.orchestrator.ImportOrchestrator;
-import com.wsw.fitnesssystem.shared.application.exception.BizException;
+import com.wsw.fitnesssystem.shared.kernel.exception.BizException;
 import com.wsw.fitnesssystem.shared.kernel.error.CommonErrorCode;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;

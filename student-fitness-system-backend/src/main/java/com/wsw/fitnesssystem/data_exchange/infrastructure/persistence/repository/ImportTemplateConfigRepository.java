@@ -3,7 +3,7 @@ package com.wsw.fitnesssystem.data_exchange.infrastructure.persistence.repositor
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.wsw.fitnesssystem.data_exchange.infrastructure.persistence.entity.ImportTemplateConfigEntity;
 import com.wsw.fitnesssystem.data_exchange.infrastructure.persistence.mapper.ImportTemplateConfigMapper;
-import com.wsw.fitnesssystem.shared.application.exception.BizException;
+import com.wsw.fitnesssystem.shared.kernel.exception.BizException;
 import com.wsw.fitnesssystem.shared.kernel.error.CommonErrorCode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

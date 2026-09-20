@@ -1,7 +1,7 @@
 package com.wsw.fitnesssystem.data_exchange.application.port.output;
 
 import com.wsw.fitnesssystem.data_exchange.application.dto.upload.UploadedFile;
-import com.wsw.fitnesssystem.shared.application.exception.BizException;
+import com.wsw.fitnesssystem.shared.kernel.exception.BizException;
 
 import java.io.File;
 

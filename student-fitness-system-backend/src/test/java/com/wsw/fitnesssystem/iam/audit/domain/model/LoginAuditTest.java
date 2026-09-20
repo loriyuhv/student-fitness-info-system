@@ -3,7 +3,7 @@ package com.wsw.fitnesssystem.iam.audit.domain.model;
 import com.wsw.fitnesssystem.iam.audit.domain.valueobject.*;
 import com.wsw.fitnesssystem.iam.error.IamAuthNErrorCode;
 import com.wsw.fitnesssystem.iam.error.IamSessionErrorCode;
-import com.wsw.fitnesssystem.shared.application.exception.BizException;
+import com.wsw.fitnesssystem.shared.kernel.exception.BizException;
 import org.junit.jupiter.api.Test;
 
 import java.time.LocalDateTime;

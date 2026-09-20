@@ -3,7 +3,7 @@ package com.wsw.fitnesssystem.data_exchange.application.service.command;
 import com.wsw.fitnesssystem.data_exchange.domain.model.ImportTask;
 import com.wsw.fitnesssystem.data_exchange.domain.repository.ImportTaskRepository;
 import com.wsw.fitnesssystem.data_exchange.error.DataExchangeErrorCode;
-import com.wsw.fitnesssystem.shared.application.exception.BizException;
+import com.wsw.fitnesssystem.shared.kernel.exception.BizException;
 import com.wsw.fitnesssystem.shared.kernel.error.CommonErrorCode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

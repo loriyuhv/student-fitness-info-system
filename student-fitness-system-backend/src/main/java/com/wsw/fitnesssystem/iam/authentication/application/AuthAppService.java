@@ -20,7 +20,7 @@ import com.wsw.fitnesssystem.iam.authentication.domain.repository.AuthAccountRep
 import com.wsw.fitnesssystem.iam.error.IamAuthNErrorCode;
 import com.wsw.fitnesssystem.iam.error.IamRiskErrorCode;
 import com.wsw.fitnesssystem.shared.domain.vb.Operator;
-import com.wsw.fitnesssystem.shared.application.exception.BizException;
+import com.wsw.fitnesssystem.shared.kernel.exception.BizException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;

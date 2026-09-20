@@ -1,6 +1,6 @@
 package com.wsw.fitnesssystem.iam.audit.domain.valueobject;
 
-import com.wsw.fitnesssystem.shared.application.exception.BizException;
+import com.wsw.fitnesssystem.shared.kernel.exception.BizException;
 import com.wsw.fitnesssystem.shared.kernel.error.CommonErrorCode;
 
 /**

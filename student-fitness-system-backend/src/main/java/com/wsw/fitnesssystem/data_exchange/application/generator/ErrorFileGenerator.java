@@ -2,8 +2,8 @@ package com.wsw.fitnesssystem.data_exchange.application.generator;
 
 import cn.idev.excel.FastExcel;
 import com.wsw.fitnesssystem.data_exchange.application.collector.ErrorRecord;
-import com.wsw.fitnesssystem.shared.application.exception.BizException;
-import com.wsw.fitnesssystem.shared.application.exception.SystemException;
+import com.wsw.fitnesssystem.shared.kernel.exception.BizException;
+import com.wsw.fitnesssystem.shared.kernel.exception.SystemException;
 import com.wsw.fitnesssystem.shared.kernel.error.CommonErrorCode;
 import lombok.extern.slf4j.Slf4j;
 import org.jspecify.annotations.NonNull;

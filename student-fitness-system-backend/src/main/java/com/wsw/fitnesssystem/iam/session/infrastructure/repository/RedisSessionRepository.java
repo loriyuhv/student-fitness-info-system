@@ -4,7 +4,7 @@ import com.wsw.fitnesssystem.iam.error.IamAuthNErrorCode;
 import com.wsw.fitnesssystem.iam.session.domain.port.SessionRepository;
 import com.wsw.fitnesssystem.iam.session.infrastructure.config.SessionProperties;
 import com.wsw.fitnesssystem.shared.infrastructure.properties.AuthRedisKeys;
-import com.wsw.fitnesssystem.shared.application.exception.BizException;
+import com.wsw.fitnesssystem.shared.kernel.exception.BizException;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

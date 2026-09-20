@@ -13,8 +13,8 @@ import com.wsw.fitnesssystem.data_exchange.interfaces.web.adapter.MultipartUploa
 import com.wsw.fitnesssystem.data_exchange.interfaces.web.dto.ImportProgressResponse;
 import com.wsw.fitnesssystem.shared.application.context.RequestContextHolder;
 import com.wsw.fitnesssystem.shared.domain.vb.Operator;
-import com.wsw.fitnesssystem.shared.application.exception.BizException;
-import com.wsw.fitnesssystem.shared.application.exception.SystemException;
+import com.wsw.fitnesssystem.shared.kernel.exception.BizException;
+import com.wsw.fitnesssystem.shared.kernel.exception.SystemException;
 import com.wsw.fitnesssystem.shared.interfaces.web.response.ApiResponse;
 import com.wsw.fitnesssystem.shared.kernel.error.CommonErrorCode;
 import jakarta.servlet.http.HttpServletResponse;

@@ -6,7 +6,7 @@ import com.wsw.fitnesssystem.iam.authentication.domain.vb.UserSource;
 import com.wsw.fitnesssystem.iam.authentication.domain.vb.UserType;
 import com.wsw.fitnesssystem.iam.error.IamAuthNErrorCode;
 import com.wsw.fitnesssystem.iam.error.IamRiskErrorCode;
-import com.wsw.fitnesssystem.shared.application.exception.BizException;
+import com.wsw.fitnesssystem.shared.kernel.exception.BizException;
 import lombok.Getter;
 
 /**

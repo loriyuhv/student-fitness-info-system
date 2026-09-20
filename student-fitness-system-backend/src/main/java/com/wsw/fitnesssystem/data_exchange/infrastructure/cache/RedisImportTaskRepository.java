@@ -4,7 +4,7 @@ import com.wsw.fitnesssystem.data_exchange.domain.model.ImportTask;
 import com.wsw.fitnesssystem.data_exchange.domain.repository.ImportTaskRepository;
 import com.wsw.fitnesssystem.data_exchange.domain.enums.ImportStatus;
 import com.wsw.fitnesssystem.data_exchange.infrastructure.config.ImportInfrastructureProperties;
-import com.wsw.fitnesssystem.shared.application.exception.SystemException;
+import com.wsw.fitnesssystem.shared.kernel.exception.SystemException;
 import com.wsw.fitnesssystem.shared.kernel.error.CommonErrorCode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

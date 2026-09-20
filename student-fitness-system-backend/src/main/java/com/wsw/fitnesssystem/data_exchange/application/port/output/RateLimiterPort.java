@@ -1,6 +1,6 @@
 package com.wsw.fitnesssystem.data_exchange.application.port.output;
 
-import com.wsw.fitnesssystem.shared.application.exception.BizException;
+import com.wsw.fitnesssystem.shared.kernel.exception.BizException;
 
 /**
  * 限流端口（输出端口）。

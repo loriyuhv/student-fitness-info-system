@@ -2,8 +2,8 @@ package com.wsw.fitnesssystem.shared.interfaces.web.exception;
 
 import com.wsw.fitnesssystem.iam.error.IamAuthNErrorCode;
 import com.wsw.fitnesssystem.iam.error.IamAuthZErrorCode;
-import com.wsw.fitnesssystem.shared.application.exception.BizException;
-import com.wsw.fitnesssystem.shared.application.exception.SystemException;
+import com.wsw.fitnesssystem.shared.kernel.exception.BizException;
+import com.wsw.fitnesssystem.shared.kernel.exception.SystemException;
 import com.wsw.fitnesssystem.shared.domain.exception.DomainConflictException;
 import com.wsw.fitnesssystem.shared.domain.exception.DomainException;
 import com.wsw.fitnesssystem.shared.infrastructure.persistence.ConstraintResultCodeMapper;

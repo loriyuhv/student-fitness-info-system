@@ -12,7 +12,7 @@ import com.wsw.fitnesssystem.fitness.domain.port.FitnessItemRepository;
 import com.wsw.fitnesssystem.fitness.domain.port.FitnessRecordRepository;
 import com.wsw.fitnesssystem.fitness.domain.port.FitnessSummaryRepository;
 import com.wsw.fitnesssystem.iam.error.IamAuthNErrorCode;
-import com.wsw.fitnesssystem.shared.application.exception.BizException;
+import com.wsw.fitnesssystem.shared.kernel.exception.BizException;
 import com.wsw.fitnesssystem.shared.kernel.error.CommonErrorCode;
 import com.wsw.fitnesssystem.user.domain.model.StudentProfile;
 import com.wsw.fitnesssystem.user.domain.repository.StudentProfileRepository;

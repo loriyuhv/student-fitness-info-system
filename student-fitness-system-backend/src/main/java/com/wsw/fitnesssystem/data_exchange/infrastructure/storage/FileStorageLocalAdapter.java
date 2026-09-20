@@ -3,7 +3,7 @@ package com.wsw.fitnesssystem.data_exchange.infrastructure.storage;
 import com.wsw.fitnesssystem.data_exchange.application.dto.upload.UploadedFile;
 import com.wsw.fitnesssystem.data_exchange.application.port.output.FileStoragePort;
 import com.wsw.fitnesssystem.data_exchange.infrastructure.config.ImportInfrastructureProperties;
-import com.wsw.fitnesssystem.shared.application.exception.SystemException;
+import com.wsw.fitnesssystem.shared.kernel.exception.SystemException;
 import com.wsw.fitnesssystem.shared.kernel.error.CommonErrorCode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

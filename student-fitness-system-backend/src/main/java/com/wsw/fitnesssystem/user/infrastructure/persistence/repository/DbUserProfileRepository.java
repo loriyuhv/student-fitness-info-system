@@ -1,8 +1,8 @@
 package com.wsw.fitnesssystem.user.infrastructure.persistence.repository;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.wsw.fitnesssystem.shared.application.exception.BizException;
-import com.wsw.fitnesssystem.shared.application.exception.SystemException;
+import com.wsw.fitnesssystem.shared.kernel.exception.BizException;
+import com.wsw.fitnesssystem.shared.kernel.exception.SystemException;
 import com.wsw.fitnesssystem.shared.infrastructure.persistence.ConstraintResultCodeMapper;
 import com.wsw.fitnesssystem.shared.kernel.error.CommonErrorCode;
 import com.wsw.fitnesssystem.shared.kernel.error.ErrorCode;
