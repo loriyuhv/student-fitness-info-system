@@ -1,7 +1,7 @@
 package com.wsw.fitnesssystem.iam.authentication.infrastructure.security.handler;
 
 import com.wsw.fitnesssystem.iam.authentication.infrastructure.security.support.SecurityResponseWriter;
-import com.wsw.fitnesssystem.shared.interfaces.web.response.ResultCode;
+import com.wsw.fitnesssystem.shared.interfaces.web.response.ErrorCode;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -25,7 +25,7 @@ import java.io.IOException;
  * - 只负责将认证异常转换为统一的接口响应格式
  * 返回结果：
  * - HTTP Status：401
- * - 业务状态码：{@link ResultCode#AUTH_USER_NOT_LOGIN}
+ * - 业务状态码：{@link ErrorCode#AUTH_USER_NOT_LOGIN}
  *
  * @author loriyuhv
  * @version 1.0 2026/1/14 23:53
@@ -45,9 +45,9 @@ public class JwtAuthenticationEntryPoint implements AuthenticationEntryPoint {
         AuthenticationException authException
     ) throws IOException {
 
-        ResultCode resultCode = authException instanceof CredentialsExpiredException
-                ? ResultCode.TOKEN_EXPIRED
-                : ResultCode.AUTH_CREDENTIAL_INVALID;
+        ErrorCode errorCode = authException instanceof CredentialsExpiredException
+                ? ErrorCode.TOKEN_EXPIRED
+                : ErrorCode.AUTH_CREDENTIAL_INVALID;
 
         // 记录安全日志（WARN级别）
         log.warn("认证失败，访问未授权资源: {}，Exception：{}",
@@ -56,6 +56,6 @@ public class JwtAuthenticationEntryPoint implements AuthenticationEntryPoint {
         );
 
         // 写入响应
-        securityResponseWriter.write(response, resultCode);
+        securityResponseWriter.write(response, errorCode);
     }
 }

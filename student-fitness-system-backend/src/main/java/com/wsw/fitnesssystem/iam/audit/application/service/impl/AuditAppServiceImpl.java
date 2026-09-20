@@ -7,7 +7,7 @@ import com.wsw.fitnesssystem.iam.audit.domain.valueobject.DeviceInfo;
 import com.wsw.fitnesssystem.iam.audit.domain.valueobject.IpAddress;
 import com.wsw.fitnesssystem.iam.audit.domain.valueobject.LogoutReason;
 import com.wsw.fitnesssystem.shared.application.exception.BizException;
-import com.wsw.fitnesssystem.shared.interfaces.web.response.ResultCode;
+import com.wsw.fitnesssystem.shared.interfaces.web.response.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -81,7 +81,7 @@ public class AuditAppServiceImpl implements AuditAppService {
     public void terminateSession(String tokenId, LogoutReason reason) {
         try {
             LoginAudit audit = auditRepository.findByTokenId(tokenId).orElseThrow(
-                () -> new BizException(ResultCode.SESSION_NOT_FOUND, "Token not found: " + tokenId)
+                () -> new BizException(ErrorCode.SESSION_NOT_FOUND, "Token not found: " + tokenId)
             );
             audit.terminate(reason);
             auditRepository.update(audit);
@@ -105,7 +105,7 @@ public class AuditAppServiceImpl implements AuditAppService {
     public void updateTokenId(String oldTokenId, String newTokenId, LocalDateTime newExpireTime) {
         try {
             LoginAudit audit = auditRepository.findByTokenId(oldTokenId)
-                .orElseThrow(() -> new BizException(ResultCode.SESSION_NOT_FOUND,
+                .orElseThrow(() -> new BizException(ErrorCode.SESSION_NOT_FOUND,
                     "审计记录不存在: " + oldTokenId));
 
             // 1. 领域状态变更

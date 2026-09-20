@@ -1,7 +1,7 @@
 package com.wsw.fitnesssystem.shared.application.exception;
 
+import com.wsw.fitnesssystem.shared.interfaces.web.response.ErrorCode;
 import lombok.Getter;
-import com.wsw.fitnesssystem.shared.interfaces.web.response.ResultCode;
 
 /**
  * 异常基类。
@@ -15,7 +15,7 @@ import com.wsw.fitnesssystem.shared.interfaces.web.response.ResultCode;
  * <p>
  * <b>使用规则：</b>
  * <ul>
- *   <li>子类必须通过构造方法传入 {@link ResultCode}，确保错误码与消息统一</li>
+ *   <li>子类必须通过构造方法传入 {@link ErrorCode}，确保错误码与消息统一</li>
  *   <li>不直接实例化，仅作为抽象基类</li>
  *   <li>继承自 {@link RuntimeException}，不强制调用方 try-catch</li>
  * </ul>
@@ -28,27 +28,27 @@ import com.wsw.fitnesssystem.shared.interfaces.web.response.ResultCode;
 @Getter
 public abstract class BaseException extends RuntimeException {
 
-    /** 统一错误码与消息 */
-    protected final ResultCode resultCode;
+    /** 统一错误码与消息（契约类型，不依赖具体枚举） */
+    protected final ErrorCode errorCode;
 
-    protected BaseException(ResultCode resultCode) {
-        super(resultCode.getMessage());
-        this.resultCode = resultCode;
+    protected BaseException(ErrorCode errorCode) {
+        super(errorCode.getMessage());
+        this.errorCode = errorCode;
     }
 
-    protected BaseException(ResultCode resultCode, String message) {
+    protected BaseException(ErrorCode errorCode, String message) {
         super(message);
-        this.resultCode = resultCode;
+        this.errorCode = errorCode;
     }
 
-    protected BaseException(ResultCode resultCode, Throwable cause) {
-        super(resultCode.getMessage(), cause);
-        this.resultCode = resultCode;
+    protected BaseException(ErrorCode errorCode, Throwable cause) {
+        super(errorCode.getMessage(), cause);
+        this.errorCode = errorCode;
     }
 
-    protected BaseException(ResultCode resultCode, String message, Throwable cause) {
+    protected BaseException(ErrorCode errorCode, String message, Throwable cause) {
         super(message, cause);
-        this.resultCode = resultCode;
+        this.errorCode = errorCode;
     }
 
 }

@@ -1,7 +1,7 @@
 package com.wsw.fitnesssystem.iam.authentication.infrastructure.security.handler;
 
 import com.wsw.fitnesssystem.iam.authentication.infrastructure.security.support.SecurityResponseWriter;
-import com.wsw.fitnesssystem.shared.interfaces.web.response.ResultCode;
+import com.wsw.fitnesssystem.shared.interfaces.web.response.ErrorCode;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -23,7 +23,7 @@ import java.io.IOException;
  * 响应规范：
  * <ul>
  *     <li>HTTP Status：403 FORBIDDEN</li>
- *     <li>业务码：{@link ResultCode#PERMISSION_DENIED}</li>
+ *     <li>业务码：{@link ErrorCode#PERMISSION_DENIED}</li>
  * </ul>
  * @author loriyuhv
  * @version 1.0 2026/1/15 0:11
@@ -42,11 +42,11 @@ public class JwtAccessDeniedHandler implements AccessDeniedHandler {
         AccessDeniedException accessDeniedException
     ) throws IOException {
 
-        ResultCode resultCode = ResultCode.PERMISSION_DENIED;
+        ErrorCode errorCode = ErrorCode.PERMISSION_DENIED;
         log.warn("已认证用户访问受限资源，权限校验不通过 | URI: {} | 原因: {}",
                 request.getRequestURI(),
                 accessDeniedException.getMessage()
         );
-        responseWriter.write(response, resultCode);
+        responseWriter.write(response, errorCode);
     }
 }

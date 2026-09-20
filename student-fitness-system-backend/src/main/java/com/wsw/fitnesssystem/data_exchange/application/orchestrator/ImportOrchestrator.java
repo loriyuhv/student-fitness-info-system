@@ -13,7 +13,7 @@ import com.wsw.fitnesssystem.data_exchange.application.collector.ErrorRecord;
 import com.wsw.fitnesssystem.data_exchange.domain.repository.ImportTaskRepository;
 import com.wsw.fitnesssystem.data_exchange.application.generator.ErrorFileGenerator;
 import com.wsw.fitnesssystem.shared.application.exception.BizException;
-import com.wsw.fitnesssystem.shared.interfaces.web.response.ResultCode;
+import com.wsw.fitnesssystem.shared.interfaces.web.response.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -119,7 +119,7 @@ public class ImportOrchestrator {
         } catch (Exception e) {
             // 未知异常兜底：防止任何未捕获异常导致任务状态悬空
             log.error("[{}] Import task terminated abnormally", taskId, e);
-            markTaskFailed(taskId, ResultCode.SERVER_TEMP_ERROR.getMessage());
+            markTaskFailed(taskId, ErrorCode.SERVER_TEMP_ERROR.getMessage());
         } finally {
             // ========== Step 5: 清理临时文件（强制兜底） ==========
             fileStoragePort.cleanup(file);
@@ -366,7 +366,7 @@ public class ImportOrchestrator {
         if (importTaskRepository.isCancelled(taskId)) {
             task.cancel();
             importTaskRepository.save(task);
-            throw new ImportCancelledException(ResultCode.TASK_CANCELLED, "Task cancelled");
+            throw new ImportCancelledException(ErrorCode.TASK_CANCELLED, "Task cancelled");
         }
     }
 

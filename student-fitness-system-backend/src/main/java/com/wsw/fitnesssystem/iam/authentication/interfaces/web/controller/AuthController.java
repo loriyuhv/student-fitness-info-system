@@ -8,12 +8,12 @@ import com.wsw.fitnesssystem.iam.authentication.application.dto.result.RefreshRe
 import com.wsw.fitnesssystem.iam.authentication.interfaces.web.dto.response.LoginResponse;
 import com.wsw.fitnesssystem.iam.authentication.interfaces.web.dto.request.RefreshRequest;
 import com.wsw.fitnesssystem.iam.authentication.interfaces.web.dto.response.RefreshResponse;
+import com.wsw.fitnesssystem.shared.interfaces.web.response.ErrorCode;
 import com.wsw.fitnesssystem.shared.interfaces.web.util.WebUtils;
 import com.wsw.fitnesssystem.shared.application.context.RequestContextHolder;
 import com.wsw.fitnesssystem.shared.domain.vb.Operator;
 import com.wsw.fitnesssystem.shared.interfaces.web.response.ApiResult;
 import com.wsw.fitnesssystem.iam.authentication.interfaces.web.dto.request.LoginRequest;
-import com.wsw.fitnesssystem.shared.interfaces.web.response.ResultCode;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -77,11 +77,11 @@ public class AuthController {
             authAppService.logout(operator, accessTokenId);
 
             // 3. 返回成功
-            return ApiResult.success(ResultCode.LOGOUT_SUCCESS);
+            return ApiResult.success(ErrorCode.LOGOUT_SUCCESS);
 
         } catch (Exception e) {
-            log.error(ResultCode.LOGOUT_FAILED.getMessage(), e);
-            return ApiResult.error(ResultCode.LOGOUT_FAILED);
+            log.error(ErrorCode.LOGOUT_FAILED.getMessage(), e);
+            return ApiResult.error(ErrorCode.LOGOUT_FAILED);
         }
     }
 

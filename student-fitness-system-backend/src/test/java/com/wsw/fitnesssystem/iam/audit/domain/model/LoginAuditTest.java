@@ -2,7 +2,7 @@ package com.wsw.fitnesssystem.iam.audit.domain.model;
 
 import com.wsw.fitnesssystem.iam.audit.domain.valueobject.*;
 import com.wsw.fitnesssystem.shared.application.exception.BizException;
-import com.wsw.fitnesssystem.shared.interfaces.web.response.ResultCode;
+import com.wsw.fitnesssystem.shared.interfaces.web.response.ErrorCode;
 import org.junit.jupiter.api.Test;
 
 import java.time.LocalDateTime;
@@ -57,8 +57,8 @@ class LoginAuditTest {
         assertThatThrownBy(
             () -> LoginAudit.recordSuccess(null, USERNAME, TOKEN_ID, EXPIRE_TIME, DEVICE, IP))
             .isInstanceOf(BizException.class)
-            .extracting("resultCode")
-            .isEqualTo(ResultCode.AUTH_USER_NOT_FOUND);
+            .extracting("errorCode")
+            .isEqualTo(ErrorCode.AUTH_USER_NOT_FOUND);
     }
 
     @Test
@@ -66,8 +66,8 @@ class LoginAuditTest {
         assertThatThrownBy(
             () -> LoginAudit.recordSuccess(USER_ID, USERNAME, "", EXPIRE_TIME, DEVICE, IP))
             .isInstanceOf(BizException.class)
-            .extracting("resultCode")
-            .isEqualTo(ResultCode.TOKEN_INVALID);
+            .extracting("errorCode")
+            .isEqualTo(ErrorCode.TOKEN_INVALID);
     }
 
     // ========== 测试 recordFailure ==========
@@ -121,8 +121,8 @@ class LoginAuditTest {
         // When & Then
         assertThatThrownBy(() -> audit.terminate(LogoutReason.KICK))
             .isInstanceOf(BizException.class)
-            .extracting("resultCode")
-            .isEqualTo(ResultCode.SESSION_ALREADY_OFFLINE);
+            .extracting("errorCode")
+            .isEqualTo(ErrorCode.SESSION_ALREADY_OFFLINE);
     }
 
     @Test
@@ -133,8 +133,8 @@ class LoginAuditTest {
         // When & Then
         assertThatThrownBy(() -> audit.terminate(LogoutReason.LOGOUT))
             .isInstanceOf(BizException.class)
-            .extracting("resultCode")
-            .isEqualTo(ResultCode.AUTH_USER_NOT_LOGIN);
+            .extracting("errorCode")
+            .isEqualTo(ErrorCode.AUTH_USER_NOT_LOGIN);
     }
 
     // ========== 测试 markOffline ==========

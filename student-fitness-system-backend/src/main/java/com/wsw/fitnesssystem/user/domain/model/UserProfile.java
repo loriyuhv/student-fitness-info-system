@@ -3,7 +3,7 @@ package com.wsw.fitnesssystem.user.domain.model;
 import com.wsw.fitnesssystem.shared.domain.exception.DomainConflictException;
 import com.wsw.fitnesssystem.shared.domain.exception.DomainValidationException;
 import com.wsw.fitnesssystem.shared.application.exception.BizException;
-import com.wsw.fitnesssystem.shared.interfaces.web.response.ResultCode;
+import com.wsw.fitnesssystem.shared.interfaces.web.response.ErrorCode;
 import com.wsw.fitnesssystem.user.domain.vb.Gender;
 import lombok.Getter;
 import org.apache.commons.lang3.StringUtils;
@@ -120,7 +120,7 @@ public class UserProfile {
     /** 更新昵称（非空） */
     public void updateNickname(String nickname, Long operatorId) {
         if (StringUtils.isBlank(nickname)) {
-            throw new BizException(ResultCode.PARAM_INVALID, "昵称不能为空");
+            throw new BizException(ErrorCode.PARAM_INVALID, "昵称不能为空");
         }
         this.nickname = nickname.trim();
         this.updateBy = operatorId;

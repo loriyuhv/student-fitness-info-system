@@ -4,7 +4,7 @@ import com.wsw.fitnesssystem.data_exchange.application.dto.upload.UploadedFile;
 import com.wsw.fitnesssystem.data_exchange.application.port.output.FileStoragePort;
 import com.wsw.fitnesssystem.data_exchange.infrastructure.config.ImportInfrastructureProperties;
 import com.wsw.fitnesssystem.shared.application.exception.SystemException;
-import com.wsw.fitnesssystem.shared.interfaces.web.response.ResultCode;
+import com.wsw.fitnesssystem.shared.interfaces.web.response.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
@@ -59,7 +59,7 @@ public class FileStorageLocalAdapter implements FileStoragePort {
         // 2. 目录不存在则创建
         if (!tempDir.exists() && !tempDir.mkdirs()) {
             log.error("Failed to create temp directory, path={}", tempDir.getAbsolutePath());
-            throw new SystemException(ResultCode.FILE_UPLOAD_ERROR);
+            throw new SystemException(ErrorCode.FILE_UPLOAD_ERROR);
         }
 
         // 3. 通过输入流拷贝（UploadedFile 无 transferTo，统一用流式复制）
@@ -69,7 +69,7 @@ public class FileStorageLocalAdapter implements FileStoragePort {
             log.debug("[{}] File saved to temp location: {}", taskId, tempFile.getAbsolutePath());
         } catch (IOException e) {
             log.error("[{}] Failed to save temp file, path={}", taskId, tempFile.getAbsolutePath(), e);
-            throw new SystemException(ResultCode.FILE_UPLOAD_ERROR, e);
+            throw new SystemException(ErrorCode.FILE_UPLOAD_ERROR, e);
         }
 
         return tempFile;
@@ -81,7 +81,7 @@ public class FileStorageLocalAdapter implements FileStoragePort {
             return DigestUtils.md5DigestAsHex(fis);
         } catch (IOException e) {
             log.error("Failed to compute MD5, path={}", file.getAbsolutePath(), e);
-            throw new SystemException(ResultCode.SYSTEM_ERROR, e);
+            throw new SystemException(ErrorCode.SYSTEM_ERROR, e);
         }
     }
 

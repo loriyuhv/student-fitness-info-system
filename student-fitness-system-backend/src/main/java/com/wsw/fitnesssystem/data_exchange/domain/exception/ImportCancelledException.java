@@ -1,7 +1,7 @@
 package com.wsw.fitnesssystem.data_exchange.domain.exception;
 
 import com.wsw.fitnesssystem.shared.application.exception.BizException;
-import com.wsw.fitnesssystem.shared.interfaces.web.response.ResultCode;
+import com.wsw.fitnesssystem.shared.interfaces.web.response.ErrorCode;
 
 /**
  * 导入任务被用户主动取消异常
@@ -12,8 +12,8 @@ import com.wsw.fitnesssystem.shared.interfaces.web.response.ResultCode;
  */
 public class ImportCancelledException extends BizException {
 
-    public ImportCancelledException(ResultCode resultCode, String message) {
-        super(resultCode, message);
+    public ImportCancelledException(ErrorCode errorCode, String message) {
+        super(errorCode, message);
     }
 
 }

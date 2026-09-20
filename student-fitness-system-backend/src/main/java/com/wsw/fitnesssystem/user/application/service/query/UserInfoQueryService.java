@@ -2,7 +2,7 @@ package com.wsw.fitnesssystem.user.application.service.query;
 
 import com.wsw.fitnesssystem.shared.domain.vb.Operator;
 import com.wsw.fitnesssystem.shared.application.exception.BizException;
-import com.wsw.fitnesssystem.shared.interfaces.web.response.ResultCode;
+import com.wsw.fitnesssystem.shared.interfaces.web.response.ErrorCode;
 import com.wsw.fitnesssystem.user.application.dto.result.AdminUserDetailResult;
 import com.wsw.fitnesssystem.user.application.dto.result.UserAccountResult;
 import com.wsw.fitnesssystem.user.application.dto.result.UserAuthorizationResult;
@@ -57,11 +57,11 @@ public class UserInfoQueryService {
         // 1. 认证账号（来自 authentication）
         UserAccountResult account = userAccountQueryPort
             .findByUserIdAndCampusId(userId, campusId)
-            .orElseThrow(() -> new BizException(ResultCode.USER_NOT_FOUND));
+            .orElseThrow(() -> new BizException(ErrorCode.USER_NOT_FOUND));
 
         // 2. 用户档案（本模块）
         UserProfile profile = userProfileRepository.findByUserIdAndCampusId(userId, campusId)
-            .orElseThrow(() -> new BizException(ResultCode.USER_NOT_FOUND));
+            .orElseThrow(() -> new BizException(ErrorCode.USER_NOT_FOUND));
 
         // 3. 授权（来自 authorization）
         UserAuthorizationResult authorizations = userAuthorizationQueryPort.findByUserIdAndCampusId(userId, campusId);
@@ -91,7 +91,7 @@ public class UserInfoQueryService {
     public AdminUserDetailResult getUserDetailForAdmin(Long userId) {
         // 1. 认证账号（IAM 提供）
         UserAccountResult account = userAccountQueryPort.findByUserId(userId)
-            .orElseThrow(() -> new BizException(ResultCode.USER_NOT_FOUND));
+            .orElseThrow(() -> new BizException(ErrorCode.USER_NOT_FOUND));
 
         // 2. 通用画像（可能为空）
         UserProfile profile = userProfileRepository.findByUserId(userId).orElse(null);

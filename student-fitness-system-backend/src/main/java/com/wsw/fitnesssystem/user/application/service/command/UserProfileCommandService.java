@@ -6,7 +6,7 @@ import com.wsw.fitnesssystem.shared.domain.exception.DomainConflictException;
 import com.wsw.fitnesssystem.shared.domain.exception.DomainValidationException;
 import com.wsw.fitnesssystem.shared.domain.vb.Operator;
 import com.wsw.fitnesssystem.shared.application.exception.BizException;
-import com.wsw.fitnesssystem.shared.interfaces.web.response.ResultCode;
+import com.wsw.fitnesssystem.shared.interfaces.web.response.ErrorCode;
 import com.wsw.fitnesssystem.user.application.dto.command.UpdateMyProfileCommand;
 import com.wsw.fitnesssystem.user.domain.model.UserProfile;
 import com.wsw.fitnesssystem.user.domain.repository.UserProfileRepository;
@@ -49,7 +49,7 @@ public class UserProfileCommandService {
     public void updateMyProfile(Operator operator, UpdateMyProfileCommand command) {
         UserProfile profile = userProfileRepository
             .findByUserIdAndCampusId(operator.userId(), operator.campusId())
-            .orElseThrow(() -> new BizException(ResultCode.USER_NOT_FOUND));
+            .orElseThrow(() -> new BizException(ErrorCode.USER_NOT_FOUND));
 
         try {
             // 逐字段更新，null 表示"不修改"
@@ -77,9 +77,9 @@ public class UserProfileCommandService {
 
             userProfileRepository.save(profile);
         } catch (DomainValidationException e) {
-            throw new BizException(ResultCode.PARAM_INVALID, e.getMessage(), e);
+            throw new BizException(ErrorCode.PARAM_INVALID, e.getMessage(), e);
         } catch (DomainConflictException e) {
-            throw new BizException(ResultCode.DATA_ALREADY_EXISTS, e.getMessage(), e);
+            throw new BizException(ErrorCode.DATA_ALREADY_EXISTS, e.getMessage(), e);
         }
         log.info("[A2] Profile updated: userId={}", operator.userId());
     }

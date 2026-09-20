@@ -2,7 +2,7 @@ package com.wsw.fitnesssystem.iam.audit.domain.model;
 
 import com.wsw.fitnesssystem.iam.audit.domain.valueobject.*;
 import com.wsw.fitnesssystem.shared.application.exception.BizException;
-import com.wsw.fitnesssystem.shared.interfaces.web.response.ResultCode;
+import com.wsw.fitnesssystem.shared.interfaces.web.response.ErrorCode;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -52,11 +52,11 @@ public class LoginAudit {
         LocalDateTime expireTime, DeviceInfo device, IpAddress ip
     ) {
         if (userId == null) {
-            throw new BizException(ResultCode.AUTH_USER_NOT_FOUND, "登录成功时 userId 不能为空");
+            throw new BizException(ErrorCode.AUTH_USER_NOT_FOUND, "登录成功时 userId 不能为空");
         }
 
         if (tokenId == null || tokenId.isBlank()) {
-            throw new BizException(ResultCode.TOKEN_INVALID, "登录成功时 tokenId 不能为空");
+            throw new BizException(ErrorCode.TOKEN_INVALID, "登录成功时 tokenId 不能为空");
         }
 
         LoginAudit audit = new LoginAudit();
@@ -96,11 +96,11 @@ public class LoginAudit {
      */
     public void terminate(LogoutReason reason) {
         if (this.status == OnlineStatus.OFFLINE) {
-            throw new BizException(ResultCode.SESSION_ALREADY_OFFLINE, "不能重复终止");
+            throw new BizException(ErrorCode.SESSION_ALREADY_OFFLINE, "不能重复终止");
         }
 
         if (this.status == OnlineStatus.NEVER_ONLINE) {
-            throw new BizException(ResultCode.AUTH_USER_NOT_LOGIN, "登录失败记录不存在会话终止");
+            throw new BizException(ErrorCode.AUTH_USER_NOT_LOGIN, "登录失败记录不存在会话终止");
         }
 
         this.logoutTime = LocalDateTime.now();
@@ -142,13 +142,13 @@ public class LoginAudit {
      */
     public void updateToken(String newTokenId, LocalDateTime newExpireTime) {
         if (this.tokenSnapshot == null) {
-            throw new BizException(ResultCode.TOKEN_INVALID, "原审计记录不存在 token");
+            throw new BizException(ErrorCode.TOKEN_INVALID, "原审计记录不存在 token");
         }
         if (newTokenId == null || newTokenId.isBlank()) {
-            throw new BizException(ResultCode.TOKEN_INVALID, "新 TokenId 不能为空");
+            throw new BizException(ErrorCode.TOKEN_INVALID, "新 TokenId 不能为空");
         }
         if (newExpireTime == null) {
-            throw new BizException(ResultCode.TOKEN_INVALID, "新过期时间不能为空");
+            throw new BizException(ErrorCode.TOKEN_INVALID, "新过期时间不能为空");
         }
         this.tokenSnapshot = new TokenSnapshot(newTokenId, newExpireTime);
     }

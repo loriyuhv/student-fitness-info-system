@@ -30,7 +30,7 @@ import org.springframework.http.HttpStatus;
  * @since 1.0
  */
 @Getter
-public enum ResultCode {
+public enum ErrorCode implements com.wsw.fitnesssystem.shared.kernel.error.ErrorCode {
 
     /* ================= 成功（仅允许真正的成功语义） ================= */
     SUCCESS(200000, HttpStatus.OK, "操作成功"),
@@ -169,11 +169,25 @@ public enum ResultCode {
     /** 默认提示信息 */
     private final String message;
 
-    ResultCode(Integer code, HttpStatus httpStatus, String message) {
+    ErrorCode(Integer code, HttpStatus httpStatus, String message) {
         this.code = code;
         this.httpStatus = httpStatus;
         this.message = message;
     }
+
+    /* ================= ErrorCode 契约实现 ================= */
+
+    @Override
+    public int code() {
+        return code;
+    }
+
+    @Override
+    public String message() {
+        return message;
+    }
+
+    /* ================= 保留原有 API（P3 阶段将移除） ================= */
 
     public int httpCode() {
         return httpStatus.value();

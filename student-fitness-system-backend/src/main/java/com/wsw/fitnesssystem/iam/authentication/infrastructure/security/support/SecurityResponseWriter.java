@@ -2,7 +2,7 @@ package com.wsw.fitnesssystem.iam.authentication.infrastructure.security.support
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.wsw.fitnesssystem.shared.interfaces.web.response.ApiResult;
-import com.wsw.fitnesssystem.shared.interfaces.web.response.ResultCode;
+import com.wsw.fitnesssystem.shared.interfaces.web.response.ErrorCode;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
@@ -30,34 +30,34 @@ public class SecurityResponseWriter {
     /**
      * 根据错误码输出标准失败响应，使用ResultCode内置提示信息
      * @param response http响应对象
-     * @param resultCode 业务结果码
+     * @param errorCode 业务结果码
      * @throws IOException 输入输出异常
      */
-    public void write(HttpServletResponse response, ResultCode resultCode) throws IOException {
-        write(response, resultCode, resultCode.getMessage());
+    public void write(HttpServletResponse response, ErrorCode errorCode) throws IOException {
+        write(response, errorCode, errorCode.getMessage());
     }
 
     /**
      * 根据错误码 + 自定义消息输出响应
      * @param response http响应对象
-     * @param resultCode 业务结果状态码
+     * @param errorCode 业务结果状态码
      * @param message 自定义提示文本
      * @throws IOException 输入输出异常
      */
     public void write(
         HttpServletResponse response,
-        ResultCode resultCode,
+        ErrorCode errorCode,
         String message
     ) throws IOException {
 
-        response.setStatus(resultCode.getHttpStatus().value());
+        response.setStatus(errorCode.getHttpStatus().value());
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
         response.setCharacterEncoding(StandardCharsets.UTF_8.name());
         ApiResult<Object> result;
         if (message != null && !message.isBlank()) {
-            result = ApiResult.error(resultCode, message);
+            result = ApiResult.error(errorCode, message);
         } else {
-            result = ApiResult.error(resultCode);
+            result = ApiResult.error(errorCode);
         }
         objectMapper.writeValue(response.getWriter(), result);
     }

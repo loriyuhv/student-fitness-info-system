@@ -1,6 +1,6 @@
 package com.wsw.fitnesssystem.shared.application.exception;
 
-import com.wsw.fitnesssystem.shared.interfaces.web.response.ResultCode;
+import com.wsw.fitnesssystem.shared.interfaces.web.response.ErrorCode;
 
 /**
  * 业务异常。
@@ -29,20 +29,20 @@ import com.wsw.fitnesssystem.shared.interfaces.web.response.ResultCode;
  */
 public class BizException extends BaseException {
 
-    public BizException(ResultCode resultCode) {
-        super(resultCode);
+    public BizException(ErrorCode errorCode) {
+        super(errorCode);
     }
 
-    public BizException(ResultCode resultCode, String message) {
-        super(resultCode, message);
+    public BizException(ErrorCode errorCode, String message) {
+        super(errorCode, message);
     }
 
-    public BizException(ResultCode resultCode, Throwable cause) {
-        super(resultCode, cause);
+    public BizException(ErrorCode errorCode, Throwable cause) {
+        super(errorCode, cause);
     }
 
-    public BizException(ResultCode resultCode, String message, Throwable cause) {
-        super(resultCode, message, cause);
+    public BizException(ErrorCode errorCode, String message, Throwable cause) {
+        super(errorCode, message, cause);
     }
 
 }

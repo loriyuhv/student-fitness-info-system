@@ -6,7 +6,7 @@ import cn.idev.excel.read.listener.ReadListener;
 import com.wsw.fitnesssystem.data_exchange.application.port.output.FileParsingPort;
 import com.wsw.fitnesssystem.data_exchange.domain.exception.ImportCancelledException;
 import com.wsw.fitnesssystem.shared.application.exception.BizException;
-import com.wsw.fitnesssystem.shared.interfaces.web.response.ResultCode;
+import com.wsw.fitnesssystem.shared.interfaces.web.response.ErrorCode;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
@@ -64,7 +64,7 @@ public class ExcelFileParser implements FileParsingPort {
         } catch (Exception e) {
             log.error("Excel full parse failed, dtoClass={}, file={}",
                 dtoClass.getSimpleName(), file.getAbsolutePath(), e);
-            throw new BizException(ResultCode.PARAM_TYPE_ERROR, "文件解析失败：" + e.getMessage());
+            throw new BizException(ErrorCode.PARAM_TYPE_ERROR, "文件解析失败：" + e.getMessage());
         }
 
         log.info("[{}] Excel full parse completed, dtoClass={}, total={} rows",
@@ -101,7 +101,7 @@ public class ExcelFileParser implements FileParsingPort {
                 dtoClass.getSimpleName(), file.getAbsolutePath(), e
             );
             throw new BizException(
-                ResultCode.PARAM_TYPE_ERROR, "文件解析失败：" + e.getMessage(), e
+                ErrorCode.PARAM_TYPE_ERROR, "文件解析失败：" + e.getMessage(), e
             );
         }
     }

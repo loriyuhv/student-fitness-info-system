@@ -4,7 +4,7 @@ import com.wsw.fitnesssystem.iam.session.domain.port.SessionRepository;
 import com.wsw.fitnesssystem.iam.session.infrastructure.config.SessionProperties;
 import com.wsw.fitnesssystem.shared.infrastructure.properties.AuthRedisKeys;
 import com.wsw.fitnesssystem.shared.application.exception.BizException;
-import com.wsw.fitnesssystem.shared.interfaces.web.response.ResultCode;
+import com.wsw.fitnesssystem.shared.interfaces.web.response.ErrorCode;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -318,7 +318,7 @@ public class RedisSessionRepository implements SessionRepository {
         );
 
         if (result == 0 || result == -1) {
-            throw new BizException(ResultCode.REFRESH_TOKEN_INVALID);
+            throw new BizException(ErrorCode.REFRESH_TOKEN_INVALID);
         }
     }
 
@@ -328,7 +328,7 @@ public class RedisSessionRepository implements SessionRepository {
         Object val = redisTemplate.opsForHash().get(key, refreshTokenId);
         if (val == null) {
             // refreshToken不存在：已登出 / 过期 / 伪造
-            throw new BizException(ResultCode.REFRESH_TOKEN_INVALID);
+            throw new BizException(ErrorCode.REFRESH_TOKEN_INVALID);
         }
         return val.toString();
     }

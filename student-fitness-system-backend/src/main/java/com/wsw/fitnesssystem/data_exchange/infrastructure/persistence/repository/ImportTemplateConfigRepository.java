@@ -4,7 +4,7 @@ import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.wsw.fitnesssystem.data_exchange.infrastructure.persistence.entity.ImportTemplateConfigEntity;
 import com.wsw.fitnesssystem.data_exchange.infrastructure.persistence.mapper.ImportTemplateConfigMapper;
 import com.wsw.fitnesssystem.shared.application.exception.BizException;
-import com.wsw.fitnesssystem.shared.interfaces.web.response.ResultCode;
+import com.wsw.fitnesssystem.shared.interfaces.web.response.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Repository;
@@ -37,7 +37,7 @@ public class ImportTemplateConfigRepository {
         ImportTemplateConfigEntity entity = findByBizType(bizType);
         if (entity == null) {
             log.warn("Template config not found for bizType: {}", bizType);
-            throw new BizException(ResultCode.PARAM_INVALID, "该导入类型未配置模板：" + bizType);
+            throw new BizException(ErrorCode.PARAM_INVALID, "该导入类型未配置模板：" + bizType);
         }
         return entity;
     }

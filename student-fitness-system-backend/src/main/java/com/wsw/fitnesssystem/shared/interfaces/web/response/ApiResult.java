@@ -16,7 +16,7 @@ import lombok.NoArgsConstructor;
  * <b>字段说明：</b>
  * <ul>
  *   <li>{@code httpCode}：HTTP 状态码（200/400/401/403/500），用于网关/浏览器</li>
- *   <li>{@code bizCode}：业务状态码（来自 {@link ResultCode}），供前端识别具体错误类型</li>
+ *   <li>{@code bizCode}：业务状态码（来自 {@link ErrorCode}），供前端识别具体错误类型</li>
  *   <li>{@code message}：面向用户的提示信息</li>
  *   <li>{@code data}：业务数据（成功时返回）</li>
  *   <li>{@code timestamp}：响应生成时间（毫秒时间戳）</li>
@@ -25,7 +25,7 @@ import lombok.NoArgsConstructor;
  * <b>使用方式：</b>
  * <ul>
  *   <li>成功响应：使用 {@link #success()} 或 {@link #success(Object)}</li>
- *   <li>失败响应：使用 {@link #error(ResultCode)} 或 {@link #error(ResultCode, String)}</li>
+ *   <li>失败响应：使用 {@link #error(ErrorCode)} 或 {@link #error(ErrorCode, String)}</li>
  *   <li>不建议直接实例化，统一使用静态工厂方法</li>
  * </ul>
  *
@@ -71,26 +71,26 @@ public class ApiResult<T> {
     /* ================= 成功响应 ================= */
 
     public static <T> ApiResult<T> success() {
-        return success(ResultCode.SUCCESS);
+        return success(ErrorCode.SUCCESS);
     }
 
     public static <T> ApiResult<T> success(T data) {
-        return from(ResultCode.SUCCESS, data);
+        return from(ErrorCode.SUCCESS, data);
     }
 
-    public static <T> ApiResult<T> success(ResultCode resultCode) {
-        return from(resultCode, null);
+    public static <T> ApiResult<T> success(ErrorCode errorCode) {
+        return from(errorCode, null);
     }
 
 
-    public static <T> ApiResult<T> success(ResultCode resultCode, String message) {
-        return from(resultCode, null, message);
+    public static <T> ApiResult<T> success(ErrorCode errorCode, String message) {
+        return from(errorCode, null, message);
     }
 
     public static <T> ApiResult<T> success(String message, T data) {
         return new ApiResult<>(
-            ResultCode.SUCCESS.httpCode(),
-            ResultCode.SUCCESS.getCode(),
+            ErrorCode.SUCCESS.httpCode(),
+            ErrorCode.SUCCESS.getCode(),
             message, data,
             System.currentTimeMillis()
         );
@@ -98,30 +98,30 @@ public class ApiResult<T> {
 
     /* ================= 失败响应 ================= */
 
-    public static <T> ApiResult<T> error(ResultCode resultCode) {
-        return from(resultCode, null);
+    public static <T> ApiResult<T> error(ErrorCode errorCode) {
+        return from(errorCode, null);
     }
 
-    public static <T> ApiResult<T> error(ResultCode resultCode, String message) {
-        return from(resultCode, null, message);
+    public static <T> ApiResult<T> error(ErrorCode errorCode, String message) {
+        return from(errorCode, null, message);
     }
 
     /* ================= 核心工厂方法 ================= */
 
-    public static <T> ApiResult<T> from(ResultCode resultCode, T data) {
+    public static <T> ApiResult<T> from(ErrorCode errorCode, T data) {
         return new ApiResult<>(
-            resultCode.httpCode(),
-            resultCode.getCode(),
-            resultCode.getMessage(),
+            errorCode.httpCode(),
+            errorCode.getCode(),
+            errorCode.getMessage(),
             data,
             System.currentTimeMillis()
         );
     }
 
-    public static <T> ApiResult<T> from(ResultCode resultCode, T data, String message) {
+    public static <T> ApiResult<T> from(ErrorCode errorCode, T data, String message) {
         return new ApiResult<>(
-                resultCode.httpCode(),
-                resultCode.getCode(),
+                errorCode.httpCode(),
+                errorCode.getCode(),
                 message,
                 data,
                 System.currentTimeMillis()

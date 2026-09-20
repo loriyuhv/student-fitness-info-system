@@ -1,6 +1,6 @@
 package com.wsw.fitnesssystem.shared.application.exception;
 
-import com.wsw.fitnesssystem.shared.interfaces.web.response.ResultCode;
+import com.wsw.fitnesssystem.shared.interfaces.web.response.ErrorCode;
 
 /**
  * 系统异常（兜底）。
@@ -37,20 +37,20 @@ import com.wsw.fitnesssystem.shared.interfaces.web.response.ResultCode;
  */
 public class SystemException extends BaseException {
 
-    public SystemException(ResultCode resultCode) {
-        super(resultCode);
+    public SystemException(ErrorCode errorCode) {
+        super(errorCode);
     }
 
-    public SystemException(ResultCode resultCode, String message) {
-        super(resultCode, message);
+    public SystemException(ErrorCode errorCode, String message) {
+        super(errorCode, message);
     }
 
-    public SystemException(ResultCode resultCode, Throwable cause) {
-        super(resultCode, cause);
+    public SystemException(ErrorCode errorCode, Throwable cause) {
+        super(errorCode, cause);
     }
 
-    public SystemException(ResultCode resultCode, String message, Throwable cause) {
-        super(resultCode, message, cause);
+    public SystemException(ErrorCode errorCode, String message, Throwable cause) {
+        super(errorCode, message, cause);
     }
 
 }

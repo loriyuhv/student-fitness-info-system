@@ -19,7 +19,7 @@ import com.wsw.fitnesssystem.iam.authentication.application.dto.port.RefreshToke
 import com.wsw.fitnesssystem.iam.authentication.domain.repository.AuthAccountRepository;
 import com.wsw.fitnesssystem.shared.domain.vb.Operator;
 import com.wsw.fitnesssystem.shared.application.exception.BizException;
-import com.wsw.fitnesssystem.shared.interfaces.web.response.ResultCode;
+import com.wsw.fitnesssystem.shared.interfaces.web.response.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
@@ -138,7 +138,7 @@ public class AuthAppService {
     public Set<String> kick(long campusId, long userId) {
         // 1. 校验用户是否存在
         authAccountRepository.findByUserIdAndCampusId(userId, campusId)
-            .orElseThrow(() -> new BizException(ResultCode.USER_NOT_FOUND));
+            .orElseThrow(() -> new BizException(ErrorCode.USER_NOT_FOUND));
 
         // 2. 移除用户权限
         authorizationPort.removeAuthorization(userId, campusId);
@@ -229,7 +229,7 @@ public class AuthAppService {
         try {
             // 1. 查账号
             AuthAccount account = authAccountRepository.findByUsername(cmd.getUsername())
-                .orElseThrow(() -> new BizException(ResultCode.AUTH_ACCOUNT_NOT_EXIST));
+                .orElseThrow(() -> new BizException(ErrorCode.AUTH_ACCOUNT_NOT_EXIST));
 
             // 2. 验证密码（领域逻辑）
             account.verifyPassword(cmd.getPassword(), passwordEncryptor);
@@ -250,10 +250,10 @@ public class AuthAppService {
             log.debug("Risk result {}", result);
 
             if (result.locked()) {
-                throw new BizException(ResultCode.RISK_ACCOUNT_LOCKED);
+                throw new BizException(ErrorCode.RISK_ACCOUNT_LOCKED);
             }
 
-            throw new BizException(ResultCode.AUTH_USER_LOGIN_ERROR, e);
+            throw new BizException(ErrorCode.AUTH_USER_LOGIN_ERROR, e);
         }
     }
 
