@@ -9,7 +9,6 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 
@@ -63,16 +62,16 @@ public class SecurityResponseWriter {
         ErrorCode errorCode,
         String message
     ) throws IOException {
-        // P3 阶段：与 GlobalExceptionHandler 保持一致，HTTP 状态固定 200
-        // P6 阶段：改为 httpStatusResolver.resolve(errorCode).value()
-        response.setStatus(HttpStatus.OK.value());
-        response.setContentType(MediaType.APPLICATION_JSON_VALUE);
-        response.setCharacterEncoding(StandardCharsets.UTF_8.name());
         int httpCode = httpStatusResolver.resolveValue(errorCode);
         String finalMsg = StringUtils.isNotBlank(message) ? errorCode.message() : message;
+
+        response.setStatus(httpCode);
+        response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+        response.setCharacterEncoding(StandardCharsets.UTF_8.name());
+
         ApiResponse<Object> result = ApiResponse.error(httpCode, errorCode, finalMsg);
 
-        log.debug("[Security] 写出异常响应：httpCode={}, bizCode={}, msg={}",
+        log.debug("[Security] Write exception response: httpCode={}, bizCode={}, msg={}",
             httpCode, errorCode.code(), finalMsg);
 
         objectMapper.writeValue(response.getWriter(), result);

@@ -1,7 +1,6 @@
 package com.wsw.fitnesssystem.fitness.error;
 
 import com.wsw.fitnesssystem.shared.kernel.error.ErrorCode;
-import org.springframework.http.HttpStatus;
 
 /**
  * fitness 模块错误码（体测）。
@@ -14,19 +13,17 @@ import org.springframework.http.HttpStatus;
  */
 public enum FitnessErrorCode implements ErrorCode {
 
-    DATA_NOT_FOUND("fitness.data.not_found", HttpStatus.NOT_FOUND, "体测数据不存在"),
-    DATA_ALREADY_EXIST("fitness.data.already_exist", HttpStatus.CONFLICT, "体测数据已存在"),
-    SCORE_CALCULATE_ERROR("fitness.score.calculate_error", HttpStatus.UNPROCESSABLE_ENTITY, "成绩计算失败"),
-    DATA_IMPORT_ERROR("fitness.data.import_error", HttpStatus.UNPROCESSABLE_ENTITY, "体测数据导入失败"),
-    DATA_EXPORT_ERROR("fitness.data.export_error", HttpStatus.UNPROCESSABLE_ENTITY, "体测数据导出失败");
+    DATA_NOT_FOUND("fitness.data.not_found", "体测数据不存在"),
+    DATA_ALREADY_EXIST("fitness.data.already_exist", "体测数据已存在"),
+    SCORE_CALCULATE_ERROR("fitness.score.calculate_error", "成绩计算失败"),
+    DATA_IMPORT_ERROR("fitness.data.import_error", "体测数据导入失败"),
+    DATA_EXPORT_ERROR("fitness.data.export_error", "体测数据导出失败");
 
     private final String code;
-    private final HttpStatus httpStatus;
     private final String message;
 
-    FitnessErrorCode(String code, HttpStatus httpStatus, String message) {
+    FitnessErrorCode(String code, String message) {
         this.code = code;
-        this.httpStatus = httpStatus;
         this.message = message;
     }
 
@@ -38,10 +35,6 @@ public enum FitnessErrorCode implements ErrorCode {
     @Override
     public String message() {
         return message;
-    }
-
-    public HttpStatus httpStatus() {
-        return httpStatus;
     }
 
 }

@@ -129,7 +129,7 @@ public class HttpStatusResolver {
         // 启动期校验：所有枚举的所有值必须已注册
         validateAllRegistered();
 
-        log.info("[HTTP] HttpStatusResolver 已注册 {} 个错误码", registry.size());
+        log.info("[HTTP] HttpStatusResolver registered {} error codes", registry.size());
     }
 
     private void reg(ErrorCode ec, HttpStatus status) {

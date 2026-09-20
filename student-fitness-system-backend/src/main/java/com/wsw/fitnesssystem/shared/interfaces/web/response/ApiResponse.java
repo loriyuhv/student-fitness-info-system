@@ -5,6 +5,7 @@ import com.wsw.fitnesssystem.shared.kernel.error.CommonErrorCode;
 import com.wsw.fitnesssystem.shared.kernel.error.ErrorCode;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.springframework.http.HttpStatus;
 
 /**
  * 统一 API 响应对象。
@@ -36,7 +37,7 @@ import lombok.NoArgsConstructor;
 public class ApiResponse<T> {
 
     /**
-     * HTTP 状态码
+     * HTTP 状态码（与响应行一致，冗余方便前端读取）
      */
     @JsonProperty("http_code")
     private Integer httpCode;
@@ -90,7 +91,7 @@ public class ApiResponse<T> {
 
     public static <T> ApiResponse<T> success(T data) {
         return new ApiResponse<>(
-            CommonErrorCode.SUCCESS.httpStatus().value(),
+            HttpStatus.OK.value(),
             CommonErrorCode.SUCCESS.code(),
             CommonErrorCode.SUCCESS.message(),
             data,
@@ -100,7 +101,7 @@ public class ApiResponse<T> {
 
     public static <T> ApiResponse<T> success(String message, T data) {
         return new ApiResponse<>(
-            CommonErrorCode.SUCCESS.httpStatus().value(),
+            HttpStatus.OK.value(),
             CommonErrorCode.SUCCESS.code(),
             message,
             data,

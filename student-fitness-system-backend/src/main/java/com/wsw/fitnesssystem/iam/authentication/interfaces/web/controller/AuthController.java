@@ -68,26 +68,12 @@ public class AuthController {
      */
     @PostMapping("/logout")
     public ApiResponse<Void> logout() {
-        try {
+        Operator operator = RequestContextHolder.getRequiredOperator();
+        String accessTokenId = RequestContextHolder.getTokenId();
 
-            Operator operator = RequestContextHolder.getRequiredOperator();
-            String accessTokenId = RequestContextHolder.getTokenId();
+        authAppService.logout(operator, accessTokenId);
 
-            // 1. 调用 Application Service 协调登出
-            authAppService.logout(operator, accessTokenId);
-
-            // 3. 返回成功
-            // TODO
-            return ApiResponse.success(IamAuthNErrorCode.LOGOUT_SUCCESS.message(), null);
-
-        } catch (Exception e) {
-            log.error(IamAuthNErrorCode.LOGOUT_FAILED.message(), e);
-            // TODO
-            return ApiResponse.error(
-                IamAuthNErrorCode.LOGOUT_FAILED.httpStatus().value(),
-                IamAuthNErrorCode.LOGOUT_FAILED
-            );
-        }
+        return ApiResponse.success(IamAuthNErrorCode.LOGOUT_SUCCESS.message(), null);
     }
 
     /**

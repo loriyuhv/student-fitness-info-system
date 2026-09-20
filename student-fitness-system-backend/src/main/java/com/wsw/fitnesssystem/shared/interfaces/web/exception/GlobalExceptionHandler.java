@@ -17,6 +17,9 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.TypeMismatchException;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authorization.AuthorizationDeniedException;
@@ -49,8 +52,6 @@ import org.springframework.web.servlet.resource.NoResourceFoundException;
  * <p>
  * <b>处理器优先级：</b>按照"具体 → 抽象"排列，避免被更宽泛的处理器提前拦截。
  *
- * 全局异常处理器。
- *
  * <p>P3 阶段改动：注入 {@link HttpStatusResolver}，所有错误码切换到各模块自治枚举。
  * 对外协议不变（httpCode 仍在 body 里）。</p>
  *
@@ -63,7 +64,6 @@ import org.springframework.web.servlet.resource.NoResourceFoundException;
 @RequiredArgsConstructor
 public class GlobalExceptionHandler {
 
-
     private final HttpStatusResolver httpStatusResolver;
 
     // ================================================================
@@ -71,11 +71,11 @@ public class GlobalExceptionHandler {
     // ================================================================
 
     @ExceptionHandler(BizException.class)
-    public ApiResponse<Object> handleBizException(BizException e) {
+    public ResponseEntity<ApiResponse<Object>> handleBizException(BizException e) {
         ErrorCode ec = e.getErrorCode();
         String finalMsg = buildCombineMessage(ec.message(), e.getMessage());
         log.warn("业务异常: {}", finalMsg, e);
-        return ApiResponse.error(httpStatusResolver.resolveValue(ec), ec, finalMsg);
+        return build(ec, finalMsg);
     }
 
     // ================================================================
@@ -83,49 +83,52 @@ public class GlobalExceptionHandler {
     // ================================================================
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ApiResponse<Object> handleMethodArgumentNotValidException(MethodArgumentNotValidException e) {
+    public ResponseEntity<ApiResponse<Object>> handleMethodArgumentNotValidException(
+        MethodArgumentNotValidException e) {
         FieldError fieldError = e.getBindingResult().getFieldError();
         String msg = fieldError != null
             ? fieldError.getDefaultMessage()
             : CommonErrorCode.PARAM_INVALID.message();
         log.warn("JSON 请求体验证失败：{}", msg);
-        return error(CommonErrorCode.PARAM_INVALID, msg);
+        return build(CommonErrorCode.PARAM_INVALID, msg);
     }
 
     @ExceptionHandler(BindException.class)
-    public ApiResponse<Object> handleBindException(BindException e) {
+    public ResponseEntity<ApiResponse<Object>> handleBindException(BindException e) {
         FieldError fieldError = e.getBindingResult().getFieldError();
         String msg = fieldError != null
             ? fieldError.getDefaultMessage()
             : CommonErrorCode.PARAM_INVALID.message();
         log.warn("表单参数绑定失败：{}", msg);
-        return error(CommonErrorCode.PARAM_INVALID, msg);
+        return build(CommonErrorCode.PARAM_INVALID, msg);
     }
 
     @ExceptionHandler(ConstraintViolationException.class)
-    public ApiResponse<Object> handleConstraintViolation(ConstraintViolationException e) {
+    public ResponseEntity<ApiResponse<Object>> handleConstraintViolation(
+        ConstraintViolationException e) {
         String msg = e.getConstraintViolations().stream()
             .findFirst()
             .map(ConstraintViolation::getMessage)
             .orElse(CommonErrorCode.PARAM_INVALID.message());
         log.warn("请求参数校验失败：{}", msg);
-        return error(CommonErrorCode.PARAM_INVALID, msg);
+        return build(CommonErrorCode.PARAM_INVALID, msg);
     }
 
     @ExceptionHandler(HttpMessageNotReadableException.class)
-    public ApiResponse<Object> handleHttpMessageNotReadable(HttpMessageNotReadableException e) {
+    public ResponseEntity<ApiResponse<Object>> handleHttpMessageNotReadable(
+        HttpMessageNotReadableException e) {
         log.warn("请求体 JSON 格式非法：{}", e.getMessage());
-        return error(CommonErrorCode.REQUEST_FORMAT_ERROR, null);
+        return build(CommonErrorCode.REQUEST_FORMAT_ERROR, null);
     }
 
     @ExceptionHandler(TypeMismatchException.class)
-    public ApiResponse<Object> handleTypeMismatch(TypeMismatchException e) {
+    public ResponseEntity<ApiResponse<Object>> handleTypeMismatch(TypeMismatchException e) {
         String msg = String.format("%s：参数 '%s' 需要类型 '%s'",
             CommonErrorCode.PARAM_TYPE_ERROR.message(),
             e.getPropertyName(),
             e.getRequiredType() != null ? e.getRequiredType().getSimpleName() : "未知");
         log.warn("参数类型转换失败：{}", msg);
-        return error(CommonErrorCode.PARAM_TYPE_ERROR, msg);
+        return build(CommonErrorCode.PARAM_TYPE_ERROR, msg);
     }
 
     // ================================================================
@@ -133,15 +136,16 @@ public class GlobalExceptionHandler {
     // ================================================================
 
     @ExceptionHandler(MaxUploadSizeExceededException.class)
-    public ApiResponse<Object> handleMaxUploadSizeExceeded(MaxUploadSizeExceededException e) {
+    public ResponseEntity<ApiResponse<Object>> handleMaxUploadSizeExceeded(
+        MaxUploadSizeExceededException e) {
         log.warn("文件大小超出限制：{}", e.getMessage());
-        return error(CommonErrorCode.PARAM_INVALID, "文件大小超出限制，最大 200MB");
+        return build(CommonErrorCode.PARAM_INVALID, "文件大小超出限制，最大 200MB");
     }
 
     @ExceptionHandler(MultipartException.class)
-    public ApiResponse<Object> handleMultipartException(MultipartException e) {
+    public ResponseEntity<ApiResponse<Object>> handleMultipartException(MultipartException e) {
         log.warn("文件上传异常：{}", e.getMessage());
-        return error(CommonErrorCode.FILE_UPLOAD_ERROR, null);
+        return build(CommonErrorCode.FILE_UPLOAD_ERROR, null);
     }
 
     // ================================================================
@@ -149,37 +153,40 @@ public class GlobalExceptionHandler {
     // ================================================================
 
     @ExceptionHandler(MissingServletRequestParameterException.class)
-    public ApiResponse<Object> handleMissingParams(MissingServletRequestParameterException e) {
+    public ResponseEntity<ApiResponse<Object>> handleMissingParams(
+        MissingServletRequestParameterException e) {
         String msg = "缺少必填参数：" + e.getParameterName();
         log.warn("缺少必填参数：{}", e.getParameterName());
-        return error(CommonErrorCode.PARAM_MISSING, msg);
+        return build(CommonErrorCode.PARAM_MISSING, msg);
     }
 
     @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
-    public ApiResponse<Object> handleMethodNotSupported(HttpRequestMethodNotSupportedException e) {
+    public ResponseEntity<ApiResponse<Object>> handleMethodNotSupported(
+        HttpRequestMethodNotSupportedException e) {
         String msg = "请求方法不支持：" + e.getMethod();
         log.warn("请求方法不支持：{}", e.getMethod());
-        return error(CommonErrorCode.PARAM_INVALID, msg);
+        return build(CommonErrorCode.PARAM_INVALID, msg);
     }
 
     @ExceptionHandler(HttpMediaTypeNotSupportedException.class)
-    public ApiResponse<Object> handleMediaTypeNotSupported(HttpMediaTypeNotSupportedException e) {
+    public ResponseEntity<ApiResponse<Object>> handleMediaTypeNotSupported(
+        HttpMediaTypeNotSupportedException e) {
         String msg = "不支持的媒体类型：" + (e.getContentType() != null ? e.getContentType() : "未知");
         log.warn("媒体类型不支持：{}", msg);
-        return error(CommonErrorCode.REQUEST_FORMAT_ERROR, msg);
+        return build(CommonErrorCode.REQUEST_FORMAT_ERROR, msg);
     }
 
     @ExceptionHandler(NoResourceFoundException.class)
-    public ApiResponse<Object> handleNoResourceFound(NoResourceFoundException e) {
+    public ResponseEntity<ApiResponse<Object>> handleNoResourceFound(NoResourceFoundException e) {
         log.warn("请求资源不存在：{}", e.getMessage());
-        return error(CommonErrorCode.FILE_NOT_FOUND, "请求的资源不存在");
+        return build(CommonErrorCode.FILE_NOT_FOUND, "请求的资源不存在");
     }
 
     @ExceptionHandler(ServletException.class)
-    public ApiResponse<Object> handleServletException(ServletException e) {
+    public ResponseEntity<ApiResponse<Object>> handleServletException(ServletException e) {
         String finalMsg = buildCombineMessage(CommonErrorCode.PARAM_INVALID.message(), e.getMessage());
         log.warn("Web 请求异常：{}", finalMsg);
-        return error(CommonErrorCode.PARAM_INVALID, finalMsg);
+        return build(CommonErrorCode.PARAM_INVALID, finalMsg);
     }
 
     // ================================================================
@@ -187,17 +194,17 @@ public class GlobalExceptionHandler {
     // ================================================================
 
     @ExceptionHandler({AuthorizationDeniedException.class, AccessDeniedException.class})
-    public ApiResponse<Object> handleAccessDeniedException(Exception e) {
+    public ResponseEntity<ApiResponse<Object>> handleAccessDeniedException(Exception e) {
         log.warn("权限异常: {}", e.getMessage());
-        return error(IamAuthZErrorCode.PERMISSION_DENIED, null);
+        return build(IamAuthZErrorCode.PERMISSION_DENIED, null);
     }
 
     @ExceptionHandler(AuthenticationException.class)
-    public ApiResponse<Object> handleAuthenticationException(AuthenticationException e) {
+    public ResponseEntity<ApiResponse<Object>> handleAuthenticationException(AuthenticationException e) {
         String defaultMsg = IamAuthNErrorCode.CREDENTIAL_INVALID.message();
         String finalMsg = buildCombineMessage(defaultMsg, e.getMessage());
         log.warn("认证失败: {}", finalMsg);
-        return error(IamAuthNErrorCode.CREDENTIAL_INVALID, finalMsg);
+        return build(IamAuthNErrorCode.CREDENTIAL_INVALID, finalMsg);
     }
 
     // ================================================================
@@ -205,23 +212,24 @@ public class GlobalExceptionHandler {
     // ================================================================
 
     @ExceptionHandler(DataIntegrityViolationException.class)
-    public ApiResponse<Object> handleDataIntegrityViolation(DataIntegrityViolationException e) {
+    public ResponseEntity<ApiResponse<Object>> handleDataIntegrityViolation(
+        DataIntegrityViolationException e) {
         ErrorCode ec = ConstraintResultCodeMapper.resolve(e.getMessage());
         if (ec != null) {
             log.warn("唯一约束冲突（兜底命中）: {}", ec.message());
-            return error(ec, null);
+            return build(ec, null);
         }
         log.error("数据完整性异常（未识别的约束）", e);
-        return error(CommonErrorCode.DATABASE_ERROR, null);
+        return build(CommonErrorCode.DATABASE_ERROR, null);
     }
 
     @ExceptionHandler(DomainException.class)
-    public ApiResponse<Object> handleDomainException(DomainException e) {
+    public ResponseEntity<ApiResponse<Object>> handleDomainException(DomainException e) {
         log.warn("领域异常（未被应用层翻译，兜底处理）: {}", e.getMessage());
         ErrorCode ec = (e instanceof DomainConflictException)
             ? CommonErrorCode.DATA_ALREADY_EXISTS
             : CommonErrorCode.PARAM_INVALID;
-        return error(ec, e.getMessage());
+        return build(ec, e.getMessage());
     }
 
     // ================================================================
@@ -229,34 +237,38 @@ public class GlobalExceptionHandler {
     // ================================================================
 
     @ExceptionHandler(SystemException.class)
-    public ApiResponse<Object> handleSystemException(SystemException e) {
+    public ResponseEntity<ApiResponse<Object>> handleSystemException(SystemException e) {
         ErrorCode ec = e.getErrorCode();
         String finalMsg = buildCombineMessage(ec.message(), e.getMessage());
         log.error("系统异常: {}", finalMsg, e);
-        return ApiResponse.error(httpStatusResolver.resolveValue(ec), ec, finalMsg);
+        return build(ec, finalMsg);
     }
 
     @ExceptionHandler(Exception.class)
-    public ApiResponse<Object> handleUnknownException(Exception e) {
+    public ResponseEntity<ApiResponse<Object>> handleUnknownException(Exception e) {
         log.error("系统未知异常（请开发排查）", e);
-        return error(CommonErrorCode.SYSTEM_ERROR, null);
+        return build(CommonErrorCode.SYSTEM_ERROR, null);
     }
 
     // ================================================================
     //  8. 工具方法
     // ================================================================
 
-    /** 便捷构造：自动解析 httpCode */
-    private ApiResponse<Object> error(ErrorCode ec, String customMessage) {
+    /**
+     * 统一构造 {@link ResponseEntity}。
+     *
+     * @param ec            错误码
+     * @param customMessage 自定义消息（可能为 null）
+     */
+    private ResponseEntity<ApiResponse<Object>> build(ErrorCode ec, String customMessage) {
+        HttpStatus status = httpStatusResolver.resolve(ec);
         String finalMsg = buildCombineMessage(ec.message(), customMessage);
-        return ApiResponse.error(httpStatusResolver.resolveValue(ec), ec, finalMsg);
+        ApiResponse<Object> body = ApiResponse.error(status.value(), ec, finalMsg);
+        return ResponseEntity.status(status)
+            .contentType(MediaType.APPLICATION_JSON)
+            .body(body);
     }
 
-    /**
-     * 组装消息。
-     *
-     * <p>若 customMsg 为 null / 空 / 与 defaultMsg 相同，直接返回 defaultMsg；否则拼接。</p>
-     */
     private String buildCombineMessage(String defaultMsg, String customMsg) {
         if (customMsg == null || customMsg.isBlank() || customMsg.equals(defaultMsg)) {
             return defaultMsg;

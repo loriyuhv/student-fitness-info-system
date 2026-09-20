@@ -1,7 +1,6 @@
 package com.wsw.fitnesssystem.iam.error;
 
 import com.wsw.fitnesssystem.shared.kernel.error.ErrorCode;
-import org.springframework.http.HttpStatus;
 
 /**
  * iam.risk 子域错误码（登录风控）。
@@ -14,18 +13,16 @@ import org.springframework.http.HttpStatus;
  */
 public enum IamRiskErrorCode implements ErrorCode {
 
-    ACCOUNT_LOCKED("iam.risk.account_locked", HttpStatus.FORBIDDEN, "账号已被锁定"),
-    ACCOUNT_DISABLED("iam.risk.account_disabled", HttpStatus.FORBIDDEN, "账号已被禁用"),
-    FAIL_THRESHOLD_EXCEEDED("iam.risk.fail_threshold_exceeded", HttpStatus.FORBIDDEN, "失败次数已达上限"),
-    CHECK_FAILED("iam.risk.check_failed", HttpStatus.FORBIDDEN, "风控检查不通过");
+    ACCOUNT_LOCKED("iam.risk.account_locked", "账号已被锁定"),
+    ACCOUNT_DISABLED("iam.risk.account_disabled", "账号已被禁用"),
+    FAIL_THRESHOLD_EXCEEDED("iam.risk.fail_threshold_exceeded", "失败次数已达上限"),
+    CHECK_FAILED("iam.risk.check_failed", "风控检查不通过");
 
     private final String code;
-    private final HttpStatus httpStatus;
     private final String message;
 
-    IamRiskErrorCode(String code, HttpStatus httpStatus, String message) {
+    IamRiskErrorCode(String code, String message) {
         this.code = code;
-        this.httpStatus = httpStatus;
         this.message = message;
     }
 
@@ -37,10 +34,6 @@ public enum IamRiskErrorCode implements ErrorCode {
     @Override
     public String message() {
         return message;
-    }
-
-    public HttpStatus httpStatus() {
-        return httpStatus;
     }
 
 }
