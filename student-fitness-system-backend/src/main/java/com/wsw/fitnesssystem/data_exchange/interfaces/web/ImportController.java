@@ -15,7 +15,7 @@ import com.wsw.fitnesssystem.shared.application.context.RequestContextHolder;
 import com.wsw.fitnesssystem.shared.domain.vb.Operator;
 import com.wsw.fitnesssystem.shared.application.exception.BizException;
 import com.wsw.fitnesssystem.shared.application.exception.SystemException;
-import com.wsw.fitnesssystem.shared.interfaces.web.response.ApiResult;
+import com.wsw.fitnesssystem.shared.interfaces.web.response.ApiResponse;
 import com.wsw.fitnesssystem.shared.kernel.error.CommonErrorCode;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.constraints.NotBlank;
@@ -67,7 +67,7 @@ public class ImportController {
      */
     @PostMapping("/submit")
     @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER')")
-    public ApiResult<String> submit(
+    public ApiResponse<String> submit(
             @RequestParam @NotBlank(message = "业务类型不能为空") String bizType,
             @RequestParam MultipartFile file
     ) {
@@ -83,30 +83,30 @@ public class ImportController {
         // 4. 提交导入任务到异步线程池，返回任务 ID
         String taskId = importSubmissionService.submit(bizTypeEnum, uploadedFile, operator.userId());
 
-        return ApiResult.success(taskId);
+        return ApiResponse.success(taskId);
     }
 
     /**
      * 查询导入任务进度
      * @param taskId 异步导入任务编号，由{@link #submit(String, MultipartFile)}接口返回
-     * @return ApiResult<ImportProgressResponse> 返回任务进度DTO，包含总条数、成功数、失败数、错误信息、任务状态
+     * @return ApiResponse<ImportProgressResponse> 返回任务进度DTO，包含总条数、成功数、失败数、错误信息、任务状态
      */
     @GetMapping("/progress")
     @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER')")
-    public ApiResult<ImportProgressResponse> getProgress(@RequestParam String taskId) {
+    public ApiResponse<ImportProgressResponse> getProgress(@RequestParam String taskId) {
         ImportProgressResult result = importTaskQueryService.getProgress(taskId);
-        return ApiResult.success(buildResponse(result));
+        return ApiResponse.success(buildResponse(result));
     }
 
     /**
      * 获取全部支持导入的业务类型列表
      * <p>前端下拉框可直接使用该返回值，动态展示可导入选项</p>
-     * @return ApiResult<List<String>> 支持的bizType业务类型集合
+     * @return ApiResponse<List<String>> 支持的bizType业务类型集合
      */
     @GetMapping("/types")
     @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER')")
-    public ApiResult<List<String>> getImportTypes() {
-        return ApiResult.success(importTypeQueryService.getAllBizTypes());
+    public ApiResponse<List<String>> getImportTypes() {
+        return ApiResponse.success(importTypeQueryService.getAllBizTypes());
     }
 
     /**
@@ -144,9 +144,9 @@ public class ImportController {
      */
     @PostMapping("/cancel")
     @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER')")
-    public ApiResult<String> cancelImport(@RequestParam String taskId) {
+    public ApiResponse<String> cancelImport(@RequestParam String taskId) {
         importTaskCommandService.cancelTask(taskId);
-        return ApiResult.success("Cancellation request submitted");
+        return ApiResponse.success("Cancellation request submitted");
     }
 
     /**

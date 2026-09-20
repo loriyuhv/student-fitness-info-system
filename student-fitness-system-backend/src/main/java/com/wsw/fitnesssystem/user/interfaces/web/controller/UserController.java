@@ -2,7 +2,7 @@ package com.wsw.fitnesssystem.user.interfaces.web.controller;
 
 import com.wsw.fitnesssystem.shared.application.context.RequestContextHolder;
 import com.wsw.fitnesssystem.shared.domain.vb.Operator;
-import com.wsw.fitnesssystem.shared.interfaces.web.response.ApiResult;
+import com.wsw.fitnesssystem.shared.interfaces.web.response.ApiResponse;
 import com.wsw.fitnesssystem.user.application.dto.command.UpdateMyProfileCommand;
 import com.wsw.fitnesssystem.user.application.dto.result.UserInfoResult;
 import com.wsw.fitnesssystem.user.application.service.command.UserProfileCommandService;
@@ -50,7 +50,7 @@ public class UserController {
      * @return 用户信息响应
      */
     @GetMapping("/me")
-    public ApiResult<UserInfoResponse> getCurrentUserInfo() {
+    public ApiResponse<UserInfoResponse> getCurrentUserInfo() {
         // 1. 从安全上下文中获取当前操作者
         Operator operator = RequestContextHolder.getRequiredOperator();
 
@@ -71,7 +71,7 @@ public class UserController {
             .permissions(result.getPermissions())
             .build();
 
-        return ApiResult.success(response);
+        return ApiResponse.success(response);
     }
 
     /**
@@ -81,7 +81,7 @@ public class UserController {
      * <p><b>不可修改：</b>username、userType、campusId、studentNo、idCard、teacherNo</p>
      */
     @PutMapping("/me")
-    public ApiResult<Void> updateMyProfile(@RequestBody UpdateMyProfileRequest request) {
+    public ApiResponse<Void> updateMyProfile(@RequestBody UpdateMyProfileRequest request) {
         Operator operator = RequestContextHolder.getRequiredOperator();
 
         UpdateMyProfileCommand command = UpdateMyProfileCommand.builder()
@@ -95,7 +95,7 @@ public class UserController {
             .build();
 
         userProfileCommandService.updateMyProfile(operator, command);
-        return ApiResult.success();
+        return ApiResponse.success();
     }
 
 }

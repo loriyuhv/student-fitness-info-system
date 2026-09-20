@@ -12,7 +12,7 @@ import com.wsw.fitnesssystem.iam.error.IamAuthNErrorCode;
 import com.wsw.fitnesssystem.shared.interfaces.web.util.WebUtils;
 import com.wsw.fitnesssystem.shared.application.context.RequestContextHolder;
 import com.wsw.fitnesssystem.shared.domain.vb.Operator;
-import com.wsw.fitnesssystem.shared.interfaces.web.response.ApiResult;
+import com.wsw.fitnesssystem.shared.interfaces.web.response.ApiResponse;
 import com.wsw.fitnesssystem.iam.authentication.interfaces.web.dto.request.LoginRequest;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
@@ -36,7 +36,7 @@ public class AuthController {
     private final AuthAppService authAppService;
 
     @PostMapping("/login")
-    public ApiResult<LoginResponse> login(
+    public ApiResponse<LoginResponse> login(
         @RequestBody @Valid LoginRequest request, HttpServletRequest httpRequest) {
 
         // 1. Web层：提取Web特有数据（IP、User-Agent），构建Application层的输入Command
@@ -59,7 +59,7 @@ public class AuthController {
             .expiresIn(login.getExpiresIn())
             .build();
 
-        return ApiResult.success(response);
+        return ApiResponse.success(response);
 
     }
 
@@ -67,7 +67,7 @@ public class AuthController {
      * 退出当前登录
      */
     @PostMapping("/logout")
-    public ApiResult<Void> logout() {
+    public ApiResponse<Void> logout() {
         try {
 
             Operator operator = RequestContextHolder.getRequiredOperator();
@@ -78,12 +78,12 @@ public class AuthController {
 
             // 3. 返回成功
             // TODO
-            return ApiResult.success(IamAuthNErrorCode.LOGOUT_SUCCESS.message(), null);
+            return ApiResponse.success(IamAuthNErrorCode.LOGOUT_SUCCESS.message(), null);
 
         } catch (Exception e) {
             log.error(IamAuthNErrorCode.LOGOUT_FAILED.message(), e);
             // TODO
-            return ApiResult.error(
+            return ApiResponse.error(
                 IamAuthNErrorCode.LOGOUT_FAILED.httpStatus().value(),
                 IamAuthNErrorCode.LOGOUT_FAILED
             );
@@ -94,7 +94,7 @@ public class AuthController {
      *  刷新Token
      *  */
     @PostMapping("/refresh")
-    public ApiResult<RefreshResponse> refresh(
+    public ApiResponse<RefreshResponse> refresh(
         @RequestBody @Valid RefreshRequest request,  HttpServletRequest httpRequest) {
 
         RefreshCommand command = RefreshCommand.builder()
@@ -112,7 +112,7 @@ public class AuthController {
             .expiresIn(result.getExpiresIn())
             .build();
 
-        return ApiResult.success(response);
+        return ApiResponse.success(response);
 
     }
 

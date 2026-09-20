@@ -3,7 +3,7 @@ package com.wsw.fitnesssystem.iam.authentication.interfaces.web.controller;
 import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 import com.wsw.fitnesssystem.iam.authentication.application.AuthAppService;
 import com.wsw.fitnesssystem.iam.error.IamAuthNErrorCode;
-import com.wsw.fitnesssystem.shared.interfaces.web.response.ApiResult;
+import com.wsw.fitnesssystem.shared.interfaces.web.response.ApiResponse;
 import com.wsw.fitnesssystem.shared.kernel.error.CommonErrorCode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -34,7 +34,7 @@ public class AdminAuthUserController {
      */
     @PostMapping("/{campusId}/{userId}/kick")
     @PreAuthorize("hasRole('ADMIN')")
-    public ApiResult<String> kickUser(
+    public ApiResponse<String> kickUser(
         @PathVariable Long campusId, @PathVariable Long userId) {
 
         Set<String> onlineSessions = authAppService.kick(campusId, userId);
@@ -42,11 +42,11 @@ public class AdminAuthUserController {
         String msg;
         if (CollectionUtils.isEmpty(onlineSessions)) {
             msg = CommonErrorCode.SUCCESS.message() + "，该用户当前无在线会话";
-            return ApiResult.success(msg);
+            return ApiResponse.success(msg);
         }
 
         msg = IamAuthNErrorCode.KICKOUT_SUCCESS.message() + "，已踢出" + onlineSessions.size() + "个会话";
-        return ApiResult.success(msg);
+        return ApiResponse.success(msg);
     }
 
 }

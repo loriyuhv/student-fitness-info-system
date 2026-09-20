@@ -32,7 +32,7 @@ import lombok.NoArgsConstructor;
  */
 @Data
 @NoArgsConstructor
-public class ApiResult<T> {
+public class ApiResponse<T> {
 
     /** HTTP 状态码 */
     private Integer httpCode;
@@ -57,7 +57,7 @@ public class ApiResult<T> {
      * @param data 响应数据
      * @param timestamp 时间戳
      */
-    private ApiResult(Integer httpCode, Integer bizCode, String message, T data, Long timestamp) {
+    private ApiResponse(Integer httpCode, Integer bizCode, String message, T data, Long timestamp) {
         this.httpCode = httpCode;
         this.bizCode = bizCode;
         this.message = message;
@@ -67,12 +67,12 @@ public class ApiResult<T> {
 
     /* ================= 成功响应 ================= */
 
-    public static <T> ApiResult<T> success() {
+    public static <T> ApiResponse<T> success() {
         return success(null);
     }
 
-    public static <T> ApiResult<T> success(T data) {
-        return new ApiResult<>(
+    public static <T> ApiResponse<T> success(T data) {
+        return new ApiResponse<>(
             CommonErrorCode.SUCCESS.httpStatus().value(),
             CommonErrorCode.SUCCESS.code(),
             CommonErrorCode.SUCCESS.message(),
@@ -81,8 +81,8 @@ public class ApiResult<T> {
         );
     }
 
-    public static <T> ApiResult<T> success(String message, T data) {
-        return new ApiResult<>(
+    public static <T> ApiResponse<T> success(String message, T data) {
+        return new ApiResponse<>(
             CommonErrorCode.SUCCESS.httpStatus().value(),
             CommonErrorCode.SUCCESS.code(),
             message,
@@ -99,12 +99,12 @@ public class ApiResult<T> {
      * @param httpCode HTTP 状态码（由 {@code HttpStatusResolver} 解析）
      * @param ec       错误码契约
      */
-    public static <T> ApiResult<T> error(int httpCode, ErrorCode ec) {
+    public static <T> ApiResponse<T> error(int httpCode, ErrorCode ec) {
         return error(httpCode, ec, ec.message());
     }
 
-    public static <T> ApiResult<T> error(int httpCode, ErrorCode ec, String message) {
-        return new ApiResult<>(
+    public static <T> ApiResponse<T> error(int httpCode, ErrorCode ec, String message) {
+        return new ApiResponse<>(
             httpCode,
             ec.code(),
             message,
@@ -115,25 +115,25 @@ public class ApiResult<T> {
 
     // /* ================= 成功响应 ================= */
     //
-    // public static <T> ApiResult<T> success() {
+    // public static <T> ApiResponse<T> success() {
     //     return success(ErrorCode.SUCCESS);
     // }
     //
-    // public static <T> ApiResult<T> success(T data) {
+    // public static <T> ApiResponse<T> success(T data) {
     //     return from(ErrorCode.SUCCESS, data);
     // }
     //
-    // public static <T> ApiResult<T> success(ErrorCode errorCode) {
+    // public static <T> ApiResponse<T> success(ErrorCode errorCode) {
     //     return from(errorCode, null);
     // }
     //
     //
-    // public static <T> ApiResult<T> success(ErrorCode errorCode, String message) {
+    // public static <T> ApiResponse<T> success(ErrorCode errorCode, String message) {
     //     return from(errorCode, null, message);
     // }
     //
-    // public static <T> ApiResult<T> success(String message, T data) {
-    //     return new ApiResult<>(
+    // public static <T> ApiResponse<T> success(String message, T data) {
+    //     return new ApiResponse<>(
     //         ErrorCode.SUCCESS.httpCode(),
     //         ErrorCode.SUCCESS.getCode(),
     //         message, data,
@@ -143,18 +143,18 @@ public class ApiResult<T> {
     //
     // /* ================= 失败响应 ================= */
     //
-    // public static <T> ApiResult<T> error(ErrorCode errorCode) {
+    // public static <T> ApiResponse<T> error(ErrorCode errorCode) {
     //     return from(errorCode, null);
     // }
     //
-    // public static <T> ApiResult<T> error(ErrorCode errorCode, String message) {
+    // public static <T> ApiResponse<T> error(ErrorCode errorCode, String message) {
     //     return from(errorCode, null, message);
     // }
     //
     // /* ================= 核心工厂方法 ================= */
     //
-    // public static <T> ApiResult<T> from(ErrorCode errorCode, T data) {
-    //     return new ApiResult<>(
+    // public static <T> ApiResponse<T> from(ErrorCode errorCode, T data) {
+    //     return new ApiResponse<>(
     //         errorCode.httpCode(),
     //         errorCode.getCode(),
     //         errorCode.getMessage(),
@@ -163,8 +163,8 @@ public class ApiResult<T> {
     //     );
     // }
     //
-    // public static <T> ApiResult<T> from(ErrorCode errorCode, T data, String message) {
-    //     return new ApiResult<>(
+    // public static <T> ApiResponse<T> from(ErrorCode errorCode, T data, String message) {
+    //     return new ApiResponse<>(
     //             errorCode.httpCode(),
     //             errorCode.getCode(),
     //             message,

@@ -3,7 +3,7 @@ package com.wsw.fitnesssystem.iam.authentication.infrastructure.security.support
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.wsw.fitnesssystem.shared.interfaces.web.exception.GlobalExceptionHandler;
 import com.wsw.fitnesssystem.shared.interfaces.web.exception.HttpStatusResolver;
-import com.wsw.fitnesssystem.shared.interfaces.web.response.ApiResult;
+import com.wsw.fitnesssystem.shared.interfaces.web.response.ApiResponse;
 import com.wsw.fitnesssystem.shared.kernel.error.ErrorCode;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -70,7 +70,7 @@ public class SecurityResponseWriter {
         response.setCharacterEncoding(StandardCharsets.UTF_8.name());
         int httpCode = httpStatusResolver.resolveValue(errorCode);
         String finalMsg = StringUtils.isNotBlank(message) ? errorCode.message() : message;
-        ApiResult<Object> result = ApiResult.error(httpCode, errorCode, finalMsg);
+        ApiResponse<Object> result = ApiResponse.error(httpCode, errorCode, finalMsg);
 
         log.debug("[Security] 写出异常响应：httpCode={}, bizCode={}, msg={}",
             httpCode, errorCode.code(), finalMsg);

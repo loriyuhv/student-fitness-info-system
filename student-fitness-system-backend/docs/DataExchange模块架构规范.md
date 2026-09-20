@@ -128,7 +128,7 @@ public class ImportSubmissionRequest {
     private MultipartFile file;
 }
 
-// Response：返回前端（配合 ApiResult<T>）
+// Response：返回前端（配合 ApiResponse<T>）
 @Getter
 @Builder
 public class ImportProgressResponse {
@@ -158,7 +158,7 @@ public class ImportProgressResult {
 ### 4\.4 统一响应格式
 
 ```Java
-// 所有接口返回 ApiResult<T>
+// 所有接口返回 ApiResponse<T>
 ApiResult.success(data);   // 成功
 ApiResult.error(ResultCode.PARAM_INVALID, "业务类型不能为空");  // 失败
 ```

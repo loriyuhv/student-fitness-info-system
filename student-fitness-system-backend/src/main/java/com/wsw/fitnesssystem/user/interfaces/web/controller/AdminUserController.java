@@ -1,7 +1,7 @@
 package com.wsw.fitnesssystem.user.interfaces.web.controller;
 
 import com.wsw.fitnesssystem.shared.domain.pagination.PageSlice;
-import com.wsw.fitnesssystem.shared.interfaces.web.response.ApiResult;
+import com.wsw.fitnesssystem.shared.interfaces.web.response.ApiResponse;
 import com.wsw.fitnesssystem.user.application.dto.query.UserListQuery;
 import com.wsw.fitnesssystem.user.application.dto.result.AdminUserDetailResult;
 import com.wsw.fitnesssystem.user.application.dto.result.UserListItemResult;
@@ -59,14 +59,14 @@ public class AdminUserController {
      */
     @PostMapping("/query")
     @PreAuthorize("hasAuthority('system:user:view')")
-    public ApiResult<UserListPageResponse> listUsers(@Valid @RequestBody UserListRequest request) {
+    public ApiResponse<UserListPageResponse> listUsers(@Valid @RequestBody UserListRequest request) {
         UserListQuery query = UserListWebAssembler.toQuery(request);
 
         PageSlice<UserListItemResult> result = userQueryService.listUsers(query);
 
         UserListPageResponse response = UserListWebAssembler.toResponse(result);
 
-        return ApiResult.success(response);
+        return ApiResponse.success(response);
     }
 
     /**
@@ -78,9 +78,9 @@ public class AdminUserController {
      */
     @GetMapping("/{userId}")
     @PreAuthorize("hasAuthority('system:user:view')")
-    public ApiResult<AdminUserDetailResponse> getUserDetail(@PathVariable Long userId) {
+    public ApiResponse<AdminUserDetailResponse> getUserDetail(@PathVariable Long userId) {
         AdminUserDetailResult result = userInfoQueryService.getUserDetailForAdmin(userId);
-        return ApiResult.success(AdminUserDetailResponse.from(result));
+        return ApiResponse.success(AdminUserDetailResponse.from(result));
     }
 
 }

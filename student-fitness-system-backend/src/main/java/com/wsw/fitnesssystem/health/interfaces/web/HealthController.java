@@ -2,7 +2,7 @@ package com.wsw.fitnesssystem.health.interfaces.web;
 
 import com.wsw.fitnesssystem.health.interfaces.web.dto.response.DiagnosisReportResponse;
 import com.wsw.fitnesssystem.health.interfaces.web.dto.response.StudentDashboardResponse;
-import com.wsw.fitnesssystem.shared.interfaces.web.response.ApiResult;
+import com.wsw.fitnesssystem.shared.interfaces.web.response.ApiResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -49,8 +49,8 @@ public class HealthController {
      */
     @GetMapping("/dashboard")
     @PreAuthorize("isAuthenticated()")
-    public ApiResult<StudentDashboardResponse> getDashboard() {
-        return ApiResult.success(buildMockDashboard());
+    public ApiResponse<StudentDashboardResponse> getDashboard() {
+        return ApiResponse.success(buildMockDashboard());
     }
 
     // ==================================================================
@@ -63,8 +63,8 @@ public class HealthController {
      */
     @GetMapping("/diagnosis")
     @PreAuthorize("isAuthenticated()")
-    public ApiResult<DiagnosisReportResponse> getDiagnosis() {
-        return ApiResult.success(buildMockDiagnosis());
+    public ApiResponse<DiagnosisReportResponse> getDiagnosis() {
+        return ApiResponse.success(buildMockDiagnosis());
     }
 
     // ==================================================================

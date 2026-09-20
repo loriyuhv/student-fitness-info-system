@@ -8,7 +8,7 @@ import com.wsw.fitnesssystem.fitness.interfaces.web.dto.response.FitnessRecordDe
 import com.wsw.fitnesssystem.fitness.interfaces.web.dto.response.FitnessRecordListItemResponse;
 import com.wsw.fitnesssystem.shared.application.context.RequestContextHolder;
 import com.wsw.fitnesssystem.shared.domain.vb.Operator;
-import com.wsw.fitnesssystem.shared.interfaces.web.response.ApiResult;
+import com.wsw.fitnesssystem.shared.interfaces.web.response.ApiResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -44,7 +44,7 @@ public class FitnessController {
      */
     @PostMapping("/records")
     @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER')")
-    public ApiResult<FitnessRecordSubmitResult> submitRecord(
+    public ApiResponse<FitnessRecordSubmitResult> submitRecord(
         @RequestBody @Valid FitnessRecordSubmitRequest request) {
 
         // 操作人从安全上下文取（JWT 认证过滤器注入）
@@ -63,7 +63,7 @@ public class FitnessController {
         log.info("体测记录提交成功: recordId={}, studentNo={}, operatorUserId={}",
             result.getRecordId(), request.getStudentNo(), operator.userId());
 
-        return ApiResult.success(result);
+        return ApiResponse.success(result);
     }
 
 
@@ -74,8 +74,8 @@ public class FitnessController {
      */
     @GetMapping("/records")
     @PreAuthorize("isAuthenticated()")
-    public ApiResult<List<FitnessRecordListItemResponse>> listRecords() {
-        return ApiResult.success(buildMockList());
+    public ApiResponse<List<FitnessRecordListItemResponse>> listRecords() {
+        return ApiResponse.success(buildMockList());
     }
 
     /**
@@ -86,9 +86,9 @@ public class FitnessController {
      */
     @GetMapping("/records/{recordId}")
     @PreAuthorize("isAuthenticated()")
-    public ApiResult<FitnessRecordDetailResponse> getRecordDetail(
+    public ApiResponse<FitnessRecordDetailResponse> getRecordDetail(
         @PathVariable Long recordId) {
-        return ApiResult.success(buildMockDetail(recordId));
+        return ApiResponse.success(buildMockDetail(recordId));
     }
 
     /**
