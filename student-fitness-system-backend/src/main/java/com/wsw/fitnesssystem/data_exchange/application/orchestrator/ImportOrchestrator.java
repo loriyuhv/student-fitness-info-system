@@ -2,17 +2,16 @@ package com.wsw.fitnesssystem.data_exchange.application.orchestrator;
 
 import com.google.common.collect.Lists;
 import com.wsw.fitnesssystem.data_exchange.application.config.ImportApplicationProperties;
+import com.wsw.fitnesssystem.data_exchange.application.exception.ImportCancelledException;
 import com.wsw.fitnesssystem.data_exchange.application.plugin.ImportPlugin;
 import com.wsw.fitnesssystem.data_exchange.application.collector.ErrorCollector;
 import com.wsw.fitnesssystem.data_exchange.application.collector.ErrorCollectorHolder;
 import com.wsw.fitnesssystem.data_exchange.application.port.output.FileParsingPort;
 import com.wsw.fitnesssystem.data_exchange.application.port.output.FileStoragePort;
 import com.wsw.fitnesssystem.data_exchange.domain.model.ImportTask;
-import com.wsw.fitnesssystem.data_exchange.domain.exception.ImportCancelledException;
 import com.wsw.fitnesssystem.data_exchange.application.collector.ErrorRecord;
 import com.wsw.fitnesssystem.data_exchange.domain.repository.ImportTaskRepository;
 import com.wsw.fitnesssystem.data_exchange.application.generator.ErrorFileGenerator;
-import com.wsw.fitnesssystem.data_exchange.error.DataExchangeErrorCode;
 import com.wsw.fitnesssystem.shared.application.exception.BizException;
 import com.wsw.fitnesssystem.shared.kernel.error.CommonErrorCode;
 import lombok.RequiredArgsConstructor;
@@ -367,7 +366,7 @@ public class ImportOrchestrator {
         if (importTaskRepository.isCancelled(taskId)) {
             task.cancel();
             importTaskRepository.save(task);
-            throw new ImportCancelledException(DataExchangeErrorCode.TASK_CANCELLED, "任务取消");
+            throw new ImportCancelledException("任务被用户取消，taskId=" + taskId);
         }
     }
 
