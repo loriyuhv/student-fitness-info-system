@@ -1,8 +1,8 @@
 package com.wsw.fitnesssystem.iam.authentication.infrastructure.token.provider;
 
+import com.wsw.fitnesssystem.iam.authentication.infrastructure.config.JwtProperties;
 import com.wsw.fitnesssystem.iam.authentication.infrastructure.token.model.TokenPrincipal;
 import com.wsw.fitnesssystem.iam.authentication.infrastructure.token.model.TokenType;
-import com.wsw.fitnesssystem.iam.authentication.infrastructure.config.JwtConfig;
 import io.jsonwebtoken.Jwts;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -24,7 +24,7 @@ import java.util.Date;
 @RequiredArgsConstructor
 public class JwtTokenProvider {
 
-    private final JwtConfig jwtConfig;
+    private final JwtProperties jwtProperties;
 
     /** Access Token 专用签名密钥 */
     private final SecretKey accessTokenKey;
@@ -38,15 +38,17 @@ public class JwtTokenProvider {
      */
     public String generateAccessToken(TokenPrincipal tokenPrincipal, String jti) {
         Date now = new Date();
+        long expireAtMs = now.getTime() + jwtProperties.getExpireMillis();
+        Date expireDate = new Date(expireAtMs);
 
         return Jwts.builder()
             // ===== 标准声明（Standard Claims） =====
             .id(jti) // jti：JWT 标准唯一标识 令牌ID
             .subject("access_token") // 主题
-            .issuer(jwtConfig.getIssuer()) // 签发者
-            .audience().add(jwtConfig.getAudience()).and()    // 受众
+            .issuer(jwtProperties.getIssuer()) // 签发者
+            .audience().add(jwtProperties.getAudience()).and()    // 受众
             .issuedAt(now) // iat：JWT 签发时间
-            .expiration(new Date(now.getTime() + jwtConfig.getExpire())) // "exp" - 过期时间
+            .expiration(expireDate) // "exp" - 过期时间
 
             // ===== 自定义声明 =====
             .claim("userId", tokenPrincipal.getUserId()) // 自定义声明 - 用户ID
@@ -67,15 +69,17 @@ public class JwtTokenProvider {
      */
     public String generateRefreshToken(TokenPrincipal tokenPrincipal, String jti) {
         Date now = new Date();
+        long expireAtMs = now.getTime() + jwtProperties.getRefreshExpireMillis();
+        Date expireDate = new Date(expireAtMs);
 
         return Jwts.builder()
             // ===== 标准声明 =====
             .id(jti)
             .subject("refresh_token")
-            .issuer(jwtConfig.getIssuer())
-            .audience().add(jwtConfig.getAudience()).and()
+            .issuer(jwtProperties.getIssuer())
+            .audience().add(jwtProperties.getAudience()).and()
             .issuedAt(now)
-            .expiration(new Date(now.getTime() + jwtConfig.getRefreshExpire()))
+            .expiration(expireDate)
             // ===== 自定义声明 =====
             .claim("campusId", tokenPrincipal.getCampusId())
             .claim("userId", tokenPrincipal.getUserId())

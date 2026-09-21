@@ -20,7 +20,17 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 /**
- * Spring Security配置类
+ * Spring Security 配置类
+ *
+ * <p><b>职责：</b>
+ * <ul>
+ *   <li>配置无状态 JWT 认证的过滤器链</li>
+ *   <li>注册密码加密器（BCrypt）与 AuthenticationManager</li>
+ *   <li>统一认证失败（401）与授权失败（403）的异常处理器</li>
+ * </ul>
+ *
+ * <p><b>配置来源：</b>
+ * 放行清单与 BCrypt 强度来自 {@link AuthSecurityProperties}（前缀 {@code iam.authn.security}）。</p>
  *
  * @author loriyuhv
  * @version 1.0 2026/1/13 20:50
@@ -29,23 +39,30 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @Slf4j
 @Configuration
 @EnableWebSecurity
-@RequiredArgsConstructor
 @EnableMethodSecurity
+@RequiredArgsConstructor
 public class SecurityConfiguration {
 
-    private final JwtAuthenticationFilter jwtAuthenticationFilter;
-    private final JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
     private final JwtAccessDeniedHandler jwtAccessDeniedHandler;
     private final AuthSecurityProperties authSecurityProperties;
+    private final JwtAuthenticationFilter jwtAuthenticationFilter;
+    private final JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
 
     /***
-     * 请求的安全过滤规则。核心功能如下：
-     * 1.关闭CSRF防护 csrf(csrf -> csrf.disable())
-     * 2.放行所有接口 auth.anyRequest().permitAll()
+     * 请求的安全过滤规则
      *
-     * @param http 请求信息
-     * @return 经过校验的请求
-     * @throws Exception 请求权限等异常
+     * <p>核心能力：
+     * <ol>
+     *   <li>关闭 CSRF（无状态 JWT，不存在 CSRF 攻击面）</li>
+     *   <li>不使用 HTTP Session（STATELESS）</li>
+     *   <li>认证失败 / 授权失败走自定义 Handler，输出统一响应格式</li>
+     *   <li>放行清单走 {@link AuthSecurityProperties#getPermitAllPatterns()}</li>
+     *   <li>JWT 过滤器挂在 {@link UsernamePasswordAuthenticationFilter} 之前</li>
+     * </ol></p>
+     *
+     * @param http HttpSecurity 构建器
+     * @return 构建完成的 {@link SecurityFilterChain}
+     * @throws Exception 构建异常
      */
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
@@ -56,7 +73,7 @@ public class SecurityConfiguration {
             .sessionManagement(session -> session
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
             )
-            // 3. 异常处理（未登录 / 无权限）
+            // 3. 异常处理（未登录401 / 无权限403）
             .exceptionHandling(exception -> exception
                 .authenticationEntryPoint(jwtAuthenticationEntryPoint)  // 认证失败（401）
                 .accessDeniedHandler(jwtAccessDeniedHandler)            // 授权失败（403）
@@ -65,11 +82,11 @@ public class SecurityConfiguration {
             .authorizeHttpRequests(auth -> auth
                     // 放行登录等认证接口
                     .requestMatchers(authSecurityProperties.getPermitAllPatterns()
-                            .toArray(new String[0])).permitAll()
+                        .toArray(new String[0])).permitAll()
                     // 其余全部需要认证
                     .anyRequest().authenticated()
-                // 所有接口都放行（不需要鉴权）
-                // .anyRequest().permitAll()
+                    // 所有接口都放行（不需要鉴权）
+                    // .anyRequest().permitAll()
             );
         http
             // 5. JWT 过滤器放在 UsernamePasswordAuthenticationFilter 前
@@ -77,12 +94,14 @@ public class SecurityConfiguration {
                 jwtAuthenticationFilter,
                 UsernamePasswordAuthenticationFilter.class
             );
+
         return http.build();
     }
 
     /**
-     * 密码加密器 Bean
-     *  strength: 加密强度（4-31），值越大越安全但耗时越长，默认10
+     * 密码加密器（BCrypt）
+     * <p>strength: 加密强度（4-31），值越大越安全但耗时越长，默认10</p>
+     * <p>强度来自 {@link AuthSecurityProperties#getBcryptStrength()}，默认 10。</p>
      */
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -90,11 +109,12 @@ public class SecurityConfiguration {
     }
 
     /**
-     * AuthenticationManager（给 AuthApplicationService 用）
+     * AuthenticationManager（供应用层按需注入）
      */
     @Bean
     public AuthenticationManager authenticationManager(
         AuthenticationConfiguration configuration) throws Exception {
         return configuration.getAuthenticationManager();
     }
+
 }

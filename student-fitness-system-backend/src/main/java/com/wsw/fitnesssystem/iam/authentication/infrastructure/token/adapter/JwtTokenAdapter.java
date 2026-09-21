@@ -2,9 +2,9 @@ package com.wsw.fitnesssystem.iam.authentication.infrastructure.token.adapter;
 
 import com.wsw.fitnesssystem.iam.authentication.application.port.output.dto.TokenPair;
 import com.wsw.fitnesssystem.iam.authentication.application.port.output.TokenPort;
-import com.wsw.fitnesssystem.iam.authentication.infrastructure.config.JwtConfig;
 import com.wsw.fitnesssystem.iam.authentication.application.port.output.dto.AccessTokenClaims;
 import com.wsw.fitnesssystem.iam.authentication.application.port.output.dto.RefreshTokenClaims;
+import com.wsw.fitnesssystem.iam.authentication.infrastructure.config.JwtProperties;
 import com.wsw.fitnesssystem.iam.authentication.infrastructure.token.model.TokenPrincipal;
 import com.wsw.fitnesssystem.iam.authentication.infrastructure.token.parser.JwtTokenParser;
 import com.wsw.fitnesssystem.iam.authentication.infrastructure.token.provider.JwtTokenProvider;
@@ -53,7 +53,7 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class JwtTokenAdapter implements TokenPort {
 
-    private final JwtConfig jwtConfig;
+    private final JwtProperties jwtProperties;
     private final JwtTokenProvider jwtTokenProvider;
     private final JwtTokenParser jwtTokenParser;
 
@@ -75,8 +75,8 @@ public class JwtTokenAdapter implements TokenPort {
             .refreshTokenId(refreshTokenId)
             .accessToken(accessToken)
             .refreshToken(refreshToken)
-            .accessTokenExpiresIn(jwtConfig.getExpire() / 1000L)
-            .refreshTokenExpiresIn(jwtConfig.getRefreshExpire() / 1000L)
+            .accessTokenExpiresIn(jwtProperties.getExpire())
+            .refreshTokenExpiresIn(jwtProperties.getRefreshExpire())
             .build();
 
     }

@@ -2,8 +2,8 @@ package com.wsw.fitnesssystem.iam.authentication.infrastructure.token.parser;
 
 import com.wsw.fitnesssystem.iam.authentication.application.port.output.dto.AccessTokenClaims;
 import com.wsw.fitnesssystem.iam.authentication.application.port.output.dto.RefreshTokenClaims;
+import com.wsw.fitnesssystem.iam.authentication.infrastructure.config.JwtProperties;
 import com.wsw.fitnesssystem.iam.authentication.infrastructure.token.model.TokenType;
-import com.wsw.fitnesssystem.iam.authentication.infrastructure.config.JwtConfig;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.SecurityException;
 import lombok.RequiredArgsConstructor;
@@ -36,7 +36,7 @@ import javax.crypto.SecretKey;
 @RequiredArgsConstructor
 public class JwtTokenParser {
     /** JWT 配置（issuer / audience / 过期时间等）Spring Autowired自动注入 */
-    private final JwtConfig jwtConfig;
+    private final JwtProperties jwtProperties;
 
     /** Access Token 专用签名密钥 */
     private final SecretKey accessTokenKey;
@@ -177,13 +177,13 @@ public class JwtTokenParser {
                 // 设置验证密钥
                 .verifyWith(secretKey)
                 // 验证签发者（必须为"student-fitness"）
-                .requireIssuer(jwtConfig.getIssuer())
+                .requireIssuer(jwtProperties.getIssuer())
                 // 设置时钟偏移容忍时间（60秒）
                 .clockSkewSeconds(CLOCK_SKEW_SECONDS);
 
             if (validateAudience) {
                 // 验证受众（必须为"web-client"）
-                builder.requireAudience(jwtConfig.getAudience());
+                builder.requireAudience(jwtProperties.getAudience());
             }
 
             // 构建解析器
