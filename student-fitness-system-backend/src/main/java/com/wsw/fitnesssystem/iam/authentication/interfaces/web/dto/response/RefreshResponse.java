@@ -1,8 +1,6 @@
 package com.wsw.fitnesssystem.iam.authentication.interfaces.web.dto.response;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.Builder;
-import lombok.Data;
 
 /**
  * 刷新令牌响应 DTO（Web 层面向 HTTP 协议的输出模型）
@@ -21,33 +19,19 @@ import lombok.Data;
  *   <li>Controller 负责将前者显式转换为后者，实现防腐层（ACL）模式</li>
  * </ul>
  *
+ * @param accessToken 新的访问令牌，前端约定字段名为 "access_token"（蛇形命名），通过 @JsonProperty 适配
+ * @param refreshToken 新的刷新令牌，前端约定字段名为 "refresh_token"
+ * @param expiresIn 新 accessToken 的有效期（单位：秒），前端约定字段名为 "expires_in"
  * @author loriyuhv
  * @version 1.0 2026/8/26 10:28
  * @since 1.0
  */
-@Data
-@Builder
-public class RefreshResponse {
-
-    /**
-     * 新的访问令牌
-     * 前端约定字段名为 "access_token"（蛇形命名），通过 @JsonProperty 适配
-     */
+public record RefreshResponse(
     @JsonProperty("access_token")
-    private String accessToken;
-
-    /**
-     * 新的刷新令牌
-     * 前端约定字段名为 "refresh_token"
-     */
+    String accessToken,
     @JsonProperty("refresh_token")
-    private String refreshToken;
-
-    /**
-     * 新 accessToken 的有效期（单位：秒）
-     * 前端约定字段名为 "expires_in"
-     */
+    String refreshToken,
     @JsonProperty("expires_in")
-    private Long expiresIn;
-
+    Long expiresIn
+) {
 }

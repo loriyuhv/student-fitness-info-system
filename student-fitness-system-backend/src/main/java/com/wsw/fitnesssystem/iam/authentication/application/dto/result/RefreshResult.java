@@ -1,8 +1,5 @@
 package com.wsw.fitnesssystem.iam.authentication.application.dto.result;
 
-import lombok.Builder;
-import lombok.Data;
-
 /**
  * 刷新令牌业务输出模型（Application 层纯数据对象）
  *
@@ -34,24 +31,16 @@ import lombok.Data;
  * Web 层的响应对象（如 RefreshResponse）负责做协议适配，
  * 如需添加 token_type、过期时间格式化等前端友好字段，应在 Web 层完成。
  *
+ * @param accessToken 新的访问令牌（Access Token），用于后续接口调用的身份凭证
+ * @param refreshToken 新的刷新令牌（Refresh Token）；安全策略设计：轮换策略
+ * @param expiresIn 新 accessToken 的有效期，单位：秒（例如 7200 表示 2 小时）
  * @author loriyuhv
  * @version 1.0 2026/8/7 15:33
  * @since 1.0
  */
-@Data
-@Builder
-public class RefreshResult {
-
-    /** 新的访问令牌（Access Token），用于后续接口调用的身份凭证 */
-    private String accessToken;
-
-    /**
-     * 新的刷新令牌（Refresh Token）；
-     * 安全策略设计：轮换策略
-     */
-    private String refreshToken;
-
-    /** 新 accessToken 的有效期，单位：秒（例如 7200 表示 2 小时） */
-    private long expiresIn;
-
+public record RefreshResult(
+    String accessToken,
+    String refreshToken,
+    long expiresIn
+) {
 }

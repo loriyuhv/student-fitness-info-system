@@ -1,7 +1,7 @@
 package com.wsw.fitnesssystem.iam.authentication.interfaces.web.controller;
 
 import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
-import com.wsw.fitnesssystem.iam.authentication.application.AuthAppService;
+import com.wsw.fitnesssystem.iam.authentication.application.service.command.SessionKickCommandService;
 import com.wsw.fitnesssystem.iam.error.IamAuthNErrorCode;
 import com.wsw.fitnesssystem.shared.interfaces.web.response.ApiResponse;
 import com.wsw.fitnesssystem.shared.kernel.error.CommonErrorCode;
@@ -23,7 +23,7 @@ import java.util.Set;
 @RequestMapping("/admin/auth/users")
 public class AdminAuthUserController {
 
-    private final AuthAppService authAppService;
+    private final SessionKickCommandService sessionKickCommandService;
 
     /**
      * 踢掉用户所有在线会话（管理员操作）
@@ -37,7 +37,7 @@ public class AdminAuthUserController {
     public ApiResponse<String> kickUser(
         @PathVariable Long campusId, @PathVariable Long userId) {
 
-        Set<String> onlineSessions = authAppService.kick(campusId, userId);
+        Set<String> onlineSessions = sessionKickCommandService.kick(campusId, userId);
 
         String msg;
         if (CollectionUtils.isEmpty(onlineSessions)) {

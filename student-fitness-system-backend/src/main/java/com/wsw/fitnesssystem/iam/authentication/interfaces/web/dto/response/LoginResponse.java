@@ -1,8 +1,6 @@
 package com.wsw.fitnesssystem.iam.authentication.interfaces.web.dto.response;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.Builder;
-import lombok.Data;
 
 /**
  * 登录响应 DTO（Web 层面向 HTTP 协议的输出模型）
@@ -21,34 +19,20 @@ import lombok.Data;
  *       实现“业务数据”与“协议展示”的隔离</li>
  * </ul>
  *
+ * @param accessToken 访问令牌（前端要求字段名为 "access_token"（蛇形命名），
+ *                    通过 @JsonProperty 适配，而不修改核心字段名。
+ * @param refreshToken 刷新令牌
+ * @param expiresIn 有效期（秒）
  * @author loriyuhv
  * @version 1.0 2026/8/26 10:02
  * @since 1.0
  */
-@Data
-@Builder
-public class LoginResponse {
-
-    /**
-     * 访问令牌
-     * 前端要求字段名为 "access_token"（蛇形命名），
-     * 通过 @JsonProperty 适配，而不修改核心字段名
-     */
+public record LoginResponse(
     @JsonProperty("access_token")
-    private String accessToken;
-
-    /**
-     * 刷新令牌
-     * 前端要求字段名为 "refresh_token"
-     */
+    String accessToken,
     @JsonProperty("refresh_token")
-    private String refreshToken;
-
-    /**
-     * 有效期（秒）
-     * 前端要求字段名为 "expires_in"
-     */
+    String refreshToken,
     @JsonProperty("expires_in")
-    private Long expiresIn;
-
+    Long expiresIn
+) {
 }

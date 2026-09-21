@@ -1,7 +1,7 @@
 package com.wsw.fitnesssystem.iam.authentication.interfaces.web.dto.request;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.NotBlank;
-import lombok.Data;
 
 /**
  * 刷新令牌请求 DTO（Web 层面向 HTTP 协议的输入模型）
@@ -13,22 +13,18 @@ import lombok.Data;
  *   <li>前端传递的是裸 token 字符串，由 Web 层接收后转为 Application 层的 Command</li>
  * </ul>
  *
+ * @param refreshToken 刷新令牌 必填，由前端在 access_token 过期后传递
+ * @param deviceType 设备类型 必填
  * @author loriyuhv
  * @version 1.0 2026/3/22 16:29
  * @since 1.0
  */
-@Data
-public class RefreshRequest {
-
-    /**
-     * 刷新令牌
-     * 必填，由前端在 accessToken 过期后传递
-     */
+public record RefreshRequest(
+    @JsonProperty("refresh_token")
     @NotBlank(message = "刷新令牌不能为空")
-    private String refreshToken;
-
-
+    String refreshToken,
+    @JsonProperty("device_type")
     @NotBlank(message = "设备类型不能为空")
-    private String deviceType;
-
+    String deviceType
+) {
 }

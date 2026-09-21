@@ -1,7 +1,7 @@
 package com.wsw.fitnesssystem.iam.authentication.interfaces.web.dto.request;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.NotBlank;
-import lombok.Data;
 
 /**
  * 登录请求 DTO（Web 层面向 HTTP 协议的输入模型）
@@ -31,16 +31,13 @@ import lombok.Data;
  * @version 1.0 2026/1/11 15:46
  * @since 1.0
  */
-@Data
-public class LoginRequest {
-
+public record LoginRequest(
     @NotBlank(message = "用户名不能为空")
-    private String username;
-
+    String username,
     @NotBlank(message = "密码不能为空")
-    private String password;
-
+    String password,
+    @JsonProperty("device_type")
     @NotBlank(message = "设备类型不能为空")
-    private String deviceType;
-
+    String deviceType
+) {
 }

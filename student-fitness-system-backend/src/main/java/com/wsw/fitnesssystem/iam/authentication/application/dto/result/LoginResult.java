@@ -1,8 +1,5 @@
 package com.wsw.fitnesssystem.iam.authentication.application.dto.result;
 
-import lombok.Builder;
-import lombok.Data;
-
 /**
  * 登录业务输出模型（Application 层纯数据对象）
  *
@@ -21,21 +18,16 @@ import lombok.Data;
  *     严禁为了迁就前端而修改此类的字段名。</li>
  * </ul>
  *
+ * @param accessToken 访问令牌（Access Token），用于后续请求的身份凭证
+ * @param refreshToken 刷新令牌（Refresh Token），用于在 Access Token 过期后获取新的令牌对
+ * @param expiresIn Access Token 的有效期，单位：秒（例如 7200 表示 2 小时）
  * @author loriyuhv
  * @version 1.0 2026/1/14 12:21
  * @since 1.0
  */
-@Data
-@Builder
-public class LoginResult {
-
-    /** 访问令牌（Access Token），用于后续请求的身份凭证 */
-    private String accessToken;
-
-    /** 刷新令牌（Refresh Token），用于在 Access Token 过期后获取新的令牌对 */
-    private String refreshToken;
-
-    /** Access Token 的有效期，单位：秒（例如 7200 表示 2 小时） */
-    private long expiresIn;
-
+public record LoginResult(
+    String accessToken,
+    String refreshToken,
+    long expiresIn
+) {
 }

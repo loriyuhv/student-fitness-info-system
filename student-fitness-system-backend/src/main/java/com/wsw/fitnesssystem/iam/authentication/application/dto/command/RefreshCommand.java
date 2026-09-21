@@ -1,8 +1,5 @@
 package com.wsw.fitnesssystem.iam.authentication.application.dto.command;
 
-import lombok.Builder;
-import lombok.Getter;
-
 /**
  * 刷新令牌业务指令（Application 层输入模型）
  *
@@ -11,21 +8,18 @@ import lombok.Getter;
  *   <li>承载刷新令牌操作的业务输入数据</li>
  * </ul>
  *
+ * @param refreshToken
+ * @param deviceType
+ * @param userAgent
+ * @param ip
  * @author loriyuhv
  * @version 1.0 2026/8/26 10:45
  * @since 1.0
  */
-@Getter
-@Builder
-public class RefreshCommand {
-
-    /** 刷新令牌字符串 */
-    private String refreshToken;
-
-    private String deviceType;
-
-    private String userAgent;
-
-    private String ip;
-
+public record RefreshCommand(
+    String refreshToken,
+    String deviceType,
+    String userAgent,
+    String ip
+) {
 }

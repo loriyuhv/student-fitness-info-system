@@ -67,8 +67,8 @@ auth:
     audience: "web-client"
   security:
     permit-all-patterns:
-      - /auth/login
-      - /auth/refresh
+      - /authn/login
+      - /authn/refresh
     bcrypt-strength: 10
   session:
     session-expire: 604800

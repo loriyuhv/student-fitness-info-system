@@ -1,8 +1,5 @@
 package com.wsw.fitnesssystem.iam.authentication.application.dto.command;
 
-import lombok.Builder;
-import lombok.Getter;
-
 /**
  * 登录业务指令（Application 层输入模型）
  *
@@ -39,30 +36,22 @@ import lombok.Getter;
  *   <li>单元测试中模拟登录行为</li>
  * </ul>
  *
+ * @param username 用户账号
+ * @param password 账号密码
+ * @param deviceType 设备类型：WEB / APP / MINI_PROGRAM
+ * @param deviceId 设备ID
+ * @param ip 客户端 IP
+ * @param userAgent User-Agent
  * @author loriyuhv
  * @version 1.0 2026/1/16 12:59
  * @since 1.0
  */
-@Getter
-@Builder
-public class LoginCommand {
-
-    /** 用户账号 */
-    private String username;
-
-    /** 账号密码 */
-    private String password;
-
-    /** 设备类型：WEB / APP / MINI_PROGRAM */
-    private String deviceType;
-
-    /** 设备ID */
-    private String deviceId;
-
-    /** 客户端 IP */
-    private String ip;
-
-    /** User-Agent */
-    private String userAgent;
-
+public record LoginCommand(
+    String username,
+    String password,
+    String deviceType,
+    String deviceId,
+    String ip,
+    String userAgent
+) {
 }
