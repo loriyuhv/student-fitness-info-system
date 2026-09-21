@@ -3,6 +3,9 @@ package com.wsw.fitnesssystem.iam.authentication.infrastructure.adapter;
 import com.wsw.fitnesssystem.iam.authentication.application.port.SessionPort;
 import com.wsw.fitnesssystem.iam.session.domain.port.SessionRepository;
 import com.wsw.fitnesssystem.iam.session.domain.service.SessionDomainService;
+import com.wsw.fitnesssystem.shared.kernel.error.CommonErrorCode;
+import com.wsw.fitnesssystem.shared.kernel.exception.SystemException;
+import io.lettuce.core.RedisConnectionException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -47,7 +50,11 @@ public class LocalSessionAdapter implements SessionPort {
 
     @Override
     public void addToBlacklist(String accessTokenId) {
-        sessionRepository.addToBlacklist(accessTokenId);
+        try {
+            sessionRepository.addToBlacklist(accessTokenId);
+        } catch (RedisConnectionException e) {
+            throw new SystemException(CommonErrorCode.CACHE_ERROR, "Redis写入黑名单失败", e);
+        }
     }
 
     @Override

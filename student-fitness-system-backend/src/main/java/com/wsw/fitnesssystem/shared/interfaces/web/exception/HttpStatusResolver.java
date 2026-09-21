@@ -132,6 +132,7 @@ public class HttpStatusResolver {
         reg(IamAuthNErrorCode.CREDENTIAL_EXPIRED, HttpStatus.UNAUTHORIZED);
         reg(IamAuthNErrorCode.USER_LOGIN_ERROR, HttpStatus.UNAUTHORIZED);
         reg(IamAuthNErrorCode.ACCOUNT_ALREADY_EXIST, HttpStatus.CONFLICT);
+        reg(IamAuthNErrorCode.KICK_TARGET_NOT_FOUND, HttpStatus.NOT_FOUND);
         reg(IamAuthNErrorCode.LOGOUT_SUCCESS, HttpStatus.OK);
         reg(IamAuthNErrorCode.KICKOUT_SUCCESS, HttpStatus.OK);
         reg(IamAuthNErrorCode.ACCOUNT_UNLOCKED, HttpStatus.OK);

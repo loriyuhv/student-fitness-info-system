@@ -53,6 +53,9 @@ public enum IamAuthNErrorCode implements ErrorCode {
     /** 认证账号已存在（注册时用户名/手机号冲突） */
     ACCOUNT_ALREADY_EXIST("iam.authn.account_already_exist", "认证账号已存在"),
 
+    /** 认证用户不存在 */
+    KICK_TARGET_NOT_FOUND("iam.authn.kick_target_not_found", "被踢出的用户不存在"),
+
     /* ================= 认证成功 ================= */
 
     /** 用户登出成功 */

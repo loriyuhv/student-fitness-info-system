@@ -139,7 +139,7 @@ public class AuthAppService {
     public Set<String> kick(long campusId, long userId) {
         // 1. 校验用户是否存在
         authAccountRepository.findByUserIdAndCampusId(userId, campusId)
-            .orElseThrow(() -> new BizException(IamAuthNErrorCode.USER_NOT_FOUND));
+            .orElseThrow(() -> new BizException(IamAuthNErrorCode.KICK_TARGET_NOT_FOUND));
 
         // 2. 移除用户权限
         authorizationPort.removeAuthorization(userId, campusId);
@@ -242,7 +242,7 @@ public class AuthAppService {
             eventPublisher.publishEvent(
                 new LoginFailureEvent(
                     this, cmd.getUsername(), cmd.getIp(), cmd.getDeviceType(),
-                    cmd.getUserAgent(), e.getMessage()
+                    cmd.getUserAgent(), e.getErrorCode().code()
                 )
             );
 
