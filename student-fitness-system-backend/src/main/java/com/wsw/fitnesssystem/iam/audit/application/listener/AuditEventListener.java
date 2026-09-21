@@ -4,7 +4,7 @@ import com.wsw.fitnesssystem.iam.audit.application.service.AuditAppService;
 import com.wsw.fitnesssystem.iam.authentication.application.event.UserLoginFailedEvent;
 import com.wsw.fitnesssystem.iam.authentication.application.event.UserLoggedInEvent;
 import com.wsw.fitnesssystem.iam.authentication.application.event.TokenRefreshedEvent;
-import com.wsw.fitnesssystem.iam.authentication.application.event.SessionTerminatedEvent;
+import com.wsw.fitnesssystem.iam.session.application.event.SessionTerminatedEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.event.EventListener;

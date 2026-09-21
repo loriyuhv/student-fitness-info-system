@@ -1,4 +1,4 @@
-package com.wsw.fitnesssystem.iam.authentication.infrastructure.adapter;
+package com.wsw.fitnesssystem.iam.authentication.infrastructure.adapter.authorization;
 
 import com.wsw.fitnesssystem.iam.authentication.application.port.output.dto.AuthorizationSnapshot;
 import com.wsw.fitnesssystem.iam.authentication.application.port.output.AuthorizationPort;

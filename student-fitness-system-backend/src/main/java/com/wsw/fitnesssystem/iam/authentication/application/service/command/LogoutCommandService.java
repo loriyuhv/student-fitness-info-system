@@ -2,7 +2,7 @@ package com.wsw.fitnesssystem.iam.authentication.application.service.command;
 
 import com.wsw.fitnesssystem.iam.audit.domain.valueobject.LogoutReason;
 import com.wsw.fitnesssystem.iam.authentication.application.dto.command.LogoutCommand;
-import com.wsw.fitnesssystem.iam.authentication.application.event.SessionTerminatedEvent;
+import com.wsw.fitnesssystem.iam.session.application.event.SessionTerminatedEvent;
 import com.wsw.fitnesssystem.iam.authentication.application.port.output.SessionPort;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -24,6 +24,10 @@ import org.springframework.stereotype.Service;
  *   <li>从在线会话集合中移除该 AccessToken</li>
  *   <li>发布 {@link SessionTerminatedEvent}（reason=LOGOUT）用于审计</li>
  * </ol>
+ *
+ * <p><b>事件引用说明：</b>
+ * 本方法发布的 {@link SessionTerminatedEvent} 属于 session 子域的事件类型，
+ * 因为会话终止是会话生命周期事件，与踢人事件共用同一契约。</p>
  *
  * @author loriyuhv
  * @version 1.0 2026/9/21 10:51
@@ -51,7 +55,14 @@ public class LogoutCommandService {
 
         // 3. 发布登出事件（异步审计）
         eventPublisher.publishEvent(
-            new SessionTerminatedEvent(this, command.accessTokenId(), LogoutReason.LOGOUT));
+            new SessionTerminatedEvent(
+                this,
+                command.campusId(),
+                command.userId(),
+                command.accessTokenId(),
+                LogoutReason.LOGOUT
+            )
+        );
 
         log.info("Logout succeeded: userId={}, campusId={}, tokenId={}",
             command.campusId(), command.userId(), command.accessTokenId()

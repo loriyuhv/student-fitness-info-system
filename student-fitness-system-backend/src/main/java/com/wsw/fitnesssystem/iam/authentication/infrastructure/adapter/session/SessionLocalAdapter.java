@@ -1,4 +1,4 @@
-package com.wsw.fitnesssystem.iam.authentication.infrastructure.adapter;
+package com.wsw.fitnesssystem.iam.authentication.infrastructure.adapter.session;
 
 import com.wsw.fitnesssystem.iam.authentication.application.port.output.SessionPort;
 import com.wsw.fitnesssystem.iam.session.domain.repository.SessionRepository;

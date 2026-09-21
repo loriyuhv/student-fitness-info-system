@@ -1,4 +1,4 @@
-package com.wsw.fitnesssystem.iam.authentication.infrastructure.adapter;
+package com.wsw.fitnesssystem.iam.authentication.infrastructure.adapter.risk;
 
 import com.wsw.fitnesssystem.iam.authentication.application.port.output.dto.RiskCheckResult;
 import com.wsw.fitnesssystem.iam.authentication.application.port.output.RiskPort;
