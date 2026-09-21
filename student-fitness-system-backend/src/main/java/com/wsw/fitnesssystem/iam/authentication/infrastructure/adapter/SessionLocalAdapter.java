@@ -1,7 +1,7 @@
 package com.wsw.fitnesssystem.iam.authentication.infrastructure.adapter;
 
 import com.wsw.fitnesssystem.iam.authentication.application.port.output.SessionPort;
-import com.wsw.fitnesssystem.iam.session.domain.port.SessionRepository;
+import com.wsw.fitnesssystem.iam.session.domain.repository.SessionRepository;
 import com.wsw.fitnesssystem.iam.session.domain.service.SessionDomainService;
 import com.wsw.fitnesssystem.shared.kernel.error.CommonErrorCode;
 import com.wsw.fitnesssystem.shared.kernel.exception.SystemException;

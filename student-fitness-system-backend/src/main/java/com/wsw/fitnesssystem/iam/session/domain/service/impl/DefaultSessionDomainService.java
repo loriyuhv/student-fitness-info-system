@@ -1,19 +1,24 @@
 package com.wsw.fitnesssystem.iam.session.domain.service.impl;
 
 import com.wsw.fitnesssystem.iam.session.domain.policy.SessionLimitPolicy;
-import com.wsw.fitnesssystem.iam.session.domain.port.SessionRepository;
+import com.wsw.fitnesssystem.iam.session.domain.repository.SessionRepository;
 import com.wsw.fitnesssystem.iam.session.domain.service.SessionDomainService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
 
 /**
+ * {@link SessionDomainService} 默认实现
+ *
+ * <p><b>说明：</b>本类属于领域层，不携带任何 Spring 注解，
+ * 由基础设施层通过 {@code SessionDomainConfiguration} 显式注册为 Bean。</p>
+ *
+ * <p><b>策略：</b>超过上限时踢掉最早登录的会话（FIFO）。</p>
+ *
  * @author loriyuhv
  * @version 1.0 2026/3/21 10:59
  * @since 1.0
  */
-@Service
 @RequiredArgsConstructor
-public class SessionDomainServiceImpl implements SessionDomainService {
+public class DefaultSessionDomainService implements SessionDomainService {
 
     private final SessionRepository sessionRepository;
     private final SessionLimitPolicy sessionLimitPolicy;

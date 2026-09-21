@@ -71,11 +71,12 @@ iam:
         - /authn/login
         - /authn/refresh
       bcrypt-strength: 10
-auth:
+  # ---------- 会话子域 ----------
   session:
     session-expire: 604800
     max-online-sessions: 3
     blacklist-expire: 900
+auth:
   risk:
     max-fail-count: 3
     lock-duration-seconds: 900

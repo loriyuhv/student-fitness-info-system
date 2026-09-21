@@ -1,18 +1,15 @@
 package com.wsw.fitnesssystem.iam.session.domain.service;
 
 /**
- * 登录会话领域服务（Domain Service）
+ * 登录会话领域服务
  *
- * <p>
- * 这是领域层的服务接口，用于处理与用户会话相关的业务规则。
- * 注意：Domain Service 只关注业务逻辑，不依赖具体存储或技术实现。
- * </p>
+ * <p><b>职责：</b>封装会话相关的业务规则，与具体存储技术解耦。
+ * 只依赖 {@code SessionRepository} 和 {@code SessionLimitPolicy} 两个抽象。</p>
  *
- * <p>主要职责：</p>
+ * <p><b>边界：</b>
  * <ul>
- *     <li>处理多端登录策略（最大登录设备数限制）</li>
- *     <li>根据策略决定哪些会话需要被踢掉</li>
- *     <li>配合 SessionRepository 完成会话管理</li>
+ *   <li>不依赖 Spring / Redis / JWT</li>
+ *   <li>不处理 HTTP、协议转换、审计事件等应用层职责</li>
  * </ul>
  *
  * @author loriyuhv
@@ -22,7 +19,7 @@ package com.wsw.fitnesssystem.iam.session.domain.service;
 public interface SessionDomainService {
 
     /**
-     * 限制用户最大登录设备数
+     * 限制用户最大在线设备数
      *
      * <p>业务说明：</p>
      * <ul>

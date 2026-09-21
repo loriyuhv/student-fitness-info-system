@@ -8,6 +8,8 @@ import org.springframework.stereotype.Component;
 /**
  * 基于配置文件的会话限制策略实现
  *
+ * <p>从 {@link SessionProperties#getMaxOnlineSessions()} 读取最大在线会话数。</p>
+ *
  * @author loriyuhv
  * @version 1.0 2026/8/27 07:14
  * @since 1.0

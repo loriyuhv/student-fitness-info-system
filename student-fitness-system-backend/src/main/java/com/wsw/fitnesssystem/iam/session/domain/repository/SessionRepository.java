@@ -1,31 +1,29 @@
-package com.wsw.fitnesssystem.iam.session.domain.port;
+package com.wsw.fitnesssystem.iam.session.domain.repository;
 
 import java.util.Optional;
 import java.util.Set;
 
 /**
- * 登录会话存储（Session Repository Port）
+ * 登录会话仓储（领域层定义的仓储接口）
  *
- * <p>
- * 这是领域层定义的“能力接口”（Port），用于管理用户登录会话（AccessToken / RefreshToken）。
- * 注意：Domain 层只定义需要什么能力，而不关心具体实现。具体实现由 Infrastructure 层提供（如 RedisSessionRepository）。
- * </p>
- *
- * <p>主要职责：</p>
+ * <p><b>职责：</b>
  * <ul>
- *     <li>保存用户登录会话信息（AccessToken / RefreshToken）</li>
- *     <li>支持查询会话是否在线</li>
- *     <li>支持删除单个或全部会话</li>
- *     <li>支持 AccessToken 黑名单管理</li>
- *     <li>支持获取当前在线会话数量和最早会话，用于多端登录控制</li>
+ *   <li>管理用户登录会话的生命周期：保存、查询、删除</li>
+ *   <li>维护 AccessToken / RefreshToken 的映射关系</li>
+ *   <li>维护令牌版本号，用于批量失效</li>
+ *   <li>维护 AccessToken 黑名单，用于单条令牌失效</li>
  * </ul>
  *
- * <p>亮点：</p>
+ * <p><b>边界：</b>
  * <ul>
- *     <li>遵循依赖反转原则（Domain 依赖接口，不依赖 Redis 或 JWT 实现）</li>
- *     <li>可替换存储实现（Redis / 内存 / 数据库等）</li>
- *     <li>支持多端登录限制、单点登录、Token 刷新、强制下线等功能</li>
+ *   <li>本接口只描述"需要什么能力"，不描述"如何存储"</li>
+ *   <li>不出现 Redis key、Lua 脚本、TTL、ZSet、Hash 等技术细节</li>
+ *   <li>具体实现由基础设施层提供（当前为 {@code RedisSessionRepository}）</li>
  * </ul>
+ *
+ * <p><b>批量失效语义：</b>
+ * {@link #removeAllSessions(long, long)} 采用"令牌版本号自增"方式实现批量失效，
+ * 不保证对所有已签发 AccessToken 的即时黑名单化，具体取舍见实现层文档。</p>
  *
  * @author loriyuhv
  * @version 1.0 2026/3/21 10:05
@@ -44,13 +42,15 @@ public interface SessionRepository {
      * field=accessTokenId，value=refreshTokenId，用于失效 RefreshToken</li>
      * <li>设置 TTL：会话声明周期，不依赖 AccessToken 本身生命周期</li>
      *
-     * @param accessTokenId 当前登录的 AccessToken 唯一标识（jti）
-     * @param refreshTokenId 当前登录的 RefreshToken 唯一标识（jti）
+     * @param campusId       校区ID
+     * @param userId         用户ID
+     * @param accessTokenId  访问令牌唯一标识（jti）
+     * @param refreshTokenId 刷新令牌唯一标识（jti）
      */
     void saveSession(long campusId, long userId, String accessTokenId, String refreshTokenId);
 
     /**
-     * 删除单个用户会话（单端注销或踢人）
+     * 删除单个用户会话（单端注销或单设备踢出）
      *
      * <p>实现细节：</p>
      * <ul>
@@ -59,12 +59,15 @@ public interface SessionRepository {
      *     <li>加入黑名单，防止 JWT 继续使用</li>
      * </ul>
      *
-     * @param accessTokenId 要删除的 AccessToken ID
+     * @param campusId      校区ID
+     * @param userId        用户ID
+     * @param accessTokenId 待删除的访问令牌唯一标识
      */
     void removeSession(long campusId, long userId, String accessTokenId);
 
     /**
-     * 删除该用户全部会话（踢掉所有设备）
+     * 删除用户全部会话（管理员踢人 / 强制下线）
+     *
      * <p>实现细节：</p>
      * <ul>
      *     <li>Lua脚本原子执行：递增用户令牌全局版本号，删除online ZSet、refresh双向映射等全部会话Redis数据</li>
@@ -75,49 +78,59 @@ public interface SessionRepository {
      *     <strong>已泄露、且版本号匹配、尚未过期的AccessToken</strong>；
      *     缩短AccessToken有效期可缩小风险窗口，发现泄露可手动将单条tokenId加入黑名单处置</li>
      * </ul>
+     *
+     * @param campusId 校区ID
+     * @param userId   用户ID
+     * @return 被移除的访问令牌唯一标识集合
      */
     Set<String> removeAllSessions(long campusId, long userId);
 
     /**
-     * 获取用户所有在线 AccessToken ID
+     * 查询用户所有在线 AccessToken ID
      *
-     * @return 当前用户在线的所有 AccessToken ID
+     * @return 当前用户在线的所有 AccessToken ID；无会话时返回空集合
      */
     Set<String> getAllSessions(long campusId, long userId);
 
     /**
-     * 判断指定 token 是否在线
+     * 判断指定 AccessToken 是否在线
      * <p>用途：</p>
      * <ul>
      *     <li>检查用户是否仍然登录</li>
      *     <li>实现单点登录和多端登录限制逻辑</li>
      * </ul>
-     * @param accessTokenId AccessToken ID
-     * @return true 表示 token 仍在线，false 表示已下线或被踢
+     *
+     * @param campusId      校区ID
+     * @param userId        用户ID
+     * @param accessTokenId 访问令牌唯一标识
+     * @return true 表示在线
      */
     boolean isOnline(long campusId, long userId, String accessTokenId);
 
     /**
-     * 将指定 AccessToken 加入黑名单
+     * 将 AccessToken 加入黑名单
+     *
      * <p>用途：</p>
      * <ul>
      *     <li>强制注销 token，防止继续访问接口</li>
      *     <li>配合 removeSession 使用</li>
      * </ul>
-     * @param accessTokenId AccessToken ID
+     *
+     * @param accessTokenId 访问令牌唯一标识
      */
     void addToBlacklist(String accessTokenId);
 
     /**
      * 判断指定 AccessToken 是否在黑名单
      *
-     * @param accessTokenId AccessToken ID
-     * @return true 表示在黑名单中，false 表示有效
+     * @param accessTokenId 访问令牌唯一标识
+     * @return true 表示已被拉黑
      */
     boolean isBlacklisted(String accessTokenId);
 
     /**
-     * 获取当前在线会话数量
+     * 统计当前在线会话数量
+     *
      * <p>用途：</p>
      * <ul>
      *     <li>用于多端登录限制</li>
@@ -129,24 +142,28 @@ public interface SessionRepository {
 
     /**
      * 获取最早登录的 AccessToken
+     *
      * <p>用途：</p>
      * <ul>
      *     <li>实现多端登录策略时，踢掉最早登录的设备</li>
      * </ul>
-     * @return 最早登录的 AccessToken ID，若无返回 Optional.empty()
+     *
+     * @return 最早登录的 AccessToken ID；无会话时返回 {@link Optional#empty()}
      */
     Optional<String> getOldestSession(long campusId, long userId);
 
     /**
-     * 获取用户当前版本号（如果不存在则初始化为 1）
-     * @return token版本号
+     * 获取用户当前的令牌版本号（不存在时初始化为 1）
+     *
+     * @return 令牌版本号
      */
     long getTokenVersion(long campusId, long userId);
 
     /**
-     * 校验refreshToken是否存在
-     * @param refreshTokenId Refresh Token ID
-     * @return 是否存在值
+     * 校验 RefreshToken 是否存在
+     *
+     * @param refreshTokenId 刷新令牌唯一标识
+     * @return true 表示存在
      */
     boolean existsRefreshToken(long campusId, long userId, String refreshTokenId);
 

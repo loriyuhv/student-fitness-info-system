@@ -1,7 +1,7 @@
-package com.wsw.fitnesssystem.iam.session.infrastructure.repository;
+package com.wsw.fitnesssystem.iam.session.infrastructure.caches.repository;
 
 import com.wsw.fitnesssystem.iam.error.IamAuthNErrorCode;
-import com.wsw.fitnesssystem.iam.session.domain.port.SessionRepository;
+import com.wsw.fitnesssystem.iam.session.domain.repository.SessionRepository;
 import com.wsw.fitnesssystem.iam.session.infrastructure.config.SessionProperties;
 import com.wsw.fitnesssystem.shared.infrastructure.properties.AuthRedisKeys;
 import com.wsw.fitnesssystem.shared.kernel.exception.BizException;
@@ -21,6 +21,19 @@ import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 /**
+ * 基于 Redis 的会话仓储实现
+ *
+ * <p><b>存储结构（实现细节，不属于领域契约）：</b>
+ * <ul>
+ *   <li>online ZSet：value=accessTokenId，score=登录时间，用于在线设备查询与踢人</li>
+ *   <li>refreshToAccess Hash：refreshTokenId → accessTokenId</li>
+ *   <li>accessToRefresh Hash：accessTokenId → refreshTokenId</li>
+ *   <li>tokenVersion String：令牌版本号，用于批量失效</li>
+ *   <li>blacklist String：单条 AccessToken 黑名单</li>
+ * </ul></p>
+ *
+ * <p><b>并发安全：</b>写操作均通过 Lua 脚本保证原子性，避免多端并发登录 / 刷新时数据不一致。</p>
+ *
  * @author loriyuhv
  * @version 1.0 2026/3/21 10:25
  * @since 1.0
@@ -181,7 +194,7 @@ public class RedisSessionRepository implements SessionRepository {
             String.valueOf(now), String.valueOf(ttl)
         );
 
-        log.info("Save session for user {} campus {}, accessTokenId {}",
+        log.debug("Save session for user {} campus {}, accessTokenId {}",
                 userId, campusId, accessTokenId);
     }
 
@@ -201,7 +214,7 @@ public class RedisSessionRepository implements SessionRepository {
 
         // refreshTokenId 为 "" 表示原本就不存在，已经失效
         if (refreshTokenId.isEmpty()) {
-            log.warn("Token {} not found or already expired", accessTokenId);
+            log.debug("Token {} not found or already expired", accessTokenId);
         }
     }
 
