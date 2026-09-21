@@ -14,6 +14,8 @@ import com.wsw.fitnesssystem.iam.authentication.domain.port.PasswordEncryptorPor
 import com.wsw.fitnesssystem.iam.authentication.domain.repository.AuthAccountRepository;
 import com.wsw.fitnesssystem.iam.error.IamAuthNErrorCode;
 import com.wsw.fitnesssystem.iam.error.IamRiskErrorCode;
+import com.wsw.fitnesssystem.iam.authentication.domain.exception.DomainAuthNException;
+import com.wsw.fitnesssystem.shared.domain.exception.DomainStateException;
 import com.wsw.fitnesssystem.shared.kernel.exception.BizException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -112,32 +114,26 @@ public class LoginOrchestrator {
      */
     private AuthAccount authenticate(LoginCommand command) {
         try {
-            // 1. 加载账号
+            // 1. 查询账号
             AuthAccount account = authAccountRepository.findByUsername(command.username())
                 .orElseThrow(() -> new BizException(IamAuthNErrorCode.ACCOUNT_NOT_EXIST));
-
             // 2. 验证密码（领域行为）
             account.verifyPassword(command.password(), passwordEncryptorPort);
-
             return account;
+        } catch (DomainAuthNException e) {
+            // 密码错误：审计 + 风控 + 统一错误（防枚举）
+            recordLoginFailure(command, e.getMessage());
+            handleRiskOnFailure(command.username());
+            throw new BizException(IamAuthNErrorCode.USER_LOGIN_ERROR, e);
+        } catch (DomainStateException e) {
+            // 账号状态不允许登录：审计 + 风控 + 统一错误（防枚举）
+            recordLoginFailure(command, e.getMessage());
+            handleRiskOnFailure(command.username());
+            throw new BizException(IamAuthNErrorCode.USER_LOGIN_ERROR, e);
         } catch (BizException e) {
-            // 1. 登录失败审计事件（先记录审计，保证即使风控失败也不影响认证异常返回）
-            eventPublisher.publishEvent(
-                new UserLoginFailedEvent(
-                    this, command.username(), command.ip(),
-                    command.deviceType(), command.userAgent(),
-                    e.getErrorCode().code()
-                )
-            );
-
-            // 2. 风控失败处理（统一收口）
-            RiskCheckResult result = riskPort.onFail(command.username());
-            log.debug("Risk check result: {}", result);
-
-            if (result.locked()) {
-                throw new BizException(IamRiskErrorCode.ACCOUNT_LOCKED);
-            }
-
+            // 账号不存在：审计 + 风控 + 统一错误
+            recordLoginFailure(command, e.getMessage());
+            handleRiskOnFailure(command.username());
             throw new BizException(IamAuthNErrorCode.USER_LOGIN_ERROR, e);
         }
     }
@@ -181,6 +177,23 @@ public class LoginOrchestrator {
             tokenPair.getRefreshTokenId(),
             tokenPair.getRefreshTokenExpiresIn()
         );
+    }
+
+    /** 记录登录失败审计 */
+    private void recordLoginFailure(LoginCommand cmd, String reason) {
+        eventPublisher.publishEvent(
+            new UserLoginFailedEvent(
+                this, cmd.username(), cmd.ip(), cmd.deviceType(), cmd.userAgent(), reason
+            )
+        );
+    }
+
+    /** 处理风控失败：如达锁定阈值则抛出锁定异常 */
+    private void handleRiskOnFailure(String username) {
+        RiskCheckResult result = riskPort.onFail(username);
+        if (result.locked()) {
+            throw new BizException(IamRiskErrorCode.ACCOUNT_LOCKED);
+        }
     }
 
 }
