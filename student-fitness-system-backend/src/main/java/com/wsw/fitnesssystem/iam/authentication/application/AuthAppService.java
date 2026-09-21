@@ -3,19 +3,22 @@ package com.wsw.fitnesssystem.iam.authentication.application;
 import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 import com.wsw.fitnesssystem.iam.authentication.application.dto.command.LoginCommand;
 import com.wsw.fitnesssystem.iam.authentication.application.dto.command.RefreshCommand;
-import com.wsw.fitnesssystem.iam.authentication.application.dto.port.RiskCheckResult;
+import com.wsw.fitnesssystem.iam.authentication.application.port.output.dto.RiskCheckResult;
 import com.wsw.fitnesssystem.iam.authentication.application.dto.result.LoginResult;
 import com.wsw.fitnesssystem.iam.authentication.application.dto.result.RefreshResult;
-import com.wsw.fitnesssystem.iam.authentication.application.event.LoginFailureEvent;
-import com.wsw.fitnesssystem.iam.authentication.application.event.LoginSuccessEvent;
-import com.wsw.fitnesssystem.iam.authentication.application.event.RefreshTokenEvent;
+import com.wsw.fitnesssystem.iam.authentication.application.event.UserLoginFailedEvent;
+import com.wsw.fitnesssystem.iam.authentication.application.event.UserLoggedInEvent;
+import com.wsw.fitnesssystem.iam.authentication.application.event.TokenRefreshedEvent;
 import com.wsw.fitnesssystem.iam.authentication.application.event.SessionTerminatedEvent;
-import com.wsw.fitnesssystem.iam.authentication.application.port.*;
+import com.wsw.fitnesssystem.iam.authentication.application.port.output.AuthorizationPort;
+import com.wsw.fitnesssystem.iam.authentication.application.port.output.RiskPort;
+import com.wsw.fitnesssystem.iam.authentication.application.port.output.SessionPort;
+import com.wsw.fitnesssystem.iam.authentication.application.port.output.TokenPort;
 import com.wsw.fitnesssystem.iam.authentication.domain.model.AuthAccount;
-import com.wsw.fitnesssystem.iam.authentication.domain.port.PasswordEncryptor;
+import com.wsw.fitnesssystem.iam.authentication.domain.port.PasswordEncryptorPort;
 import com.wsw.fitnesssystem.iam.audit.domain.valueobject.LogoutReason;
-import com.wsw.fitnesssystem.iam.authentication.application.dto.port.TokenPair;
-import com.wsw.fitnesssystem.iam.authentication.application.dto.port.RefreshTokenClaims;
+import com.wsw.fitnesssystem.iam.authentication.application.port.output.dto.TokenPair;
+import com.wsw.fitnesssystem.iam.authentication.application.port.output.dto.RefreshTokenClaims;
 import com.wsw.fitnesssystem.iam.authentication.domain.repository.AuthAccountRepository;
 import com.wsw.fitnesssystem.iam.error.IamAuthNErrorCode;
 import com.wsw.fitnesssystem.iam.error.IamRiskErrorCode;
@@ -60,7 +63,7 @@ public class AuthAppService {
     private final AuthorizationPort authorizationPort;
 
     /** 密码加密器（领域端口） */
-    private final PasswordEncryptor passwordEncryptor;
+    private final PasswordEncryptorPort passwordEncryptorPort;
 
     /** 事件发布器（用于异步审计） */
     private final ApplicationEventPublisher eventPublisher;
@@ -201,7 +204,7 @@ public class AuthAppService {
         );
 
         // 5. 发布刷新事件（异步审计更新）
-        eventPublisher.publishEvent(new RefreshTokenEvent(
+        eventPublisher.publishEvent(new TokenRefreshedEvent(
             this, userId, campusId, oldAccessTokenId, newAccessTokenId,
             newRefreshTokenId, tokenPair.getAccessTokenExpiresIn(),
             command.getDeviceType(), command.getUserAgent(), command.getIp()
@@ -233,14 +236,14 @@ public class AuthAppService {
                 .orElseThrow(() -> new BizException(IamAuthNErrorCode.ACCOUNT_NOT_EXIST));
 
             // 2. 验证密码（领域逻辑）
-            account.verifyPassword(cmd.getPassword(), passwordEncryptor);
+            account.verifyPassword(cmd.getPassword(), passwordEncryptorPort);
 
             return account;
         } catch (BizException e) {
             // 注意：先记录审计、再处理风控。（即使风控失败也不影响认证异常返回）
             // 1. 登录失败审计
             eventPublisher.publishEvent(
-                new LoginFailureEvent(
+                new UserLoginFailedEvent(
                     this, cmd.getUsername(), cmd.getIp(), cmd.getDeviceType(),
                     cmd.getUserAgent(), e.getErrorCode().code()
                 )
@@ -281,7 +284,7 @@ public class AuthAppService {
         LocalDateTime tokenExpiresIn = LocalDateTime.now()
             .plusSeconds(expiresIn);
         eventPublisher.publishEvent(
-            new LoginSuccessEvent(this, userId, username,
+            new UserLoggedInEvent(this, userId, username,
                 accessTokenId, tokenExpiresIn, deviceType, userAgent, ip)
         );
     }

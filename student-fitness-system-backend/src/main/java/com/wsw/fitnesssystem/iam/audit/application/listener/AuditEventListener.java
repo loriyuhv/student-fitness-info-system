@@ -1,9 +1,9 @@
 package com.wsw.fitnesssystem.iam.audit.application.listener;
 
 import com.wsw.fitnesssystem.iam.audit.application.service.AuditAppService;
-import com.wsw.fitnesssystem.iam.authentication.application.event.LoginFailureEvent;
-import com.wsw.fitnesssystem.iam.authentication.application.event.LoginSuccessEvent;
-import com.wsw.fitnesssystem.iam.authentication.application.event.RefreshTokenEvent;
+import com.wsw.fitnesssystem.iam.authentication.application.event.UserLoginFailedEvent;
+import com.wsw.fitnesssystem.iam.authentication.application.event.UserLoggedInEvent;
+import com.wsw.fitnesssystem.iam.authentication.application.event.TokenRefreshedEvent;
 import com.wsw.fitnesssystem.iam.authentication.application.event.SessionTerminatedEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -31,7 +31,7 @@ public class AuditEventListener {
 
     @Async
     @EventListener
-    public void handleLoginSuccess(LoginSuccessEvent event) {
+    public void handleLoginSuccess(UserLoggedInEvent event) {
         log.debug("收到登录成功事件: userId={}", event.getUserId());
         auditAppService.recordLoginSuccess(
             event.getUserId(),
@@ -45,7 +45,7 @@ public class AuditEventListener {
 
     @Async
     @EventListener
-    public void handleLoginFailure(LoginFailureEvent event) {
+    public void handleLoginFailure(UserLoginFailedEvent event) {
         log.debug("收到登录失败事件: username={}", event.getUsername());
         auditAppService.recordLoginFailure(
             event.getUsername(),
@@ -65,7 +65,7 @@ public class AuditEventListener {
 
     @Async
     @EventListener
-    public void handleRefreshToken(RefreshTokenEvent event) {
+    public void handleRefreshToken(TokenRefreshedEvent event) {
         log.debug("收到刷新Token事件: userId={}, oldTokenId={}, newTokenId={}",
             event.getUserId(), event.getOldAccessTokenId(), event.getNewAccessTokenId());
 

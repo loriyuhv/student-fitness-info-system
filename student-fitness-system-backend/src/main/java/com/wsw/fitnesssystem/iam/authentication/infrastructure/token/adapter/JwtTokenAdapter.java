@@ -1,10 +1,10 @@
 package com.wsw.fitnesssystem.iam.authentication.infrastructure.token.adapter;
 
-import com.wsw.fitnesssystem.iam.authentication.application.dto.port.TokenPair;
-import com.wsw.fitnesssystem.iam.authentication.application.port.TokenPort;
+import com.wsw.fitnesssystem.iam.authentication.application.port.output.dto.TokenPair;
+import com.wsw.fitnesssystem.iam.authentication.application.port.output.TokenPort;
 import com.wsw.fitnesssystem.iam.authentication.infrastructure.config.JwtConfig;
-import com.wsw.fitnesssystem.iam.authentication.application.dto.port.AccessTokenClaims;
-import com.wsw.fitnesssystem.iam.authentication.application.dto.port.RefreshTokenClaims;
+import com.wsw.fitnesssystem.iam.authentication.application.port.output.dto.AccessTokenClaims;
+import com.wsw.fitnesssystem.iam.authentication.application.port.output.dto.RefreshTokenClaims;
 import com.wsw.fitnesssystem.iam.authentication.infrastructure.token.model.TokenPrincipal;
 import com.wsw.fitnesssystem.iam.authentication.infrastructure.token.parser.JwtTokenParser;
 import com.wsw.fitnesssystem.iam.authentication.infrastructure.token.provider.JwtTokenProvider;

@@ -1,0 +1,105 @@
+package com.wsw.fitnesssystem.iam.authentication.interfaces.web.controller;
+
+import com.wsw.fitnesssystem.iam.authentication.application.AuthAppService;
+import com.wsw.fitnesssystem.iam.authentication.application.dto.command.LoginCommand;
+import com.wsw.fitnesssystem.iam.authentication.application.dto.command.RefreshCommand;
+import com.wsw.fitnesssystem.iam.authentication.application.dto.result.LoginResult;
+import com.wsw.fitnesssystem.iam.authentication.application.dto.result.RefreshResult;
+import com.wsw.fitnesssystem.iam.authentication.interfaces.web.dto.response.LoginResponse;
+import com.wsw.fitnesssystem.iam.authentication.interfaces.web.dto.request.RefreshRequest;
+import com.wsw.fitnesssystem.iam.authentication.interfaces.web.dto.response.RefreshResponse;
+import com.wsw.fitnesssystem.iam.error.IamAuthNErrorCode;
+import com.wsw.fitnesssystem.shared.interfaces.web.util.WebUtils;
+import com.wsw.fitnesssystem.shared.application.context.RequestContextHolder;
+import com.wsw.fitnesssystem.shared.domain.vb.Operator;
+import com.wsw.fitnesssystem.shared.interfaces.web.response.ApiResponse;
+import com.wsw.fitnesssystem.iam.authentication.interfaces.web.dto.request.LoginRequest;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.web.bind.annotation.*;
+
+/**
+ * 认证控制器
+ *
+ * @author loriyuhv
+ * @version 1.0 2026/1/11 15:45
+ * @since 1.0
+ */
+@Slf4j
+@RestController
+@RequiredArgsConstructor
+@RequestMapping("/auth")
+public class AuthenticationController {
+
+    private final AuthAppService authAppService;
+
+    @PostMapping("/login")
+    public ApiResponse<LoginResponse> login(
+        @RequestBody @Valid LoginRequest request, HttpServletRequest httpRequest) {
+
+        // 1. Web层：提取Web特有数据（IP、User-Agent），构建Application层的输入Command
+        LoginCommand command = LoginCommand.builder()
+            .username(request.getUsername())
+            .password(request.getPassword())
+            .deviceType(request.getDeviceType())
+            .deviceId(httpRequest.getHeader("X-Device-Id"))
+            .ip(WebUtils.getClientIp(httpRequest))
+            .userAgent(httpRequest.getHeader("User-Agent"))
+            .build();
+
+        // 2. 调用Application层（核心业务逻辑），得到纯业务输出
+        LoginResult login = authAppService.login(command);
+
+        // 3. 防腐层转换：将业务输出（LoginResult）转换为协议输出（LoginResponse）
+        LoginResponse response = LoginResponse.builder()
+            .accessToken(login.getAccessToken())
+            .refreshToken(login.getRefreshToken())
+            .expiresIn(login.getExpiresIn())
+            .build();
+
+        return ApiResponse.success(response);
+
+    }
+
+    /**
+     * 退出当前登录
+     */
+    @PostMapping("/logout")
+    public ApiResponse<Void> logout() {
+        Operator operator = RequestContextHolder.getRequiredOperator();
+        String accessTokenId = RequestContextHolder.getTokenId();
+
+        authAppService.logout(operator, accessTokenId);
+
+        return ApiResponse.success(IamAuthNErrorCode.LOGOUT_SUCCESS.message(), null);
+    }
+
+    /**
+     *  刷新Token
+     *  */
+    @PostMapping("/refresh")
+    public ApiResponse<RefreshResponse> refresh(
+        @RequestBody @Valid RefreshRequest request,  HttpServletRequest httpRequest) {
+
+        RefreshCommand command = RefreshCommand.builder()
+            .refreshToken(request.getRefreshToken())
+            .deviceType(request.getDeviceType())
+            .userAgent(httpRequest.getHeader("User-Agent"))
+            .ip(WebUtils.getClientIp(httpRequest))
+            .build();
+
+        RefreshResult result = authAppService.refreshAccessToken(command);
+
+        RefreshResponse response = RefreshResponse.builder()
+            .accessToken(result.getAccessToken())
+            .refreshToken(result.getRefreshToken())
+            .expiresIn(result.getExpiresIn())
+            .build();
+
+        return ApiResponse.success(response);
+
+    }
+
+}

@@ -1,11 +1,11 @@
 package com.wsw.fitnesssystem.iam.authentication.infrastructure.security.filter;
 
-import com.wsw.fitnesssystem.iam.authentication.application.dto.port.AuthAuthorization;
-import com.wsw.fitnesssystem.iam.authentication.application.port.AuthorizationPort;
-import com.wsw.fitnesssystem.iam.authentication.application.port.SessionPort;
-import com.wsw.fitnesssystem.iam.authentication.application.port.TokenPort;
-import com.wsw.fitnesssystem.iam.authentication.infrastructure.config.SecurityProperties;
-import com.wsw.fitnesssystem.iam.authentication.application.dto.port.AccessTokenClaims;
+import com.wsw.fitnesssystem.iam.authentication.application.port.output.dto.AuthorizationSnapshot;
+import com.wsw.fitnesssystem.iam.authentication.application.port.output.AuthorizationPort;
+import com.wsw.fitnesssystem.iam.authentication.application.port.output.SessionPort;
+import com.wsw.fitnesssystem.iam.authentication.application.port.output.TokenPort;
+import com.wsw.fitnesssystem.iam.authentication.infrastructure.config.AuthSecurityProperties;
+import com.wsw.fitnesssystem.iam.authentication.application.port.output.dto.AccessTokenClaims;
 import com.wsw.fitnesssystem.iam.authentication.infrastructure.security.handler.JwtAuthenticationEntryPoint;
 import com.wsw.fitnesssystem.iam.authentication.infrastructure.security.model.JwtUserPrincipal;
 import com.wsw.fitnesssystem.shared.application.context.RequestContext;
@@ -74,7 +74,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final TokenPort tokenPort;
     private final SessionPort sessionPort;
     private final AuthorizationPort authorizationPort;
-    private final SecurityProperties securityProperties;
+    private final AuthSecurityProperties authSecurityProperties;
     private final JwtAuthenticationEntryPoint authenticationEntryPoint;
 
     /**
@@ -95,7 +95,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             // 1. 白名单与无Token分支处理
             // 1.1 白名单优先匹配：白名单接口直接跳过JWT校验，放行后续过滤器
             String uri = request.getServletPath();
-            boolean isPermitAll = securityProperties.getPermitAllPatterns().stream()
+            boolean isPermitAll = authSecurityProperties.getPermitAllPatterns().stream()
                     .anyMatch(p -> p.matches(uri));
             if (isPermitAll) {
                 filterChain.doFilter(request, response);
@@ -157,7 +157,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             }
 
             // 4. 加载用户权限：权限信任Redis缓存，不直接使用Token内携带权限
-            AuthAuthorization authorization = authorizationPort.getAuthorization(userId, campusId);
+            AuthorizationSnapshot authorization = authorizationPort.getAuthorization(userId, campusId);
 
             // 组装SpringSecurity权限集合：角色自动添加ROLE_前缀，权限标识原样保留
             Set<GrantedAuthority> authorities = Stream.concat(

@@ -1,9 +1,9 @@
 package com.wsw.fitnesssystem.iam.authentication.domain.model;
 
-import com.wsw.fitnesssystem.iam.authentication.domain.port.PasswordEncryptor;
-import com.wsw.fitnesssystem.iam.authentication.domain.vb.AccountStatus;
-import com.wsw.fitnesssystem.iam.authentication.domain.vb.UserSource;
-import com.wsw.fitnesssystem.iam.authentication.domain.vb.UserType;
+import com.wsw.fitnesssystem.iam.authentication.domain.port.PasswordEncryptorPort;
+import com.wsw.fitnesssystem.iam.authentication.domain.enums.AccountStatus;
+import com.wsw.fitnesssystem.iam.authentication.domain.enums.UserSource;
+import com.wsw.fitnesssystem.iam.authentication.domain.enums.UserType;
 import com.wsw.fitnesssystem.iam.error.IamAuthNErrorCode;
 import com.wsw.fitnesssystem.iam.error.IamRiskErrorCode;
 import com.wsw.fitnesssystem.shared.kernel.exception.BizException;
@@ -143,7 +143,7 @@ public class AuthAccount {
      * <p>流程：先检查账号可用状态，再比对 BCrypt 密文。
      * <p>失败时抛出 {@link BizException}，由应用层统一处理。
      */
-    public void verifyPassword(String rawPassword, PasswordEncryptor encryptor) {
+    public void verifyPassword(String rawPassword, PasswordEncryptorPort encryptor) {
         if (!canLogin()) {
             throw new BizException(IamRiskErrorCode.ACCOUNT_DISABLED);
         }

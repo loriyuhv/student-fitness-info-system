@@ -63,7 +63,7 @@ public class SecurityResponseWriter {
         String message
     ) throws IOException {
         int httpCode = httpStatusResolver.resolveValue(errorCode);
-        String finalMsg = StringUtils.isNotBlank(message) ? errorCode.message() : message;
+        String finalMsg = StringUtils.isNotBlank(message) ? message : errorCode.message();
 
         response.setStatus(httpCode);
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);

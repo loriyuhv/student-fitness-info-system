@@ -1,9 +1,9 @@
 package com.wsw.fitnesssystem.iam.authentication.infrastructure.persistence.converter;
 
 import com.wsw.fitnesssystem.iam.authentication.domain.model.AuthAccount;
-import com.wsw.fitnesssystem.iam.authentication.domain.vb.AccountStatus;
-import com.wsw.fitnesssystem.iam.authentication.domain.vb.UserSource;
-import com.wsw.fitnesssystem.iam.authentication.domain.vb.UserType;
+import com.wsw.fitnesssystem.iam.authentication.domain.enums.AccountStatus;
+import com.wsw.fitnesssystem.iam.authentication.domain.enums.UserSource;
+import com.wsw.fitnesssystem.iam.authentication.domain.enums.UserType;
 import com.wsw.fitnesssystem.iam.authentication.infrastructure.persistence.entity.SysUserPo;
 
 /**
