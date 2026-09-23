@@ -2,7 +2,6 @@ package com.wsw.fitnesssystem.iam.authorization.infrastructure.cache;
 
 import com.wsw.fitnesssystem.iam.authorization.application.dto.result.UserAuthorization;
 import com.wsw.fitnesssystem.iam.authorization.application.port.output.AuthorizationCachePort;
-import com.wsw.fitnesssystem.shared.infrastructure.properties.AuthRedisKeys;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -51,7 +50,7 @@ public class RedisAuthorizationCacheAdapter implements AuthorizationCachePort {
     }
 
     private String buildKey(long userId, long campusId) {
-        return AuthRedisKeys.permUserKey(userId, campusId);
+        return AuthorizationRedisKeys.permUserKey(campusId, userId);
     }
 
 }

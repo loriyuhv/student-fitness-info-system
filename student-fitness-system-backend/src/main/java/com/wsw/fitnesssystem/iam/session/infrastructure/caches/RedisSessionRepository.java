@@ -1,9 +1,8 @@
-package com.wsw.fitnesssystem.iam.session.infrastructure.caches.repository;
+package com.wsw.fitnesssystem.iam.session.infrastructure.caches;
 
 import com.wsw.fitnesssystem.iam.error.IamAuthNErrorCode;
 import com.wsw.fitnesssystem.iam.session.domain.repository.SessionRepository;
 import com.wsw.fitnesssystem.iam.session.infrastructure.config.SessionProperties;
-import com.wsw.fitnesssystem.shared.infrastructure.properties.AuthRedisKeys;
 import com.wsw.fitnesssystem.shared.kernel.exception.BizException;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
@@ -186,9 +185,9 @@ public class RedisSessionRepository implements SessionRepository {
         redisTemplate.execute(
             saveSessionScript,
             List.of(
-                AuthRedisKeys.onlineKey(campusId, userId),
-                AuthRedisKeys.refreshToAccessKey(campusId, userId),
-                AuthRedisKeys.accessToRefreshKey(campusId, userId)
+                SessionRedisKeys.onlineKey(campusId, userId),
+                SessionRedisKeys.refreshToAccessKey(campusId, userId),
+                SessionRedisKeys.accessToRefreshKey(campusId, userId)
             ),
             accessTokenId, refreshTokenId,
             String.valueOf(now), String.valueOf(ttl)
@@ -203,10 +202,10 @@ public class RedisSessionRepository implements SessionRepository {
         String refreshTokenId = redisTemplate.execute(
             removeSessionScript,
             List.of(
-                AuthRedisKeys.onlineKey(campusId, userId),
-                AuthRedisKeys.refreshToAccessKey(campusId, userId),
-                AuthRedisKeys.accessToRefreshKey(campusId, userId),
-                AuthRedisKeys.blacklistKey(accessTokenId)
+                SessionRedisKeys.onlineKey(campusId, userId),
+                SessionRedisKeys.refreshToAccessKey(campusId, userId),
+                SessionRedisKeys.accessToRefreshKey(campusId, userId),
+                SessionRedisKeys.blacklistKey(accessTokenId)
             ),
             accessTokenId,
             String.valueOf(sessionProperties.getBlacklistExpireMillis())
@@ -231,10 +230,10 @@ public class RedisSessionRepository implements SessionRepository {
         Long newTokenVersion = redisTemplate.execute(
             removeAllSessionsScript,
             List.of(
-                AuthRedisKeys.onlineKey(campusId, userId),
-                AuthRedisKeys.refreshToAccessKey(campusId, userId),
-                AuthRedisKeys.accessToRefreshKey(campusId, userId),
-                AuthRedisKeys.tokenVersionKey(campusId, userId)
+                SessionRedisKeys.onlineKey(campusId, userId),
+                SessionRedisKeys.refreshToAccessKey(campusId, userId),
+                SessionRedisKeys.accessToRefreshKey(campusId, userId),
+                SessionRedisKeys.tokenVersionKey(campusId, userId)
             )
         );
 
@@ -247,7 +246,7 @@ public class RedisSessionRepository implements SessionRepository {
     @Override
     public Set<String> getAllSessions(long campusId, long userId) {
         return redisTemplate.opsForZSet().range(
-            AuthRedisKeys.onlineKey(campusId, userId),
+            SessionRedisKeys.onlineKey(campusId, userId),
             0, -1
         );
     }
@@ -255,34 +254,34 @@ public class RedisSessionRepository implements SessionRepository {
     @Override
     public boolean isOnline(long campusId, long userId, String accessTokenId) {
         Double score = redisTemplate.opsForZSet().score(
-            AuthRedisKeys.onlineKey(campusId, userId), accessTokenId
+            SessionRedisKeys.onlineKey(campusId, userId), accessTokenId
         );
         return score != null;
     }
 
     @Override
     public void addToBlacklist(String accessTokenId) {
-        String blacklistKey = AuthRedisKeys.blacklistKey(accessTokenId);
+        String blacklistKey = SessionRedisKeys.blacklistKey(accessTokenId);
         long ttl = sessionProperties.getBlacklistExpireMillis();
         redisTemplate.opsForValue().set(blacklistKey, "1", ttl, TimeUnit.MILLISECONDS);
     }
 
     @Override
     public boolean isBlacklisted(String accessTokenId) {
-        return redisTemplate.hasKey(AuthRedisKeys.blacklistKey(accessTokenId));
+        return redisTemplate.hasKey(SessionRedisKeys.blacklistKey(accessTokenId));
     }
 
     @Override
     public Long countSessions(long campusId, long userId) {
         return redisTemplate.opsForZSet().zCard(
-            AuthRedisKeys.onlineKey(campusId, userId)
+            SessionRedisKeys.onlineKey(campusId, userId)
         );
     }
 
     @Override
     public Optional<String> getOldestSession(long campusId, long userId) {
         Set<String> set = redisTemplate.opsForZSet().range(
-            AuthRedisKeys.onlineKey(campusId, userId),
+            SessionRedisKeys.onlineKey(campusId, userId),
             0,
             0
         );
@@ -297,13 +296,13 @@ public class RedisSessionRepository implements SessionRepository {
     public long getTokenVersion(long campusId, long userId) {
         return redisTemplate.execute(
             getTokenVersionScript,
-            Collections.singletonList(AuthRedisKeys.tokenVersionKey(campusId, userId))
+            Collections.singletonList(SessionRedisKeys.tokenVersionKey(campusId, userId))
         );
     }
 
     @Override
     public boolean existsRefreshToken(long campusId, long userId, String refreshTokenId) {
-        String key = AuthRedisKeys.refreshToAccessKey(campusId, userId);
+        String key = SessionRedisKeys.refreshToAccessKey(campusId, userId);
         return redisTemplate.opsForHash().hasKey(key, refreshTokenId);
     }
 
@@ -318,10 +317,10 @@ public class RedisSessionRepository implements SessionRepository {
         long result = redisTemplate.execute(
             rotateRefreshTokenScript,
             List.of(
-                AuthRedisKeys.onlineKey(campusId, userId),
-                AuthRedisKeys.refreshToAccessKey(campusId, userId),
-                AuthRedisKeys.accessToRefreshKey(campusId, userId),
-                AuthRedisKeys.blacklistKey(oldAccessTokenId)
+                SessionRedisKeys.onlineKey(campusId, userId),
+                SessionRedisKeys.refreshToAccessKey(campusId, userId),
+                SessionRedisKeys.accessToRefreshKey(campusId, userId),
+                SessionRedisKeys.blacklistKey(oldAccessTokenId)
             ),
             oldRefreshTokenId, oldAccessTokenId,
             newRefreshTokenId, newAccessTokenId,
@@ -337,7 +336,7 @@ public class RedisSessionRepository implements SessionRepository {
 
     @Override
     public String getAccessTokenIdByRefreshTokenId(long campusId, long userId, String refreshTokenId) {
-        String key = AuthRedisKeys.refreshToAccessKey(campusId, userId);
+        String key = SessionRedisKeys.refreshToAccessKey(campusId, userId);
         Object val = redisTemplate.opsForHash().get(key, refreshTokenId);
         if (val == null) {
             // refreshToken不存在：已登出 / 过期 / 伪造

@@ -1,4 +1,4 @@
-package com.wsw.fitnesssystem.iam.risk.infrastructure.repository;
+package com.wsw.fitnesssystem.iam.risk.infrastructure.caches;
 
 import com.wsw.fitnesssystem.iam.risk.domain.model.AccountRiskProfile;
 import com.wsw.fitnesssystem.iam.risk.domain.port.AccountRiskRepository;
@@ -6,7 +6,6 @@ import com.wsw.fitnesssystem.iam.risk.domain.valueobject.AccountIdentifier;
 import com.wsw.fitnesssystem.iam.risk.domain.valueobject.AccountLock;
 import com.wsw.fitnesssystem.iam.risk.domain.valueobject.RiskFailResult;
 import com.wsw.fitnesssystem.iam.risk.domain.valueobject.RiskPolicy;
-import com.wsw.fitnesssystem.shared.infrastructure.properties.AuthRedisKeys;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.script.DefaultRedisScript;
@@ -80,8 +79,8 @@ public class RedisAccountRiskRepository implements AccountRiskRepository {
     @Override
     public Optional<AccountRiskProfile> findByIdentifier(AccountIdentifier identifier) {
         String username = identifier.username();
-        String failKey = AuthRedisKeys.riskUserFailKey(username);
-        String lockKey = AuthRedisKeys.riskUserLockKey(username);
+        String failKey = RiskRedisKeys.riskUserFailKey(username);
+        String lockKey = RiskRedisKeys.riskUserLockKey(username);
 
         String failCountStr = redisTemplate.opsForValue().get(failKey);
         Boolean locked = redisTemplate.hasKey(lockKey);
@@ -100,8 +99,8 @@ public class RedisAccountRiskRepository implements AccountRiskRepository {
     @Override
     public RiskFailResult incrementFailAndGet(AccountIdentifier identifier, RiskPolicy policy) {
         String username = identifier.username();
-        String failKey = AuthRedisKeys.riskUserFailKey(username);
-        String lockKey = AuthRedisKeys.riskUserLockKey(username);
+        String failKey = RiskRedisKeys.riskUserFailKey(username);
+        String lockKey = RiskRedisKeys.riskUserLockKey(username);
 
         long lockTtl = policy.lockDurationSeconds();
         long failTtl = policy.countWindowSeconds();
@@ -127,8 +126,8 @@ public class RedisAccountRiskRepository implements AccountRiskRepository {
     @Override
     public void delete(AccountIdentifier identifier) {
         String username = identifier.username();
-        redisTemplate.delete(AuthRedisKeys.riskUserFailKey(username));
-        redisTemplate.delete(AuthRedisKeys.riskUserLockKey(username));
+        redisTemplate.delete(RiskRedisKeys.riskUserFailKey(username));
+        redisTemplate.delete(RiskRedisKeys.riskUserLockKey(username));
         log.debug("Deleted risk state for user: {}", username);
     }
 
