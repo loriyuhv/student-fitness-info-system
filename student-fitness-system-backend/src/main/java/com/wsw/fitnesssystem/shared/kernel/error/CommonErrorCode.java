@@ -110,6 +110,11 @@ public enum CommonErrorCode implements ErrorCode {
     CACHE_ERROR("common.system.cache_error", "缓存服务异常"),
 
     /**
+     * 数据序列化失败
+     */
+    SERIALIZATION_ERROR("common.serialization.error", "数据序列化失败"),
+
+    /**
      * 系统临时故障（可重试）
      */
     SERVER_TEMP_ERROR("common.system.temp_error", "系统处理异常，请稍候重试"),

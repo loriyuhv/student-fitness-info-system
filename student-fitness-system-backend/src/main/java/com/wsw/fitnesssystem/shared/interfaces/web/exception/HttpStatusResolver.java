@@ -116,6 +116,7 @@ public class HttpStatusResolver {
         reg(CommonErrorCode.SYSTEM_ERROR, HttpStatus.INTERNAL_SERVER_ERROR);
         reg(CommonErrorCode.DATABASE_ERROR, HttpStatus.INTERNAL_SERVER_ERROR);
         reg(CommonErrorCode.CACHE_ERROR, HttpStatus.INTERNAL_SERVER_ERROR);
+        reg(CommonErrorCode.SERIALIZATION_ERROR, HttpStatus.INTERNAL_SERVER_ERROR);
         reg(CommonErrorCode.SERVER_TEMP_ERROR, HttpStatus.INTERNAL_SERVER_ERROR);
         reg(CommonErrorCode.INNER_INTERFACE_ERROR, HttpStatus.INTERNAL_SERVER_ERROR);
         reg(CommonErrorCode.OUTER_INTERFACE_ERROR, HttpStatus.BAD_GATEWAY);
