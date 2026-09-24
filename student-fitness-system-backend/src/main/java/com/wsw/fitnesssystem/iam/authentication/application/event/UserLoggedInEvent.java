@@ -8,7 +8,7 @@ import java.time.LocalDateTime;
 /**
  * 登录成功领域事件
  *
- * <p>由 AuthApplicationService 发布，由审计、风控、会话等模块监听处理。</p>
+ * <p>由 LoginCommandService 发布，由审计、风控、会话等模块监听处理。</p>
  *
  * @author loriyuhv
  * @version 1.0 2026/8/28 16:27

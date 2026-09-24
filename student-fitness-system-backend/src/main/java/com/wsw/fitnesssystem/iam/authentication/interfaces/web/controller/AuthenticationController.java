@@ -32,7 +32,7 @@ import org.springframework.web.bind.annotation.*;
 @Slf4j
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/authn")
+@RequestMapping("/iam/authn")
 public class AuthenticationController {
 
     private final LoginWebAssembler loginWebAssembler;
@@ -61,7 +61,7 @@ public class AuthenticationController {
     /**
      * 退出当前登录
      */
-    @PostMapping("/logout")
+    @GetMapping("/logout")
     public ApiResponse<Void> logout() {
         LogoutCommand command = logoutWebAssembler.toCommand();
         logoutCommandService.logout(command);

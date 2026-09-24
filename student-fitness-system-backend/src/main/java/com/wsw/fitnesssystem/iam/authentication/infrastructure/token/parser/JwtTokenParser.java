@@ -8,6 +8,7 @@ import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.SecurityException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.security.authentication.AuthenticationServiceException;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.CredentialsExpiredException;
@@ -162,7 +163,7 @@ public class JwtTokenParser {
      */
     private Claims parse(String token, SecretKey secretKey, boolean validateAudience) {
         // 1. 基本参数校验
-        if (token == null || token.trim().isEmpty()) {
+        if (StringUtils.isEmpty(token)) {
             throw new BadCredentialsException("访问凭证不能为空");
         }
 

@@ -68,8 +68,8 @@ iam:
       audience: "web-client"
     security:
       permit-all-patterns:
-        - /authn/login
-        - /authn/refresh
+        - /iam/authn/login
+        - /iam/authn/refresh
       bcrypt-strength: 10
   # ---------- 会话子域 ----------
   session:

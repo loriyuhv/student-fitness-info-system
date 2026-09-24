@@ -15,6 +15,7 @@ import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.TypeMismatchException;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
@@ -105,10 +106,8 @@ public class GlobalExceptionHandler {
      */
     @ExceptionHandler(BizException.class)
     public ResponseEntity<ApiResponse<Object>> handleBizException(BizException e) {
-        ErrorCode ec = e.getErrorCode();
-        String finalMsg = buildCombineMessage(ec.message(), e.getMessage());
-        log.warn("Business exception: {}", finalMsg, e);
-        return build(ec, finalMsg);
+        log.warn("Business exception: {}", e.getMessage(), e);
+        return build(e.getErrorCode(), e.getMessage());
     }
 
     // ================================================================
@@ -324,9 +323,8 @@ public class GlobalExceptionHandler {
      */
     @ExceptionHandler(ServletException.class)
     public ResponseEntity<ApiResponse<Object>> handleServletException(ServletException e) {
-        String finalMsg = buildCombineMessage(CommonErrorCode.PARAM_INVALID.message(), e.getMessage());
-        log.warn("Web request exception: {}", finalMsg);
-        return build(CommonErrorCode.PARAM_INVALID, finalMsg);
+        log.warn("Web request exception: {}", e.getMessage());
+        return build(CommonErrorCode.PARAM_INVALID, e.getMessage());
     }
 
     // ================================================================
@@ -362,10 +360,8 @@ public class GlobalExceptionHandler {
      */
     @ExceptionHandler(AuthenticationException.class)
     public ResponseEntity<ApiResponse<Object>> handleAuthenticationException(AuthenticationException e) {
-        String defaultMsg = IamAuthNErrorCode.CREDENTIAL_INVALID.message();
-        String finalMsg = buildCombineMessage(defaultMsg, e.getMessage());
-        log.warn("Authentication failed: {}", finalMsg);
-        return build(IamAuthNErrorCode.CREDENTIAL_INVALID, finalMsg);
+        log.warn("Authentication failed: {}", e.getMessage());
+        return build(IamAuthNErrorCode.CREDENTIAL_INVALID, e.getMessage());
     }
 
     // ================================================================
@@ -434,10 +430,8 @@ public class GlobalExceptionHandler {
      */
     @ExceptionHandler(SystemException.class)
     public ResponseEntity<ApiResponse<Object>> handleSystemException(SystemException e) {
-        ErrorCode ec = e.getErrorCode();
-        String finalMsg = buildCombineMessage(ec.message(), e.getMessage());
-        log.error("System exception: {}", finalMsg, e);
-        return build(ec, finalMsg);
+        log.error("System exception: {}", e.getMessage(), e);
+        return build(e.getErrorCode(), e.getMessage());
     }
 
     /**
@@ -505,7 +499,7 @@ public class GlobalExceptionHandler {
      * @return 合并后的最终消息
      */
     private String buildCombineMessage(String defaultMsg, String customMsg) {
-        if (customMsg == null || customMsg.isBlank() || customMsg.equals(defaultMsg)) {
+        if (StringUtils.isBlank(customMsg) || customMsg.equals(defaultMsg)) {
             return defaultMsg;
         }
         return defaultMsg + "：" + customMsg;

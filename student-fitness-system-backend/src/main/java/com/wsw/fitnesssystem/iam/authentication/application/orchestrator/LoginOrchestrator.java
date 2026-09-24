@@ -174,7 +174,7 @@ public class LoginOrchestrator {
     private LoginResult toLoginResult(TokenPair tokenPair) {
         return new LoginResult(
             tokenPair.getAccessToken(),
-            tokenPair.getRefreshTokenId(),
+            tokenPair.getRefreshToken(),
             tokenPair.getRefreshTokenExpiresIn()
         );
     }
