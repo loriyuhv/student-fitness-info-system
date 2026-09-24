@@ -87,7 +87,7 @@ public class TokenRefreshOrchestrator {
             command.deviceType(), command.userAgent(), command.ip()
         ));
 
-        log.info("Token refreshed: userId={}, campusId={}, oldAccessTokenId={}, newAccessTokenId={}",
+        log.debug("Token refreshed: userId={}, campusId={}, oldAccessTokenId={}, newAccessTokenId={}",
             userId, campusId, oldAccessTokenId, newAccessTokenId);
 
         return new RefreshResult(

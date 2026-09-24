@@ -64,7 +64,7 @@ public class LogoutCommandService {
             )
         );
 
-        log.info("Logout succeeded: userId={}, campusId={}, tokenId={}",
+        log.debug("Logout succeeded: userId={}, campusId={}, tokenId={}",
             command.campusId(), command.userId(), command.accessTokenId()
         );
     }

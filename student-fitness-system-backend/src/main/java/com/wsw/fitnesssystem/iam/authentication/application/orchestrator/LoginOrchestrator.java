@@ -164,7 +164,7 @@ public class LoginOrchestrator {
                 expireTime, deviceType, userAgent, ip)
         );
 
-        log.info("Login succeeded: userId={}, campusId={}, tokenId={}",
+        log.debug("Login succeeded: userId={}, campusId={}, tokenId={}",
             userId, campusId, accessTokenId);
     }
 

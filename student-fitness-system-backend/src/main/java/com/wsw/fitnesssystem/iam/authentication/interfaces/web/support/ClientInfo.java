@@ -12,12 +12,14 @@ import org.apache.commons.lang3.StringUtils;
  */
 public record ClientInfo(
     String deviceId,
+    String deviceType,
     String clientIp,
     String userAgent
 ) {
 
     public ClientInfo {
         deviceId = normalize(deviceId);
+        deviceType = normalize(deviceType);
         clientIp = normalize(clientIp);
         userAgent = normalize(userAgent);
     }

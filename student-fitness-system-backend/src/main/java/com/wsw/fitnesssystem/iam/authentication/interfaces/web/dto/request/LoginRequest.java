@@ -1,6 +1,5 @@
 package com.wsw.fitnesssystem.iam.authentication.interfaces.web.dto.request;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.NotBlank;
 
 /**
@@ -15,7 +14,7 @@ import jakarta.validation.constraints.NotBlank;
  *
  * <p><b>与 LoginCommand 的关系：</b>
  * <ul>
- *   <li>{@code LoginRequest} 是 Web 层的“协议载体”，包含前端直接传入的原始字段（username, password, deviceType）</li>
+ *   <li>{@code LoginRequest} 是 Web 层的“协议载体”，包含前端直接传入的原始字段（username, password）</li>
  *   <li>{@code LoginCommand} 是 Application 层的“业务指令”，包含登录业务所需的所有数据（包括 Web 层提取的 IP、User-Agent）</li>
  *   <li>Controller 负责将 {@code LoginRequest} 与 HttpServletRequest 中的 IP/User-Agent 组合，转换构建成 {@code LoginCommand}</li>
  * </ul>
@@ -35,9 +34,6 @@ public record LoginRequest(
     @NotBlank(message = "用户名不能为空")
     String username,
     @NotBlank(message = "密码不能为空")
-    String password,
-    @JsonProperty("device_type")
-    @NotBlank(message = "设备类型不能为空")
-    String deviceType
+    String password
 ) {
 }

@@ -28,8 +28,8 @@ public class LoginWebAssembler {
         return new LoginCommand(
             loginRequest.username(),
             loginRequest.password(),
-            loginRequest.deviceType(),
             clientInfo.deviceId(),
+            clientInfo.deviceType(),
             clientInfo.clientIp(),
             clientInfo.userAgent()
         );

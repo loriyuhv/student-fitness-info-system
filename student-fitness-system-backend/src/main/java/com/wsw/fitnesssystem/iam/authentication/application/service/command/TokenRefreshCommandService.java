@@ -40,7 +40,6 @@ public class TokenRefreshCommandService {
      * @return 新的令牌对
      */
     public RefreshResult refresh(RefreshCommand command) {
-        log.info("Token refresh use case invoked: deviceType={}", command.deviceType());
         return tokenRefreshOrchestrator.execute(command);
     }
 

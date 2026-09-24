@@ -49,8 +49,8 @@ package com.wsw.fitnesssystem.iam.authentication.application.dto.command;
 public record LoginCommand(
     String username,
     String password,
-    String deviceType,
     String deviceId,
+    String deviceType,
     String ip,
     String userAgent
 ) {

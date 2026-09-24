@@ -42,7 +42,7 @@ public class LoginCommandService {
      * @return 登录结果（Token 对）
      */
     public LoginResult login(LoginCommand command) {
-        log.info("Login use case invoked: username={}, deviceType={}",
+        log.debug("Login use case invoked: username={}, deviceType={}",
             command.username(), command.deviceType());
         return loginOrchestrator.execute(command);
     }

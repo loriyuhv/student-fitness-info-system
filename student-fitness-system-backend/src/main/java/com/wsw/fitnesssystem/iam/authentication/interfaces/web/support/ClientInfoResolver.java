@@ -15,11 +15,13 @@ import org.springframework.stereotype.Component;
 public class ClientInfoResolver {
 
     private static final String HEADER_DEVICE_ID = "X-Device-Id";
+    private static final String HEADER_DEVICE_TYPE = "X-Device-Type";
     private static final String HEADER_USER_AGENT = "User-Agent";
 
     public ClientInfo resolve(HttpServletRequest request) {
         return new ClientInfo(
             request.getHeader(HEADER_DEVICE_ID),
+            request.getHeader(HEADER_DEVICE_TYPE),
             WebUtils.getClientIp(request),
             request.getHeader(HEADER_USER_AGENT)
         );
