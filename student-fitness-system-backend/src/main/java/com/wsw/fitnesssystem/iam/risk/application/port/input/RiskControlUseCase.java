@@ -1,7 +1,7 @@
-package com.wsw.fitnesssystem.iam.risk.application;
+package com.wsw.fitnesssystem.iam.risk.application.port.input;
 
-import com.wsw.fitnesssystem.iam.risk.application.impl.RiskControlAppService;
-import com.wsw.fitnesssystem.iam.risk.domain.valueobject.RiskFailResult;
+import com.wsw.fitnesssystem.iam.risk.application.service.RiskControlAppService;
+import com.wsw.fitnesssystem.iam.risk.domain.vb.RiskFailResult;
 
 /**
  * 风控应用服务接口
@@ -12,7 +12,7 @@ import com.wsw.fitnesssystem.iam.risk.domain.valueobject.RiskFailResult;
  * @version 1.0 2026/3/21 13:58
  * @since 1.0
  */
-public interface RiskControlService {
+public interface RiskControlUseCase {
 
     /**
      * 登录前检查

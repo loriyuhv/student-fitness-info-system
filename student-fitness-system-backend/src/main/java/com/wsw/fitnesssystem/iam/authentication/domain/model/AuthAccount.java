@@ -58,10 +58,10 @@ public class AuthAccount {
         if (campusId == null) {
             throw new DomainValidationException("campusId 不能为空");
         }
-        if (username == null || username.isBlank()) {
+        if (StringUtils.isBlank(username)) {
             throw new DomainValidationException("username 不能为空");
         }
-        if (passwordHash == null || passwordHash.isBlank()) {
+        if (StringUtils.isBlank(passwordHash)) {
             throw new DomainValidationException("passwordHash 不能为空");
         }
         if (userType == null) {

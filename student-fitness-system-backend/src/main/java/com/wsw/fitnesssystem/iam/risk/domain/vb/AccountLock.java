@@ -1,4 +1,4 @@
-package com.wsw.fitnesssystem.iam.risk.domain.valueobject;
+package com.wsw.fitnesssystem.iam.risk.domain.vb;
 
 /**
  * 账号锁定状态 - 值对象

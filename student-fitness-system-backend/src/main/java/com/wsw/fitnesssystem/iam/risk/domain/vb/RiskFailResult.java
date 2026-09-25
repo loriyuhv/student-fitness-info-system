@@ -1,4 +1,4 @@
-package com.wsw.fitnesssystem.iam.risk.domain.valueobject;
+package com.wsw.fitnesssystem.iam.risk.domain.vb;
 
 /**
  * 登录失败处理结果 - 值对象
@@ -12,4 +12,5 @@ package com.wsw.fitnesssystem.iam.risk.domain.valueobject;
  * @version 1.0 2026/8/10 21:10
  * @since 1.0
  */
-public record RiskFailResult(int failCount, boolean locked, int remainingAttempts) {}
+public record RiskFailResult(int failCount, boolean locked, int remainingAttempts) {
+}

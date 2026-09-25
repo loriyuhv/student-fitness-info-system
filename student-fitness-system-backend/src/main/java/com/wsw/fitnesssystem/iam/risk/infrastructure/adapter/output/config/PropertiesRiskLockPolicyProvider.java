@@ -1,12 +1,12 @@
-package com.wsw.fitnesssystem.iam.risk.infrastructure.policy;
+package com.wsw.fitnesssystem.iam.risk.infrastructure.adapter.output.config;
 
-import com.wsw.fitnesssystem.iam.risk.domain.policy.RiskLockPolicy;
-import com.wsw.fitnesssystem.iam.risk.infrastructure.config.RiskPolicyProperties;
+import com.wsw.fitnesssystem.iam.risk.domain.port.output.RiskLockPolicyProvider;
+import com.wsw.fitnesssystem.iam.risk.infrastructure.config.RiskLockPolicyProperties;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 /**
- * 基于配置文件的会话限制策略实现
+ * 基于配置文件的风控锁定策略实现
  *
  * @author loriyuhv
  * @version 1.0 2026/8/27 12:59
@@ -14,9 +14,9 @@ import org.springframework.stereotype.Component;
  */
 @Component
 @RequiredArgsConstructor
-public class ConfigBasedRiskLockPolicy implements RiskLockPolicy {
+public class PropertiesRiskLockPolicyProvider implements RiskLockPolicyProvider {
 
-    private final RiskPolicyProperties riskPolicyProperties;
+    private final RiskLockPolicyProperties riskPolicyProperties;
 
     @Override
     public int getMaxFailCount() {

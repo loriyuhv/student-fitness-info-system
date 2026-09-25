@@ -1,4 +1,4 @@
-package com.wsw.fitnesssystem.iam.risk.domain.valueobject;
+package com.wsw.fitnesssystem.iam.risk.domain.vb;
 
 /**
  * 风控策略 - 值对象
@@ -10,9 +10,9 @@ package com.wsw.fitnesssystem.iam.risk.domain.valueobject;
  * @version 1.0 2026/8/10 21:08
  * @since 1.0
  */
-public record RiskPolicy(int maxFailCount, long lockDurationSeconds, long countWindowSeconds) {
+public record RiskLockPolicy(int maxFailCount, long lockDurationSeconds, long countWindowSeconds) {
 
-    public RiskPolicy {
+    public RiskLockPolicy {
         if (maxFailCount <= 0) {
             throw new IllegalArgumentException("maxFailCount must > 0, got: " + maxFailCount);
         }

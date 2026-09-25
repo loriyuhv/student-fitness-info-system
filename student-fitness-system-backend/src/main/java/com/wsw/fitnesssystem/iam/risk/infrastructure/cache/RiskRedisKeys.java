@@ -1,4 +1,4 @@
-package com.wsw.fitnesssystem.iam.risk.infrastructure.caches;
+package com.wsw.fitnesssystem.iam.risk.infrastructure.cache;
 
 /**
  * Risk 子域 Redis Key 工厂
@@ -17,7 +17,7 @@ package com.wsw.fitnesssystem.iam.risk.infrastructure.caches;
  * @version 1.0 2026/9/23 17:20
  * @since 1.0
  */
-public class RiskRedisKeys {
+public final class RiskRedisKeys {
 
     /**
      * 登录失败计数（String，整数）

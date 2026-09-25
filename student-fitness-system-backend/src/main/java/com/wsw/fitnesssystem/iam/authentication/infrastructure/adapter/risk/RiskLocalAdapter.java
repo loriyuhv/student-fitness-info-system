@@ -2,8 +2,8 @@ package com.wsw.fitnesssystem.iam.authentication.infrastructure.adapter.risk;
 
 import com.wsw.fitnesssystem.iam.authentication.application.port.output.dto.RiskCheckResult;
 import com.wsw.fitnesssystem.iam.authentication.application.port.output.RiskPort;
-import com.wsw.fitnesssystem.iam.risk.application.RiskControlService;
-import com.wsw.fitnesssystem.iam.risk.domain.valueobject.RiskFailResult;
+import com.wsw.fitnesssystem.iam.risk.application.port.input.RiskControlUseCase;
+import com.wsw.fitnesssystem.iam.risk.domain.vb.RiskFailResult;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -16,7 +16,7 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class RiskLocalAdapter implements RiskPort {
 
-    private final RiskControlService riskControlService;
+    private final RiskControlUseCase riskControlService;
 
     @Override
     public void preCheck(String username) {

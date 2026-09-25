@@ -1,7 +1,7 @@
-package com.wsw.fitnesssystem.iam.risk.domain.valueobject;
+package com.wsw.fitnesssystem.iam.risk.domain.vb;
 
-import com.wsw.fitnesssystem.shared.kernel.exception.BizException;
-import com.wsw.fitnesssystem.shared.kernel.error.CommonErrorCode;
+import com.wsw.fitnesssystem.shared.domain.exception.DomainValidationException;
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * 账号标识 - 值对象
@@ -16,8 +16,8 @@ import com.wsw.fitnesssystem.shared.kernel.error.CommonErrorCode;
 public record AccountIdentifier(String username) {
 
     public AccountIdentifier {
-        if (username == null || username.isBlank()) {
-            throw new BizException(CommonErrorCode.PARAM_INVALID);
+        if (StringUtils.isBlank(username)) {
+            throw new DomainValidationException("username 不能为空");
         }
     }
 

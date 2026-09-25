@@ -1,4 +1,4 @@
-package com.wsw.fitnesssystem.iam.risk.domain.policy;
+package com.wsw.fitnesssystem.iam.risk.domain.port.output;
 
 /**
  * 风控锁定策略（Domain 层定义）
@@ -10,7 +10,7 @@ package com.wsw.fitnesssystem.iam.risk.domain.policy;
  * @version 1.0 2026/8/27 12:51
  * @since 1.0
  */
-public interface RiskLockPolicy {
+public interface RiskLockPolicyProvider {
 
     int getMaxFailCount();
 

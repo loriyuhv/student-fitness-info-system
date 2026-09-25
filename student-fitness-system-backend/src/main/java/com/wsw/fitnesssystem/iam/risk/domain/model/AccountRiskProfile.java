@@ -1,8 +1,8 @@
 package com.wsw.fitnesssystem.iam.risk.domain.model;
 
-import com.wsw.fitnesssystem.iam.error.IamRiskErrorCode;
-import com.wsw.fitnesssystem.iam.risk.domain.valueobject.AccountIdentifier;
-import com.wsw.fitnesssystem.iam.risk.domain.valueobject.AccountLock;
+import com.wsw.fitnesssystem.iam.risk.domain.vb.AccountIdentifier;
+import com.wsw.fitnesssystem.iam.risk.domain.vb.AccountLock;
+import com.wsw.fitnesssystem.shared.domain.exception.DomainStateException;
 import com.wsw.fitnesssystem.shared.kernel.exception.BizException;
 import lombok.Getter;
 
@@ -23,7 +23,7 @@ import lombok.Getter;
  * @since 1.0
  */
 @Getter
-public class AccountRiskProfile {
+public final class AccountRiskProfile {
 
     private final AccountIdentifier identifier;
     private final int consecutiveFailCount;
@@ -69,7 +69,7 @@ public class AccountRiskProfile {
      */
     public void checkBeforeLogin() {
         if (lock.status()) {
-            throw new BizException(IamRiskErrorCode.ACCOUNT_LOCKED);
+            throw new DomainStateException("账号已处于禁用状态");
         }
     }
 

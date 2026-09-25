@@ -76,7 +76,7 @@ iam:
     session-expire: 604800
     max-online-sessions: 3
     blacklist-expire: 900
-auth:
+  # ---------- 风控子域 ----------
   risk:
     max-fail-count: 3
     lock-duration-seconds: 900

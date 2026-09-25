@@ -1,9 +1,9 @@
-package com.wsw.fitnesssystem.iam.risk.domain.port;
+package com.wsw.fitnesssystem.iam.risk.domain.repository;
 
 import com.wsw.fitnesssystem.iam.risk.domain.model.AccountRiskProfile;
-import com.wsw.fitnesssystem.iam.risk.domain.valueobject.AccountIdentifier;
-import com.wsw.fitnesssystem.iam.risk.domain.valueobject.RiskFailResult;
-import com.wsw.fitnesssystem.iam.risk.domain.valueobject.RiskPolicy;
+import com.wsw.fitnesssystem.iam.risk.domain.vb.AccountIdentifier;
+import com.wsw.fitnesssystem.iam.risk.domain.vb.RiskFailResult;
+import com.wsw.fitnesssystem.iam.risk.domain.vb.RiskLockPolicy;
 
 import java.util.Optional;
 
@@ -33,7 +33,7 @@ public interface AccountRiskRepository {
      * @param policy     风控策略
      * @return 风控失败结果（包含失败次数、是否锁定、剩余尝试次数）
      */
-    RiskFailResult incrementFailAndGet(AccountIdentifier identifier, RiskPolicy policy);
+    RiskFailResult incrementFailAndGet(AccountIdentifier identifier, RiskLockPolicy policy);
 
     /**
      * 删除风控记录（登录成功、管理员解封时调用）

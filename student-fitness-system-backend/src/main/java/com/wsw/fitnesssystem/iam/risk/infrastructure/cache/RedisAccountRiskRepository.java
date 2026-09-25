@@ -1,11 +1,11 @@
-package com.wsw.fitnesssystem.iam.risk.infrastructure.caches;
+package com.wsw.fitnesssystem.iam.risk.infrastructure.cache;
 
 import com.wsw.fitnesssystem.iam.risk.domain.model.AccountRiskProfile;
-import com.wsw.fitnesssystem.iam.risk.domain.port.AccountRiskRepository;
-import com.wsw.fitnesssystem.iam.risk.domain.valueobject.AccountIdentifier;
-import com.wsw.fitnesssystem.iam.risk.domain.valueobject.AccountLock;
-import com.wsw.fitnesssystem.iam.risk.domain.valueobject.RiskFailResult;
-import com.wsw.fitnesssystem.iam.risk.domain.valueobject.RiskPolicy;
+import com.wsw.fitnesssystem.iam.risk.domain.repository.AccountRiskRepository;
+import com.wsw.fitnesssystem.iam.risk.domain.vb.AccountIdentifier;
+import com.wsw.fitnesssystem.iam.risk.domain.vb.AccountLock;
+import com.wsw.fitnesssystem.iam.risk.domain.vb.RiskFailResult;
+import com.wsw.fitnesssystem.iam.risk.domain.vb.RiskLockPolicy;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.script.DefaultRedisScript;
@@ -19,8 +19,8 @@ import java.util.Optional;
  * 账号风控仓储 - Redis 实现
  *
  * <p>Key 设计:
- * <li>auth:risk:fail:{user}:{username}  → 失败次数（String）</li>
- * <li>auth:risk:lock:{user}:{username}  → 锁定标记（String）</li>
+ * <li>iam:risk:fail:{user}:{username}  → 失败次数（String）</li>
+ * <li>iam:risk:lock:{user}:{username}  → 锁定标记（String）</li>
  *
  * <p>并发安全：使用 Lua 脚本实现原子递增 + 锁定判断。
  *
@@ -97,7 +97,7 @@ public class RedisAccountRiskRepository implements AccountRiskRepository {
     }
 
     @Override
-    public RiskFailResult incrementFailAndGet(AccountIdentifier identifier, RiskPolicy policy) {
+    public RiskFailResult incrementFailAndGet(AccountIdentifier identifier, RiskLockPolicy policy) {
         String username = identifier.username();
         String failKey = RiskRedisKeys.riskUserFailKey(username);
         String lockKey = RiskRedisKeys.riskUserLockKey(username);

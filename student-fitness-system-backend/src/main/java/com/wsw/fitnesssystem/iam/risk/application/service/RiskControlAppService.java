@@ -1,12 +1,12 @@
-package com.wsw.fitnesssystem.iam.risk.application.impl;
+package com.wsw.fitnesssystem.iam.risk.application.service;
 
-import com.wsw.fitnesssystem.iam.risk.application.RiskControlService;
+import com.wsw.fitnesssystem.iam.risk.application.port.input.RiskControlUseCase;
 import com.wsw.fitnesssystem.iam.risk.domain.model.AccountRiskProfile;
-import com.wsw.fitnesssystem.iam.risk.domain.policy.RiskLockPolicy;
-import com.wsw.fitnesssystem.iam.risk.domain.port.AccountRiskRepository;
-import com.wsw.fitnesssystem.iam.risk.domain.valueobject.AccountIdentifier;
-import com.wsw.fitnesssystem.iam.risk.domain.valueobject.RiskFailResult;
-import com.wsw.fitnesssystem.iam.risk.domain.valueobject.RiskPolicy;
+import com.wsw.fitnesssystem.iam.risk.domain.port.output.RiskLockPolicyProvider;
+import com.wsw.fitnesssystem.iam.risk.domain.repository.AccountRiskRepository;
+import com.wsw.fitnesssystem.iam.risk.domain.vb.AccountIdentifier;
+import com.wsw.fitnesssystem.iam.risk.domain.vb.RiskFailResult;
+import com.wsw.fitnesssystem.iam.risk.domain.vb.RiskLockPolicy;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -31,14 +31,14 @@ import org.springframework.stereotype.Service;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class RiskControlAppService implements RiskControlService {
+public class RiskControlAppService implements RiskControlUseCase {
 
-    private final RiskLockPolicy riskLockPolicy;
+    private final RiskLockPolicyProvider riskLockPolicy;
     private final AccountRiskRepository riskRepository;
 
     /** 根据当前配置构建策略值对象 */
-    private RiskPolicy currentPolicy() {
-        return new RiskPolicy(
+    private RiskLockPolicy currentPolicy() {
+        return new RiskLockPolicy(
             riskLockPolicy.getMaxFailCount(),
             riskLockPolicy.getLockDurationSeconds(),
             riskLockPolicy.getCountWindowSeconds()
@@ -57,7 +57,7 @@ public class RiskControlAppService implements RiskControlService {
     @Override
     public RiskFailResult onFail(String username) {
         AccountIdentifier identifier = new AccountIdentifier(username);
-        RiskPolicy policy = currentPolicy();
+        RiskLockPolicy policy = currentPolicy();
         // 直接调用仓储原子操作，无 Java 层竞态
         return riskRepository.incrementFailAndGet(identifier, policy);
     }
