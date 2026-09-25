@@ -78,7 +78,7 @@ iam:
     blacklist-expire: 900
   # ---------- 风控子域 ----------
   risk:
-    max-fail-count: 3
+    max-fail-count: 6
     lock-duration-seconds: 900
     count-window-seconds: 900
 # ================================================================

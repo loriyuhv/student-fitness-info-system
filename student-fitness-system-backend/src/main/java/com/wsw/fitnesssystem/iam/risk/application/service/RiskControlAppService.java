@@ -38,11 +38,7 @@ public class RiskControlAppService implements RiskControlUseCase {
 
     /** 根据当前配置构建策略值对象 */
     private RiskLockPolicy currentPolicy() {
-        return new RiskLockPolicy(
-            riskLockPolicy.getMaxFailCount(),
-            riskLockPolicy.getLockDurationSeconds(),
-            riskLockPolicy.getCountWindowSeconds()
-        );
+        return riskLockPolicy.getPolicy();
     }
 
     @Override
