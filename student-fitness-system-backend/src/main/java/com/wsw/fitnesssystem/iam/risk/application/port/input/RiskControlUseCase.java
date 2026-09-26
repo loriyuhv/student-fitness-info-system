@@ -1,12 +1,14 @@
 package com.wsw.fitnesssystem.iam.risk.application.port.input;
 
-import com.wsw.fitnesssystem.iam.risk.application.service.RiskControlAppService;
 import com.wsw.fitnesssystem.iam.risk.domain.vb.RiskFailResult;
+import com.wsw.fitnesssystem.iam.risk.domain.vb.RiskSubject;
 
 /**
- * 风控应用服务接口
+ * 风控应用服务接口 - 入站端口
  *
- * <p>对外暴露的契约。由 {@link RiskControlAppService} 实现。</p>
+ * <p><b>对外契约：</b>所有方法以 {@link RiskSubject} 为主体，
+ * 不绑定具体维度。调用方通过 {@code RiskSubject.user(...)} 等
+ * 便捷工厂构造主体。</p>
  *
  * @author loriyuhv
  * @version 1.0 2026/3/21 13:58
@@ -15,28 +17,32 @@ import com.wsw.fitnesssystem.iam.risk.domain.vb.RiskFailResult;
 public interface RiskControlUseCase {
 
     /**
-     * 登录前检查
-     * @param username 用户登录名
+     * 访问前检查（登录 / 敏感操作前）。
+     *
+     * @param subject 风控主体
      */
-    void preCheck(String username);
+    void preCheck(RiskSubject subject);
 
     /**
-     * 登录失败处理，返回风控结果
-     * @param username 用户登录名
+     * 访问失败处理，返回风控结果。
+     *
+     * @param subject 风控主体
      * @return 失败结果
      */
-    RiskFailResult onFail(String username);
+    RiskFailResult onFail(RiskSubject subject);
 
     /**
-     * 登录成功处理（重置风控状态）
-     * @param username 用户登录名
+     * 访问成功处理（重置风控状态）。
+     *
+     * @param subject 风控主体
      */
-    void onSuccess(String username);
+    void onSuccess(RiskSubject subject);
 
     /**
-     * 管理员手动解封账号
-     * @param username 用户登录名
+     * 管理员手动解封。
+     *
+     * @param subject 风控主体
      */
-    void unlockAccount(String username);
+    void unlock(RiskSubject subject);
 
 }

@@ -78,9 +78,18 @@ iam:
     blacklist-expire: 900
   # ---------- 风控子域 ----------
   risk:
-    max-fail-count: 6
-    lock-duration-seconds: 900
-    count-window-seconds: 900
+    # 按维度分组的策略参数。每个维度必须配置，否则应用启动失败
+    policies:
+      # 账号维度：登录失败 6 次 → 锁 15 分钟
+      user:
+        max-fail-count: 6
+        lock-duration-seconds: 900
+        count-window-seconds: 900
+      # IP 维度：异常行为 30 次 → 限 5 分钟
+      ip:
+        max-fail-count: 30
+        lock-duration-seconds: 300
+        count-window-seconds: 60
 # ================================================================
 #  Data Exchange 模块配置
 # ================================================================

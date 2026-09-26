@@ -4,6 +4,7 @@ import com.wsw.fitnesssystem.iam.authentication.application.port.output.dto.Risk
 import com.wsw.fitnesssystem.iam.authentication.application.port.output.RiskPort;
 import com.wsw.fitnesssystem.iam.risk.application.port.input.RiskControlUseCase;
 import com.wsw.fitnesssystem.iam.risk.domain.vb.RiskFailResult;
+import com.wsw.fitnesssystem.iam.risk.domain.vb.RiskSubject;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -20,12 +21,12 @@ public class RiskLocalAdapter implements RiskPort {
 
     @Override
     public void preCheck(String username) {
-        riskControlService.preCheck(username);
+        riskControlService.preCheck(RiskSubject.user(username));
     }
 
     @Override
     public RiskCheckResult onFail(String username) {
-        RiskFailResult result = riskControlService.onFail(username);
+        RiskFailResult result = riskControlService.onFail(RiskSubject.user(username));
 
         return RiskCheckResult.builder()
             .failCount(result.failCount())
@@ -36,7 +37,7 @@ public class RiskLocalAdapter implements RiskPort {
 
     @Override
     public void onSuccess(String username) {
-        riskControlService.onSuccess(username);
+        riskControlService.onSuccess(RiskSubject.user(username));
     }
 
 }

@@ -1,17 +1,21 @@
 package com.wsw.fitnesssystem.iam.risk.infrastructure.cache;
 
+import com.wsw.fitnesssystem.iam.risk.domain.vb.RiskSubject;
+
 /**
  * Risk 子域 Redis Key 工厂
  *
- * <p><b>职责：</b>集中定义登录风控相关的 Redis Key 命名。</p>
+ * <p><b>Key 规范：</b>{@code iam:risk:{type}:{dimension}:{identifier}}</p>
  *
- * <p><b>Key 规范：</b>{@code iam:risk:{维度}:{type}:{identifier}}</p>
- *
- * <p><b>identifier 说明：</b>
+ * <p><b>示例：</b>
  * <ul>
- *   <li>type = user 时：identifier 为 username</li>
- *   <li>type = ip 时：identifier 为 IP 地址（预留）</li>
+ *   <li>{@code iam:risk:fail:user:zhangsan}</li>
+ *   <li>{@code iam:risk:lock:user:zhangsan}</li>
+ *   <li>{@code iam:risk:fail:ip:1.2.3.4}</li>
+ *   <li>{@code iam:risk:lock:device:abcd1234}</li>
  * </ul></p>
+ *
+ * <p><b>扩展：</b>新增维度无需修改本类，维度名由 {@link RiskSubject#dimension()} 决定。</p>
  *
  * @author loriyuhv
  * @version 1.0 2026/9/23 17:20
@@ -19,38 +23,32 @@ package com.wsw.fitnesssystem.iam.risk.infrastructure.cache;
  */
 public final class RiskRedisKeys {
 
-    /**
-     * 登录失败计数（String，整数）
-     * <ul>
-     *   <li>Key: {@code iam:risk:fail:user:{username}}</li>
-     *   <li>TTL: 与 {@code iam.risk.count-window-seconds} 一致</li>
-     * </ul>
-     */
-    private static final String FAIL_PREFIX = "iam:risk:fail:user:";
-
-    /**
-     * 账号锁定标记（String）
-     * <ul>
-     *   <li>Key: {@code iam:risk:lock:user:{username}}</li>
-     *   <li>TTL: 与 {@code iam.risk.lock-duration-seconds} 一致</li>
-     * </ul>
-     */
-    private static final String LOCK_PREFIX = "iam:risk:lock:user:";
+    private static final String PREFIX = "iam:risk:";
+    private static final String FAIL_TYPE = "fail";
+    private static final String LOCK_TYPE = "lock";
 
     private RiskRedisKeys() {}
 
     /**
-     * 登录失败计数 Key
+     * 失败计数 Key。
+     *
+     * <p>Key格式：{@code iam:risk:fail:{dimension}:{value}}</p>
      */
-    public static String riskUserFailKey(String username) {
-        return FAIL_PREFIX + username;
+    public static String failKey(RiskSubject subject) {
+        return PREFIX + FAIL_TYPE + ":" + dimensionPart(subject) + ":" + subject.value();
     }
 
     /**
-     * 账号锁定标记 Key
+     * 锁定标记 Key。
+     *
+     * <p>格式：{@code iam:risk:lock:{dimension}:{value}}</p>
      */
-    public static String riskUserLockKey(String username) {
-        return LOCK_PREFIX + username;
+    public static String lockKey(RiskSubject subject) {
+        return PREFIX + LOCK_TYPE + ":" + dimensionPart(subject) + ":" + subject.value();
+    }
+
+    private static String dimensionPart(RiskSubject subject) {
+        return subject.dimension().name().toLowerCase();
     }
 
 }

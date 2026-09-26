@@ -1,9 +1,9 @@
 package com.wsw.fitnesssystem.iam.risk.domain.vb;
 
 /**
- * 登录失败处理结果 - 值对象
+ * 风控失败处理结果 - 值对象
  *
- * <p>由领域层产出，交给应用层决定如何响应/审计。</p>
+ * <p>由领域层产出，交给应用层决定如何响应/审计/通知。</p>
  *
  * @param failCount         当前累计失败次数
  * @param locked            本次是否触发了锁定
