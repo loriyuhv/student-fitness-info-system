@@ -12,5 +12,16 @@ package com.wsw.fitnesssystem.iam.risk.domain.vb;
  * @version 1.0 2026/8/10 21:10
  * @since 1.0
  */
-public record RiskFailResult(int failCount, boolean locked, int remainingAttempts) {
+public record RiskFailResult(int failCount, boolean locked, boolean newlyLocked, int remainingAttempts) {
+
+    /** 领域结果工厂：保证不变量 */
+    public static RiskFailResult from(int failCount, boolean locked, boolean newlyLocked, RiskPolicy policy) {
+        return new RiskFailResult(
+            failCount,
+            locked,
+            newlyLocked,
+            policy.remainingAttempts(failCount, locked)
+        );
+    }
+
 }

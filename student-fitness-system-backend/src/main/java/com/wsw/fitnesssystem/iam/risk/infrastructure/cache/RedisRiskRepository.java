@@ -68,9 +68,8 @@ public class RedisRiskRepository implements RiskRepository {
         local alreadyLocked = redis.call('EXISTS', lockKey)
         if alreadyLocked == 1 then
             -- 已锁定，直接返回当前失败次数（不递增）
-            local currentFail = redis.call('GET', failKey)
-            currentFail = currentFail or 0
-            return {tonumber(currentFail), 1}
+            local currentFail = redis.call('GET', failKey) or 0
+            return {tonumber(currentFail), 1, 0}
         end
         
         -- 2. 未锁定，正常递增
@@ -80,20 +79,28 @@ public class RedisRiskRepository implements RiskRepository {
         redis.call('EXPIRE', failKey, failTtl)
         
         local locked = 0
+        local newlyLocked = 0
         if currentFail >= maxFail then
             redis.call('SET', lockKey, '1', 'EX', lockTtl)
             locked = 1
+            newlyLocked = 1
         end
         
         -- 4. 返回当前失败次数和是否锁定
-        return {currentFail, locked}
+        return {currentFail, locked, newlyLocked}
         """;
 
-    private final RedisScript<List> failScript;
+    private static final RedisScript<List<Object>> FAIL_SCRIPT = buildFailScript();
+
+    @SuppressWarnings({"unchecked"})
+    private static RedisScript<List<Object>> buildFailScript() {
+        Class<List<Object>> listClass = (Class<List<Object>>) (Class<?>) List.class;
+        return new DefaultRedisScript<>(FAIL_LUA_SCRIPT, listClass);
+    }
+
 
     public RedisRiskRepository(StringRedisTemplate redisTemplate) {
         this.redisTemplate = redisTemplate;
-        this.failScript = new DefaultRedisScript<>(FAIL_LUA_SCRIPT, List.class);
     }
 
     // ==================== 端口实现 ====================
@@ -103,11 +110,17 @@ public class RedisRiskRepository implements RiskRepository {
         String failKey = RiskRedisKeys.failKey(subject);
         String lockKey = RiskRedisKeys.lockKey(subject);
 
-        String failCountStr = redisTemplate.opsForValue().get(failKey);
-        Boolean locked = redisTemplate.hasKey(lockKey);
+        // 原则5：使用 multiGet 保证一次网络往返，读取同一时刻的快照
+        List<String> results = redisTemplate.opsForValue().multiGet(List.of(failKey, lockKey));
 
+        if (results == null || results.size() < 2) {
+            return Optional.empty();
+        }
+
+        String failCountStr  = results.get(0);
+        String lockStr  = results.get(1);
         int failCount = (failCountStr == null) ? 0 : Integer.parseInt(failCountStr);
-        LockState lock = locked ? LockState.locked() : LockState.unlocked();
+        LockState lock = (lockStr != null) ? LockState.locked() : LockState.unlocked();
 
         // 无任何记录，返回 empty
         if (failCount == 0 && !lock.status()) {
@@ -123,31 +136,37 @@ public class RedisRiskRepository implements RiskRepository {
         String lockKey = RiskRedisKeys.lockKey(subject);
 
         List<?> result = redisTemplate.execute(
-            failScript,
+            FAIL_SCRIPT,
             List.of(failKey, lockKey),
             String.valueOf(policy.maxFailCount()),
             String.valueOf(policy.lockDurationSeconds()),
             String.valueOf(policy.countWindowSeconds())
         );
 
-        if (result.size() < 2) {
+        // 防御性校验
+        if (result.size() < 3) {
             throw new IllegalStateException("Unexpected Lua result for subject: " + subject.value());
         }
 
-        long currentFail = ((Number) result.get(0)).longValue();
+        int currentFail = ((Number) result.get(0)).intValue();
         boolean locked = ((Number) result.get(1)).intValue() == 1;
-        int remaining = (int) Math.max(0, policy.maxFailCount() - currentFail);
+        boolean newlyLocked = ((Number) result.get(2)).intValue() == 1;
 
-        log.debug("Risk fail recorded: dimension={}, value={}, failCount={}, locked={}, remaining={}",
-            subject.dimension(), subject.value(), currentFail, locked, remaining);
+        // 原则1：调用领域工厂计算 remainingAttempts，Infra 层不再裸算
+        RiskFailResult failResult = RiskFailResult.from(currentFail, locked, newlyLocked, policy);
 
-        return new RiskFailResult((int) currentFail, locked, remaining);
+        log.debug("Risk fail recorded: dimension={}, value={}, result={}",
+            subject.dimension(), subject.value(), failResult);
+
+        return failResult;
     }
 
     @Override
     public void delete(RiskSubject subject) {
-        redisTemplate.delete(RiskRedisKeys.failKey(subject));
-        redisTemplate.delete(RiskRedisKeys.lockKey(subject));
+        String failKey = RiskRedisKeys.failKey(subject);
+        String lockKey = RiskRedisKeys.lockKey(subject);
+        // 原则6：使用多 key DEL，Redis 保证原子性，一次网络往返
+        redisTemplate.delete(List.of(failKey, lockKey));
         log.debug("Deleted risk state: dimension={}, value={}", subject.dimension(), subject.value());
     }
 

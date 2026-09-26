@@ -43,4 +43,15 @@ public record RiskPolicy(
         }
     }
 
+    /** 纯领域判断：是否达到锁定阈值 */
+    public boolean shouldLock(int failCount) {
+        return failCount >= maxFailCount;
+    }
+
+    /** 纯领域计算：剩余尝试次数 */
+    public int remainingAttempts(int failCount, boolean locked) {
+        // 已锁定则剩余为 0，否则计算剩余
+        return locked ? 0 : Math.max(0, maxFailCount - failCount);
+    }
+
 }
