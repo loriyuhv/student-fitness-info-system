@@ -61,7 +61,12 @@ public class RiskControlAppService implements RiskControlUseCase {
     public RiskFailResult onFail(RiskSubject subject) {
         RiskPolicy policy = currentPolicy(subject.dimension());
         // 直接调用仓储原子操作，Java 层无竞态
-        return riskRepository.incrementFailAndGet(subject, policy);
+        RiskFailResult result = riskRepository.recordFailure(subject, policy);
+        if (result.newlyLocked()) {
+            // 发布领域事件，交由监听器处理（审计、告警、通知等）
+            log.info("risk fail result: {}", result);
+        }
+        return result;
     }
 
     @Override

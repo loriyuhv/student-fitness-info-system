@@ -87,7 +87,7 @@ public class RiskAdminController {
      * @return 统一响应包装，成功时 data 为空
      */
     @DeleteMapping("/users/unlock")
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @PreAuthorize("hasRole('ADMIN')")
     public ApiResponse<Void> unlockUser(
         @RequestBody @Valid UnlockUserRequest request) {
         String username = request.username();

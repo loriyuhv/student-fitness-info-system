@@ -37,7 +37,7 @@ public interface RiskRepository {
      * @param policy  该维度对应的策略
      * @return 风控失败结果（失败次数 / 是否锁定 / 剩余尝试次数）
      */
-    RiskFailResult incrementFailAndGet(RiskSubject subject, RiskPolicy policy);
+    RiskFailResult recordFailure(RiskSubject subject, RiskPolicy policy);
 
     /**
      * 删除风控记录（重置状态、管理员解封时调用）。

@@ -8,6 +8,7 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.script.DefaultRedisScript;
 import org.springframework.data.redis.core.script.RedisScript;
 import org.springframework.stereotype.Repository;
+import org.springframework.util.CollectionUtils;
 
 import java.util.List;
 import java.util.Optional;
@@ -82,6 +83,7 @@ public class RedisRiskRepository implements RiskRepository {
         local newlyLocked = 0
         if currentFail >= maxFail then
             redis.call('SET', lockKey, '1', 'EX', lockTtl)
+            redis.call('EXPIRE', failKey, lockTtl)
             locked = 1
             newlyLocked = 1
         end
@@ -131,11 +133,11 @@ public class RedisRiskRepository implements RiskRepository {
     }
 
     @Override
-    public RiskFailResult incrementFailAndGet(RiskSubject subject, RiskPolicy policy) {
+    public RiskFailResult recordFailure(RiskSubject subject, RiskPolicy policy) {
         String failKey = RiskRedisKeys.failKey(subject);
         String lockKey = RiskRedisKeys.lockKey(subject);
 
-        List<?> result = redisTemplate.execute(
+        List<Object> result = redisTemplate.execute(
             FAIL_SCRIPT,
             List.of(failKey, lockKey),
             String.valueOf(policy.maxFailCount()),
@@ -144,7 +146,7 @@ public class RedisRiskRepository implements RiskRepository {
         );
 
         // 防御性校验
-        if (result.size() < 3) {
+        if (CollectionUtils.isEmpty(result) || result.size() < 3) {
             throw new IllegalStateException("Unexpected Lua result for subject: " + subject.value());
         }
 
