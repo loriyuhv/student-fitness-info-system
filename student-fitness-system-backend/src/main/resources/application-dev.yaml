@@ -70,6 +70,7 @@ iam:
       permit-all-patterns:
         - /iam/authn/login
         - /iam/authn/refresh
+        - /error
       bcrypt-strength: 10
   # ---------- 会话子域 ----------
   session:
