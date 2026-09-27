@@ -92,7 +92,7 @@ public class RiskAdminController {
         @RequestBody @Valid UnlockUserRequest request) {
         String username = request.username();
         log.info("Admin unlock invoked: username={}, operator={}", username, currentOperatorName());
-        riskControlUseCase.unlock(RiskSubject.user(username));
+        riskControlUseCase.forceUnlock(RiskSubject.user(username));
         return ApiResponse.success();
     }
 

@@ -10,12 +10,12 @@ import com.wsw.fitnesssystem.iam.authentication.application.port.output.dto.Risk
 public interface RiskPort {
 
     /** 登录前检查 */
-    void preCheck(String username);
+    void checkAccess(String username);
 
     /** 登录失败处理 */
-    RiskCheckResult onFail(String username);
+    RiskCheckResult recordFailure(String username);
 
     /** 登录成功处理 */
-    void onSuccess(String username);
+    void resetState(String username);
 
 }

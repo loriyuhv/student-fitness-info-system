@@ -50,7 +50,7 @@ public class RiskControlAppService implements RiskControlUseCase {
     }
 
     @Override
-    public void preCheck(RiskSubject subject) {
+    public void checkAccess(RiskSubject subject) {
         RiskProfile profile = riskRepository.find(subject)
             .orElse(RiskProfile.create(subject));
         // 只读检查，无竞态风险
@@ -58,7 +58,7 @@ public class RiskControlAppService implements RiskControlUseCase {
     }
 
     @Override
-    public RiskFailResult onFail(RiskSubject subject) {
+    public RiskFailResult recordFailure(RiskSubject subject) {
         RiskPolicy policy = currentPolicy(subject.dimension());
         // 直接调用仓储原子操作，Java 层无竞态
         RiskFailResult result = riskRepository.recordFailure(subject, policy);
@@ -70,14 +70,14 @@ public class RiskControlAppService implements RiskControlUseCase {
     }
 
     @Override
-    public void onSuccess(RiskSubject subject) {
+    public void resetState(RiskSubject subject) {
         riskRepository.delete(subject);
         log.debug("Reset risk state: dimension={}, value={}",
             subject.dimension(), subject.value());
     }
 
     @Override
-    public void unlock(RiskSubject subject) {
+    public void forceUnlock(RiskSubject subject) {
         riskRepository.delete(subject);
         log.info("Admin manually unlocked: dimension={}, value={}",
             subject.dimension(), subject.value());

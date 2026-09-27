@@ -74,7 +74,7 @@ public class LoginOrchestrator {
      */
     public LoginResult execute(LoginCommand command) {
         // 1. 风控前置检查
-        riskPort.preCheck(command.username());
+        riskPort.checkAccess(command.username());
 
         // 2. 用户认证（加载账号 + 密码校验 + 失败统一收口）
         AuthAccount account = authenticate(command);
@@ -149,7 +149,7 @@ public class LoginOrchestrator {
         String deviceType, String userAgent, String ip
     ) {
         // 1. 风控成功处理（清零失败计数）
-        riskPort.onSuccess(username);
+        riskPort.resetState(username);
 
         // 2. 多端登录限制
         sessionPort.limitSessions(campusId, userId);
@@ -190,7 +190,7 @@ public class LoginOrchestrator {
 
     /** 处理风控失败：如达锁定阈值则抛出锁定异常 */
     private void handleRiskOnFailure(String username) {
-        RiskCheckResult result = riskPort.onFail(username);
+        RiskCheckResult result = riskPort.recordFailure(username);
         if (result.locked()) {
             throw new BizException(IamRiskErrorCode.ACCOUNT_LOCKED);
         }

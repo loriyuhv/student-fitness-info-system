@@ -21,7 +21,7 @@ public interface RiskControlUseCase {
      *
      * @param subject 风控主体
      */
-    void preCheck(RiskSubject subject);
+    void checkAccess(RiskSubject subject);
 
     /**
      * 访问失败处理，返回风控结果。
@@ -29,20 +29,20 @@ public interface RiskControlUseCase {
      * @param subject 风控主体
      * @return 失败结果
      */
-    RiskFailResult onFail(RiskSubject subject);
+    RiskFailResult recordFailure(RiskSubject subject);
 
     /**
      * 访问成功处理（重置风控状态）。
      *
      * @param subject 风控主体
      */
-    void onSuccess(RiskSubject subject);
+    void resetState(RiskSubject subject);
 
     /**
      * 管理员手动解封。
      *
      * @param subject 风控主体
      */
-    void unlock(RiskSubject subject);
+    void forceUnlock(RiskSubject subject);
 
 }
