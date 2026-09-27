@@ -1,11 +1,11 @@
-package com.wsw.fitnesssystem.iam.audit.infrastructure.repository;
+package com.wsw.fitnesssystem.iam.audit.infrastructure.persistence.repository;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.wsw.fitnesssystem.iam.audit.domain.model.LoginAudit;
-import com.wsw.fitnesssystem.iam.audit.domain.port.LoginAuditRepository;
-import com.wsw.fitnesssystem.iam.audit.infrastructure.persistence.db.converter.LoginAuditConverter;
-import com.wsw.fitnesssystem.iam.audit.infrastructure.persistence.db.entity.SysUserLogin;
-import com.wsw.fitnesssystem.iam.audit.infrastructure.persistence.db.mapper.SysUserLoginMapper;
+import com.wsw.fitnesssystem.iam.audit.domain.repository.LoginAuditRepository;
+import com.wsw.fitnesssystem.iam.audit.infrastructure.persistence.converter.LoginAuditConverter;
+import com.wsw.fitnesssystem.iam.audit.infrastructure.persistence.entity.SysUserLogin;
+import com.wsw.fitnesssystem.iam.audit.infrastructure.persistence.mapper.SysUserLoginMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Repository;
@@ -22,7 +22,7 @@ import java.util.Optional;
 @Slf4j
 @Repository
 @RequiredArgsConstructor
-public class LoginAuditRepositoryImpl implements LoginAuditRepository {
+public class DbLoginAuditRepository implements LoginAuditRepository {
 
     private final SysUserLoginMapper sysUserLoginMapper;
 

@@ -1,12 +1,12 @@
 package com.wsw.fitnesssystem.iam.audit.application;
 
-import com.wsw.fitnesssystem.iam.audit.application.service.impl.AuditAppServiceImpl;
+import com.wsw.fitnesssystem.iam.audit.application.service.AuditAppService;
 import com.wsw.fitnesssystem.iam.audit.domain.model.LoginAudit;
-import com.wsw.fitnesssystem.iam.audit.domain.port.LoginAuditRepository;
-import com.wsw.fitnesssystem.iam.audit.domain.valueobject.DeviceInfo;
-import com.wsw.fitnesssystem.iam.audit.domain.valueobject.IpAddress;
-import com.wsw.fitnesssystem.iam.audit.domain.valueobject.LogoutReason;
-import com.wsw.fitnesssystem.iam.audit.domain.valueobject.OnlineStatus;
+import com.wsw.fitnesssystem.iam.audit.domain.repository.LoginAuditRepository;
+import com.wsw.fitnesssystem.iam.audit.domain.vb.DeviceInfo;
+import com.wsw.fitnesssystem.iam.audit.domain.vb.IpAddress;
+import com.wsw.fitnesssystem.iam.audit.domain.vb.LogoutReason;
+import com.wsw.fitnesssystem.iam.audit.domain.vb.OnlineStatus;
 import org.apache.ibatis.exceptions.PersistenceException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -33,7 +33,7 @@ class AuditAppServiceImplTest {
     private LoginAuditRepository auditRepository;
 
     @InjectMocks
-    private AuditAppServiceImpl auditAppServiceImpl;
+    private AuditAppService auditAppServiceImpl;
 
     private static final Long USER_ID = 1L;
     private static final String USERNAME = "testUser";

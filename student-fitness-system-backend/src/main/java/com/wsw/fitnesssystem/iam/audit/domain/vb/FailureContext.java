@@ -1,4 +1,4 @@
-package com.wsw.fitnesssystem.iam.audit.domain.valueobject;
+package com.wsw.fitnesssystem.iam.audit.domain.vb;
 
 /**
  * 登录失败上下文（仅失败时存在）

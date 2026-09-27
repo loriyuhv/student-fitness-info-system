@@ -1,11 +1,11 @@
-package com.wsw.fitnesssystem.iam.audit.infrastructure.persistence.db.converter;
+package com.wsw.fitnesssystem.iam.audit.infrastructure.persistence.converter;
 
 import com.wsw.fitnesssystem.iam.audit.domain.model.LoginAudit;
-import com.wsw.fitnesssystem.iam.audit.domain.valueobject.AuditId;
-import com.wsw.fitnesssystem.iam.audit.domain.valueobject.DeviceInfo;
-import com.wsw.fitnesssystem.iam.audit.domain.valueobject.IpAddress;
-import com.wsw.fitnesssystem.iam.audit.domain.valueobject.LogoutReason;
-import com.wsw.fitnesssystem.iam.audit.infrastructure.persistence.db.entity.SysUserLogin;
+import com.wsw.fitnesssystem.iam.audit.domain.vb.AuditId;
+import com.wsw.fitnesssystem.iam.audit.domain.vb.DeviceInfo;
+import com.wsw.fitnesssystem.iam.audit.domain.vb.IpAddress;
+import com.wsw.fitnesssystem.iam.audit.domain.vb.LogoutReason;
+import com.wsw.fitnesssystem.iam.audit.infrastructure.persistence.entity.SysUserLogin;
 
 /**
  * 登录审计对象转换器

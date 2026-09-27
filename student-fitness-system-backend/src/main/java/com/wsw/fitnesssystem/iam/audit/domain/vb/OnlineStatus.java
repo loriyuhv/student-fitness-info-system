@@ -1,4 +1,4 @@
-package com.wsw.fitnesssystem.iam.audit.domain.valueobject;
+package com.wsw.fitnesssystem.iam.audit.domain.vb;
 
 /**
  * 用户在线状态

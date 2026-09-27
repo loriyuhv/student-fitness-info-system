@@ -1,6 +1,6 @@
 package com.wsw.fitnesssystem.iam.authentication.application.port.output.dto;
 
-import com.wsw.fitnesssystem.iam.audit.domain.valueobject.LoginResult;
+import com.wsw.fitnesssystem.iam.audit.domain.vb.LoginResult;
 import com.wsw.fitnesssystem.iam.authentication.application.port.output.TokenPort;
 import lombok.Builder;
 import lombok.Getter;

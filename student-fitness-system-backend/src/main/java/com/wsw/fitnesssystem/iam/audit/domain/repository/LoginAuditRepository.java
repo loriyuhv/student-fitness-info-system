@@ -1,4 +1,4 @@
-package com.wsw.fitnesssystem.iam.audit.domain.port;
+package com.wsw.fitnesssystem.iam.audit.domain.repository;
 
 import com.wsw.fitnesssystem.iam.audit.domain.model.LoginAudit;
 

@@ -1,6 +1,6 @@
 package com.wsw.fitnesssystem.iam.audit.application.listener;
 
-import com.wsw.fitnesssystem.iam.audit.application.service.AuditAppService;
+import com.wsw.fitnesssystem.iam.audit.application.port.input.AuditUseCase;
 import com.wsw.fitnesssystem.iam.authentication.application.event.UserLoginFailedEvent;
 import com.wsw.fitnesssystem.iam.authentication.application.event.UserLoggedInEvent;
 import com.wsw.fitnesssystem.iam.authentication.application.event.TokenRefreshedEvent;
@@ -27,7 +27,7 @@ import java.time.LocalDateTime;
 @RequiredArgsConstructor
 public class AuditEventListener {
 
-    private final AuditAppService auditAppService;
+    private final AuditUseCase auditAppService;
 
     @Async
     @EventListener

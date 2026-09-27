@@ -1,6 +1,6 @@
 package com.wsw.fitnesssystem.iam.session.application.event;
 
-import com.wsw.fitnesssystem.iam.audit.domain.valueobject.LogoutReason;
+import com.wsw.fitnesssystem.iam.audit.domain.vb.LogoutReason;
 import lombok.Getter;
 import org.springframework.context.ApplicationEvent;
 

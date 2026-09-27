@@ -1,6 +1,6 @@
 package com.wsw.fitnesssystem.iam.audit.domain.model;
 
-import com.wsw.fitnesssystem.iam.audit.domain.valueobject.*;
+import com.wsw.fitnesssystem.iam.audit.domain.vb.*;
 import com.wsw.fitnesssystem.iam.error.IamAuthNErrorCode;
 import com.wsw.fitnesssystem.iam.error.IamSessionErrorCode;
 import com.wsw.fitnesssystem.shared.kernel.exception.BizException;

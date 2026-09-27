@@ -1,8 +1,8 @@
 package com.wsw.fitnesssystem.iam.audit;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.wsw.fitnesssystem.iam.audit.infrastructure.persistence.db.entity.SysUserLogin;
-import com.wsw.fitnesssystem.iam.audit.infrastructure.persistence.db.mapper.SysUserLoginMapper;
+import com.wsw.fitnesssystem.iam.audit.infrastructure.persistence.entity.SysUserLogin;
+import com.wsw.fitnesssystem.iam.audit.infrastructure.persistence.mapper.SysUserLoginMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;

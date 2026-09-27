@@ -2,8 +2,9 @@ package com.wsw.fitnesssystem.iam.audit.infrastructure.persistence.db.converter;
 
 
 import com.wsw.fitnesssystem.iam.audit.domain.model.LoginAudit;
-import com.wsw.fitnesssystem.iam.audit.domain.valueobject.*;
-import com.wsw.fitnesssystem.iam.audit.infrastructure.persistence.db.entity.SysUserLogin;
+import com.wsw.fitnesssystem.iam.audit.domain.vb.*;
+import com.wsw.fitnesssystem.iam.audit.infrastructure.persistence.converter.LoginAuditConverter;
+import com.wsw.fitnesssystem.iam.audit.infrastructure.persistence.entity.SysUserLogin;
 import org.junit.jupiter.api.Test;
 
 import java.time.LocalDateTime;

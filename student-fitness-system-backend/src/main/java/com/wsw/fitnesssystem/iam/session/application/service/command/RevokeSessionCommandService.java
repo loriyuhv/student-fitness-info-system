@@ -1,6 +1,6 @@
 package com.wsw.fitnesssystem.iam.session.application.service.command;
 
-import com.wsw.fitnesssystem.iam.audit.domain.valueobject.LogoutReason;
+import com.wsw.fitnesssystem.iam.audit.domain.vb.LogoutReason;
 import com.wsw.fitnesssystem.iam.error.IamAuthNErrorCode;
 import com.wsw.fitnesssystem.iam.session.application.dto.command.RevokeSessionCommand;
 import com.wsw.fitnesssystem.iam.session.application.dto.result.RevokeSessionResult;

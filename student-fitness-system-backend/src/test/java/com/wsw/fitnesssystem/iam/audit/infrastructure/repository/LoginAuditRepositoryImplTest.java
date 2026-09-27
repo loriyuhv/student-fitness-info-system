@@ -2,13 +2,14 @@ package com.wsw.fitnesssystem.iam.audit.infrastructure.repository;
 
 import com.wsw.fitnesssystem.iam.audit.AbstractAuditIntegrationTest;
 import com.wsw.fitnesssystem.iam.audit.domain.model.LoginAudit;
-import com.wsw.fitnesssystem.iam.audit.domain.port.LoginAuditRepository;
-import com.wsw.fitnesssystem.iam.audit.domain.valueobject.DeviceInfo;
-import com.wsw.fitnesssystem.iam.audit.domain.valueobject.IpAddress;
-import com.wsw.fitnesssystem.iam.audit.domain.valueobject.LogoutReason;
-import com.wsw.fitnesssystem.iam.audit.domain.valueobject.OnlineStatus;
-import com.wsw.fitnesssystem.iam.audit.infrastructure.persistence.db.converter.LoginAuditConverter;
-import com.wsw.fitnesssystem.iam.audit.infrastructure.persistence.db.entity.SysUserLogin;
+import com.wsw.fitnesssystem.iam.audit.domain.repository.LoginAuditRepository;
+import com.wsw.fitnesssystem.iam.audit.domain.vb.DeviceInfo;
+import com.wsw.fitnesssystem.iam.audit.domain.vb.IpAddress;
+import com.wsw.fitnesssystem.iam.audit.domain.vb.LogoutReason;
+import com.wsw.fitnesssystem.iam.audit.domain.vb.OnlineStatus;
+import com.wsw.fitnesssystem.iam.audit.infrastructure.persistence.converter.LoginAuditConverter;
+import com.wsw.fitnesssystem.iam.audit.infrastructure.persistence.entity.SysUserLogin;
+import com.wsw.fitnesssystem.iam.audit.infrastructure.persistence.repository.DbLoginAuditRepository;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -22,7 +23,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatNoException;
 
 /**
- * {@link LoginAuditRepositoryImpl} 集成测试
+ * {@link DbLoginAuditRepository} 集成测试
  *
  * <p>DisplayName：JUnit 5（Jupiter）专属注解，**给测试类 / 测试方法起一个可读性强的展示名称**，
  * 只会影响报告、控制台输出，**不改变任何测试逻辑、执行流程**。</p>

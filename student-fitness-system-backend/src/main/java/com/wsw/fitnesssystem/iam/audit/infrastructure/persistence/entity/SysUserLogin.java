@@ -1,4 +1,4 @@
-package com.wsw.fitnesssystem.iam.audit.infrastructure.persistence.db.entity;
+package com.wsw.fitnesssystem.iam.audit.infrastructure.persistence.entity;
 
 import com.baomidou.mybatisplus.annotation.*;
 import lombok.Data;

@@ -1,6 +1,6 @@
 package com.wsw.fitnesssystem.iam.authentication.application.service.command;
 
-import com.wsw.fitnesssystem.iam.audit.domain.valueobject.LogoutReason;
+import com.wsw.fitnesssystem.iam.audit.domain.vb.LogoutReason;
 import com.wsw.fitnesssystem.iam.authentication.application.dto.command.LogoutCommand;
 import com.wsw.fitnesssystem.iam.session.application.event.SessionTerminatedEvent;
 import com.wsw.fitnesssystem.iam.authentication.application.port.output.SessionPort;

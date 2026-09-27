@@ -1,4 +1,4 @@
-package com.wsw.fitnesssystem.iam.audit.domain.valueobject;
+package com.wsw.fitnesssystem.iam.audit.domain.vb;
 
 /**
  * 审计记录 ID
